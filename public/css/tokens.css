@@ -1,0 +1,206 @@
+/* ==================== SQRRR DESIGN TOKENS ==================== */
+/* Central place for all colors, spacing, typography, and other design values */
+
+:root {
+  /* ==================== COLOR PALETTE ==================== */
+
+  /* Primary Colors */
+  --color-primary: #0054e3;
+  --color-primary-dark: #316ac5;
+  --color-primary-hover: #003eb3;
+  --color-accent: #ff6600;
+
+  /* Status Colors */
+  --color-success: #008000;
+  --color-success-light: #006600;
+  --color-success-dark: #00aa00;
+  --color-success-bg: #c1ffc1;
+  --color-error: #cc0000;
+  --color-error-bright: #ff0000;
+  --color-error-bg: #ffcccc;
+  --color-warning: #ffcc00;
+  --color-warning-bg: #ffffcc;
+  --color-warning-border: #b8860b;
+
+  /* Gray Scale */
+  --color-white: #fff;
+  --color-gray-50: #f5f5f5;
+  --color-gray-100: #f0f0f0;
+  --color-gray-150: #e8eaed;
+  --color-gray-200: #e0e0e0;
+  --color-gray-250: #ddd;
+  --color-gray-300: #ccc;
+  --color-gray-350: #bbb;
+  --color-gray-400: #999;
+  --color-gray-450: #888;
+  --color-gray-500: #808080;
+  --color-gray-600: #666;
+  --color-gray-650: #555;
+  --color-gray-700: #333;
+  --color-gray-800: #0a0a0a;
+  --color-black: #000;
+
+  /* XP Theme Colors */
+  --xp-bg: #ece9d8;
+  --xp-bg-dark: #d4d0c4;
+  --xp-bg-hover: #e0dccf;
+  --xp-border-light: #fff;
+  --xp-border-medium: #dfdfdf;
+  --xp-border-dark: #808080;
+  --xp-border-shadow: #0a0a0a;
+  --xp-desktop-bg: #3a6ea5;
+
+  /* XP Window/Control Colors */
+  --xp-border-blue: #7b9ebd;
+  --xp-highlight: #c1d2ee;
+  --xp-highlight-strong: #e8f0ff;
+
+  /* MSN Messenger Theme */
+  --msn-sidebar: #85a4e4;
+  --msn-sidebar-light: #adc2ec;
+  --msn-gradient-start: #6f91de;
+  --msn-gradient-end: #5a7bc0;
+  --msn-border: #4a6ab0;
+
+  /* Link Colors */
+  --color-link: #0000ff;
+  --color-link-hover: #0066cc;
+
+  /* Hint Display */
+  --hint-bg: #ffffd0;
+
+  /* ==================== SPACING SCALE ==================== */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 5px;
+  --space-4: 8px;
+  --space-5: 9px;
+  --space-6: 10px;
+  --space-7: 11px;
+  --space-8: 12px;
+  --space-9: 14px;
+  --space-10: 15px;
+  --space-11: 16px;
+  --space-12: 20px;
+  --space-14: 23px;
+  --space-16: 28px;
+  --space-20: 37px;
+
+  /* ==================== TYPOGRAPHY ==================== */
+  --font-family: 'Tahoma', 'Segoe UI', Geneva, Verdana, sans-serif;
+  --font-family-mono: 'Courier New', monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 15px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+  --font-size-5xl: 37px;
+  --font-size-6xl: 55px;
+  --font-size-huge: 80px;
+
+  /* Line Heights */
+  --line-height-tight: 1;
+  --line-height-snug: 1.25;
+  --line-height-normal: 1.5;
+
+  /* ==================== BORDERS ==================== */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 9px;
+  --border-radius-full: 50%;
+
+  /* XP-style 3D borders */
+  --xp-inset-shadow: inset -1px -1px var(--xp-border-light),
+                     inset 1px 1px var(--xp-border-dark),
+                     inset -2px -2px var(--xp-border-medium),
+                     inset 2px 2px var(--xp-border-shadow);
+
+  --xp-outset-shadow: inset 1px 1px var(--xp-border-shadow),
+                      inset -1px -1px var(--xp-border-light),
+                      inset 2px 2px var(--xp-border-dark),
+                      inset -2px -2px var(--xp-border-medium);
+
+  /* ==================== SHADOWS ==================== */
+  --shadow-sm: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 4px 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-glow-primary: 0 0 5px rgba(0, 84, 227, 0.3);
+  --shadow-glow-success: 0 0 5px #28a745;
+  --shadow-overlay: rgba(0, 0, 0, 0.5);
+
+  /* ==================== TRANSITIONS ==================== */
+  --transition-fast: 100ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* ==================== Z-INDEX LAYERS ==================== */
+  --z-dropdown: 100;
+  --z-sticky: 500;
+  --z-modal: 1000;
+  --z-tooltip: 1100;
+  --z-notification: 1200;
+
+  /* ==================== COMPONENT SIZES ==================== */
+  /* Avatars */
+  --avatar-xs: 28px;
+  --avatar-sm: 37px;
+  --avatar-md: 74px;
+  --avatar-lg: 96px;
+  --avatar-xl: 110px;
+
+  /* Window widths */
+  --window-login: 390px;
+  --window-hub: 460px;
+  --window-menu: 520px;
+  --window-lobby: 575px;
+  --window-game: 1000px;
+  --window-profile: 520px;
+  --window-popup: 400px;
+
+  /* Keyboard key sizes */
+  --key-size: 35px;
+  --key-size-mobile: 28px;
+}
+
+/* ==================== DARK THEME (Fellowship/ArcRaiders) ==================== */
+.dark-theme {
+  --color-bg: #0f1419;
+  --color-bg-secondary: #1a1f2e;
+  --color-bg-tertiary: #1e2432;
+  --color-text: #e8eaed;
+  --color-text-muted: #9ca3af;
+  --color-border: #374151;
+}
+
+/* ==================== FOCUS STATES ==================== */
+/* Visible focus for keyboard navigation (accessibility) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* XP-style focus for form controls */
+.xp-input:focus-visible,
+.xp-select:focus-visible,
+.xp-textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--xp-inset-shadow), 0 0 0 1px var(--color-primary);
+}
+
+/* XP-style button focus */
+.xp-btn:focus-visible {
+  outline: 1px dotted var(--color-black);
+  outline-offset: -4px;
+}
