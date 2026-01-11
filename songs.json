@@ -1,0 +1,3084 @@
+[
+  {
+    "id": 1,
+    "file": "professor-layton-and-the-curious-village-main-theme.mp3",
+    "game": "Profesor Layton y la villa misteriosa",
+    "gameAliases": [
+      "profesor layton y la villa misteriosa",
+      "professor layton and the curious village",
+      "professor layton curious village",
+      "layton curious village",
+      "la villa misteriosa"
+    ],
+    "song": "Professor Layton's Theme"
+  },
+  {
+    "id": 2,
+    "file": "buck-bumble-main-theme.mp3",
+    "game": "Buck Bumble",
+    "gameAliases": [
+      "buck bumble"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 3,
+    "file": "apex-legends-main-theme.mp3",
+    "game": "Apex Legends",
+    "gameAliases": [
+      "Apex Legends",
+      "Apex"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 4,
+    "file": "bully-walking.mp3",
+    "game": "Bully: Scholarship Edition",
+    "gameAliases": [
+      "Bully",
+      "Bully Scholarship",
+      "Bully Scholarship Edition"
+    ],
+    "song": "Walking"
+  },
+  {
+    "id": 5,
+    "file": "call-of-duty-4-modern-warfare-main-theme.mp3",
+    "game": "Call of Duty 4: Modern Warfare",
+    "gameAliases": [
+      "Call of Duty 4 Modern Warfare",
+      "Call of Duty 4",
+      "COD 4",
+      "Modern Warfare 1",
+      "COD4"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 6,
+    "file": "doom-eternal-bfg-division.mp3",
+    "game": "DOOM Eternal",
+    "gameAliases": [
+      "Doom Eternal"
+    ],
+    "song": "BFG Division"
+  },
+  {
+    "id": 7,
+    "file": "hearthstone-duel.mp3",
+    "game": "Hearthstone",
+    "gameAliases": [
+      "Hearthstone"
+    ],
+    "song": "Duel"
+  },
+  {
+    "id": 8,
+    "file": "minecraft-sweden.mp3",
+    "game": "Minecraft",
+    "gameAliases": [
+      "Minecraft"
+    ],
+    "song": "Sweden"
+  },
+  {
+    "id": 9,
+    "file": "need-for-speed-carbon-tuning.mp3",
+    "game": "Need for Speed Carbono",
+    "gameAliases": [
+      "Need for Speed Carbon",
+      "Need for Speed Carbono",
+      "NFS Carbon",
+      "NFS Carbono"
+    ],
+    "song": "Tuning"
+  },
+  {
+    "id": 10,
+    "file": "plants-vs-zombies-main-theme.mp3",
+    "game": "Plants vs Zombies",
+    "gameAliases": [
+      "Plantas vs Zombies",
+      "Plants vs Zombies",
+      "Plantas contra Zombies",
+      "PvZ"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 11,
+    "file": "rocket-league-main-theme.mp3",
+    "game": "Rocket League",
+    "gameAliases": [
+      "Rocket League"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 12,
+    "file": "streets-of-rage-2-in-the-bar.mp3",
+    "game": "Streets of Rage 2",
+    "gameAliases": [
+      "Streets of Rage 2"
+    ],
+    "song": "In the bar"
+  },
+  {
+    "id": 13,
+    "file": "the-sims-3-main-theme.mp3",
+    "game": "The Sims 3",
+    "gameAliases": [
+      "Sims 3",
+      "The Sims 3",
+      "Los Sims 3"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 14,
+    "file": "worms-revolution-rock-pool.mp3",
+    "game": "Worms Revolution",
+    "gameAliases": [
+      "Worms Revolution",
+      "Worms Revolucion"
+    ],
+    "song": "Beach Theme"
+  },
+  {
+    "id": 15,
+    "file": "arc-raiders-the-rust-belt.mp3",
+    "game": "ARC Raiders",
+    "gameAliases": [
+      "ARC Raiders",
+      "ARC Riders"
+    ],
+    "song": "The Rust Belt"
+  },
+  {
+    "id": 16,
+    "file": "persona-5-royale-wake-up.mp3",
+    "game": "Persona 5 Royale",
+    "gameAliases": [
+      "Persona 5 Royale",
+      "Persona 5 Royal",
+      "Persona 5"
+    ],
+    "song": "Wake up"
+  },
+  {
+    "id": 17,
+    "file": "mario-kart-8-main-theme.mp3",
+    "game": "Mario Kart 8",
+    "gameAliases": [
+      "Mario Kart 8",
+      "MK8"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 18,
+    "file": "zelda-ocarina-of-time-kokiri-forest.mp3",
+    "game": "The Legend of Zelda: Ocarina of Time",
+    "gameAliases": [
+      "The Legend of Zelda Ocarina of Time",
+      "Ocarina of Time",
+      "Zelda Ocarina of Time",
+      "OOT"
+    ],
+    "song": "Kokiri Forest"
+  },
+  {
+    "id": 19,
+    "file": "zelda-ocarina-of-time-hyrule-field.mp3",
+    "game": "The Legend of Zelda: Ocarina of Time",
+    "gameAliases": [
+      "The Legend of Zelda Ocarina of Time",
+      "Ocarina of Time",
+      "Zelda Ocarina of Time",
+      "OOT"
+    ],
+    "song": "Hyrule Field"
+  },
+  {
+    "id": 20,
+    "file": "zelda-ocarina-of-time-lost-woods.mp3",
+    "game": "The Legend of Zelda: Ocarina of Time",
+    "gameAliases": [
+      "The Legend of Zelda Ocarina of Time",
+      "Ocarina of Time",
+      "Zelda Ocarina of Time",
+      "OOT"
+    ],
+    "song": "Lost Woods"
+  },
+  {
+    "id": 21,
+    "file": "animal-crossing-new-horizons-main-theme.mp3",
+    "game": "Animal Crossing: New Horizons",
+    "gameAliases": [
+      "Animal Crossing New Horizons",
+      "New Horizons",
+      "ACNH"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 22,
+    "file": "persona-4-specialist.mp3",
+    "game": "Persona 4",
+    "gameAliases": [
+      "Persona 4"
+    ],
+    "song": "Specialist"
+  },
+  {
+    "id": 23,
+    "file": "animal-crossing-city-folk-nooks-cranny.mp3",
+    "game": "Animal Crossing: City Folk",
+    "gameAliases": [
+      "Animal Crossing City Folk",
+      "City Folk",
+      "Animal Crossing Lets Go to the City"
+    ],
+    "song": "Nook's Cranny"
+  },
+  {
+    "id": 24,
+    "file": "the-legend-of-zelda-breath-of-the-wild-rito-village.mp3",
+    "game": "The Legend of Zelda: Breath of The Wild",
+    "gameAliases": [
+      "Breath of The Wild",
+      "Breath of the Wild",
+      "botw",
+      "Zelda Breath of the Wild"
+    ],
+    "song": "Rito Village"
+  },
+  {
+    "id": 25,
+    "file": "cuphead-floral-fury.mp3",
+    "game": "Cuphead",
+    "gameAliases": [
+      "Cuphead"
+    ],
+    "song": "Floral Fury"
+  },
+  {
+    "id": 26,
+    "file": "dark-souls-3-soul-of-cinder.mp3",
+    "game": "Dark Souls 3",
+    "gameAliases": [
+      "Dark Souls 3",
+      "Dark Souls III"
+    ],
+    "song": "Soul of Cinder"
+  },
+  {
+    "id": 27,
+    "file": "pokemon-ruby-elite-four.mp3",
+    "game": "Pokemon Rubi y Zafiro",
+    "gameAliases": [
+      "Pokemon rubi",
+      "pokemon zafiro",
+      "pokemon esmeralda",
+      "pokemon ruby",
+      "pokemon sapphire",
+      "pokemon emerald",
+      "pokemon rubi y zafiro",
+      "pokemon ruby and sapphire"
+    ],
+    "song": "Alto Mando"
+  },
+  {
+    "id": 28,
+    "file": "the-last-of-us-main-theme.mp3",
+    "game": "The Last of Us",
+    "gameAliases": [
+      "The Last of Us",
+      "TLOU",
+      "The Last of Us 1",
+      "TLOU1"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 29,
+    "file": "banjo-kazooie-main-theme.mp3",
+    "game": "Banjo Kazooie",
+    "gameAliases": [
+      "Banjo Kazooie",
+      "Banjo-Kazooie"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 30,
+    "file": "donkey-kong-country-tropical-freeze-aquatic-ambience.mp3",
+    "game": "Donkey Kong Country: Tropical Freeze",
+    "gameAliases": [
+      "Donkey Kong Country Tropical Freeze",
+      "Tropical Freeze",
+      "DKC Tropical Freeze"
+    ],
+    "song": "Aquatic Ambience"
+  },
+  {
+    "id": 31,
+    "file": "kingdom-hearts-2-the-13th-dilemma.mp3",
+    "game": "Kingdom Hearts 2",
+    "gameAliases": [
+      "Kingdom Hearts 2",
+      "Kingdom Hearts II",
+      "KH2"
+    ],
+    "song": "The 13th Dilemma"
+  },
+  {
+    "id": 32,
+    "file": "kingdom-hearts-2-vim-and-vigor.mp3",
+    "game": "Kingdom Hearts 2",
+    "gameAliases": [
+      "Kingdom Hearts 2",
+      "Kingdom Hearts II",
+      "KH2"
+    ],
+    "song": "Vim and Vigor"
+  },
+  {
+    "id": 33,
+    "file": "splatoon-splattack.mp3",
+    "game": "Splatoon",
+    "gameAliases": [
+      "Splatoon",
+      "Splatoon 1"
+    ],
+    "song": "Splattack"
+  },
+  {
+    "id": 34,
+    "file": "wii-sports-tennis-results.mp3",
+    "game": "Wii Sports",
+    "gameAliases": [
+      "Wii Sports"
+    ],
+    "song": "Tennis Results"
+  },
+  {
+    "id": 35,
+    "file": "wii-sports-main-theme.mp3",
+    "game": "Wii Sports",
+    "gameAliases": [
+      "Wii Sports"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 36,
+    "file": "new-super-mario-bros-overworld.mp3",
+    "game": "New Super Mario Bros.",
+    "gameAliases": [
+      "New Super Mario Bros",
+      "NSMB"
+    ],
+    "song": "Overworld"
+  },
+  {
+    "id": 37,
+    "file": "undertale-megalovania.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Megalovania"
+  },
+  {
+    "id": 38,
+    "file": "jojos-bizarre-adventure-bloody-stream.mp3",
+    "game": "Jojo's Bizarre Adventure",
+    "gameAliases": [
+      "Jojos Bizarre Adventure",
+      "Jojo's Bizarre Adventure",
+      "JoJo",
+      "Jojos"
+    ],
+    "song": "Bloody Stream"
+  },
+  {
+    "id": 39,
+    "file": "kingdom-hearts-simple-and-clean.mp3",
+    "game": "Kingdom Hearts",
+    "gameAliases": [
+      "Kingdom Hearts",
+      "Kingdom Hearts 1",
+      "KH1"
+    ],
+    "song": "Simple and Clean"
+  },
+  {
+    "id": 40,
+    "file": "jet-set-radio-sneakman.mp3",
+    "game": "Jet Set Radio",
+    "gameAliases": [
+      "Jet Set Radio",
+      "JSR",
+      "Jet Grind Radio"
+    ],
+    "song": "Sneakman"
+  },
+  {
+    "id": 41,
+    "file": "pokemon-black-pokemon-center.mp3",
+    "game": "Pokemon Blanco y Negro",
+    "gameAliases": [
+      "Pokemon blanco",
+      "pokemon negro",
+      "pokemon black",
+      "pokemon white",
+      "pokemon blanco y negro",
+      "pokemon black and white"
+    ],
+    "song": "Pokemon Center"
+  },
+  {
+    "id": 42,
+    "file": "pokemon-red-gym-battle.mp3",
+    "game": "Pokemon Rojo y Azul",
+    "gameAliases": [
+      "Pokemon rojo",
+      "Pokemon azul",
+      "pokemon red",
+      "pokemon blue",
+      "pokemon rojo y azul",
+      "pokemon red and blue",
+      "pokemon amarillo",
+      "pokemon yellow"
+    ],
+    "song": "Lider de Gimnasio"
+  },
+  {
+    "id": 43,
+    "file": "team-fortress-2-faster-than-a-speeding-bullet.mp3",
+    "game": "Team Fortress 2",
+    "gameAliases": [
+      "Team Fortress 2",
+      "tf2"
+    ],
+    "song": "Faster Than a Speeding Bullet"
+  },
+  {
+    "id": 44,
+    "file": "the-legend-of-zelda-overworld-of-hyrule.mp3",
+    "game": "The Legend of Zelda",
+    "gameAliases": [
+      "The Legend of Zelda",
+      "Zelda 1",
+      "Zelda NES",
+      "The Legend of Zelda 1"
+    ],
+    "song": "Overworld of Hyrule"
+  },
+  {
+    "id": 45,
+    "file": "kirby-super-star-ultra-vs-king-dedede.mp3",
+    "game": "Kirby Super Star Ultra",
+    "gameAliases": [
+      "Kirby Super Star Ultra",
+      "Kirby Super Star",
+      "Super Star Ultra"
+    ],
+    "song": "Vs King Dedede"
+  },
+  {
+    "id": 46,
+    "file": "silent-hill-2-true.mp3",
+    "game": "Silent Hill 2",
+    "gameAliases": [
+      "Silent Hill 2",
+      "SH2"
+    ],
+    "song": "True"
+  },
+  {
+    "id": 47,
+    "file": "silent-hill-2-promise.mp3",
+    "game": "Silent Hill 2",
+    "gameAliases": [
+      "Silent Hill 2",
+      "SH2"
+    ],
+    "song": "Promise"
+  },
+  {
+    "id": 48,
+    "file": "hades-god-of-the-dead.mp3",
+    "game": "Hades",
+    "gameAliases": [
+      "Hades",
+      "Hades 1"
+    ],
+    "song": "God of the Dead"
+  },
+  {
+    "id": 49,
+    "file": "wii-sports-resort-main-theme.mp3",
+    "game": "Wii Sports Resort",
+    "gameAliases": [
+      "Wii Sports Resort"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 50,
+    "file": "grand-theft-auto-san-andreas-main-theme.mp3",
+    "game": "Grand Theft Auto San Andreas",
+    "gameAliases": [
+      "Grand Theft Auto San Andreas",
+      "gta san andreas",
+      "san andreas",
+      "GTA SA"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 51,
+    "file": "tekken-7-infinite-azure.mp3",
+    "game": "Tekken 7",
+    "gameAliases": [
+      "Tekken 7"
+    ],
+    "song": "Infinite Azure"
+  },
+  {
+    "id": 52,
+    "file": "tekken-7-gcorp-helipad.mp3",
+    "game": "Tekken 7",
+    "gameAliases": [
+      "Tekken 7"
+    ],
+    "song": "GCorp Helipad"
+  },
+  {
+    "id": 53,
+    "file": "left-4-dead-witch-theme.mp3",
+    "game": "Left 4 Dead",
+    "gameAliases": [
+      "Left 4 Dead",
+      "Left 4 Dead 1",
+      "L4D",
+      "L4D1"
+    ],
+    "song": "Witch"
+  },
+  {
+    "id": 54,
+    "file": "gran-turismo-4-mission-impossible.mp3",
+    "game": "Gran Turismo 4",
+    "gameAliases": [
+      "Gran Turismo 4",
+      "GT4"
+    ],
+    "song": "Mission Impossible"
+  },
+  {
+    "id": 55,
+    "file": "sly-2-paris-rooftops.mp3",
+    "game": "Sly 2: Ladrones de Guante Blanco",
+    "gameAliases": [
+      "sly 2",
+      "sly cooper 2",
+      "Sly 2 Band of Thieves"
+    ],
+    "song": "Paris Rooftops"
+  },
+  {
+    "id": 56,
+    "file": "castlevania-vampire-killer.mp3",
+    "game": "Castlevania",
+    "gameAliases": [
+      "Castlevania",
+      "Castlevania 1"
+    ],
+    "song": "Vampire Killer"
+  },
+  {
+    "id": 57,
+    "file": "wii-party-main-theme.mp3",
+    "game": "Wii Party",
+    "gameAliases": [
+      "Wii Party"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 58,
+    "file": "dark-souls-2-skeleton-lord.mp3",
+    "game": "Dark Souls 2",
+    "gameAliases": [
+      "Dark Souls 2",
+      "Dark Souls II",
+      "DS2"
+    ],
+    "song": "Skeleton Lord"
+  },
+  {
+    "id": 59,
+    "file": "ssx-3-whos-who.mp3",
+    "game": "SSX 3",
+    "gameAliases": [
+      "SSX 3",
+      "SSX3"
+    ],
+    "song": "Who's Who"
+  },
+  {
+    "id": 60,
+    "file": "jak-2-haven-exploration.mp3",
+    "game": "Jak 2",
+    "gameAliases": [
+      "Jak 2",
+      "Jak II",
+      "Jak2",
+      "Jak and Daxter 2"
+    ],
+    "song": "Haven Exploration"
+  },
+  {
+    "id": 61,
+    "file": "team-fortress-2-main-theme.mp3",
+    "game": "Team Fortress 2",
+    "gameAliases": [
+      "Team Fortress 2",
+      "TF2"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 62,
+    "file": "megabonk-desert-1.mp3",
+    "game": "Megabonk",
+    "gameAliases": [
+      "Megabonk",
+      "Mega Bonk"
+    ],
+    "song": "Desert 1"
+  },
+  {
+    "id": 63,
+    "file": "the-finals-thanks-to-our-sponsors.mp3",
+    "game": "The Finals",
+    "gameAliases": [
+      "The Finals",
+      "Finals"
+    ],
+    "song": "Thanks to Our Sponsors"
+  },
+  {
+    "id": 64,
+    "file": "terraria-overworld-day.mp3",
+    "game": "Terraria",
+    "gameAliases": [
+      "Terraria"
+    ],
+    "song": "Overworld Day"
+  },
+  {
+    "id": 65,
+    "file": "terraria-underground.mp3",
+    "game": "Terraria",
+    "gameAliases": [
+      "Terraria"
+    ],
+    "song": "Underground"
+  },
+  {
+    "id": 66,
+    "file": "terraria-corruption.mp3",
+    "game": "Terraria",
+    "gameAliases": [
+      "Terraria"
+    ],
+    "song": "Corruption"
+  },
+  {
+    "id": 67,
+    "file": "terraria-boss-1.mp3",
+    "game": "Terraria",
+    "gameAliases": [
+      "Terraria"
+    ],
+    "song": "Boss 1"
+  },
+  {
+    "id": 68,
+    "file": "balatro-main-theme.mp3",
+    "game": "Balatro",
+    "gameAliases": [
+      "Balatro"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 69,
+    "file": "katana-zero-bossbattle.mp3",
+    "game": "Katana Zero",
+    "gameAliases": [
+      "Katana Zero",
+      "Katana 0"
+    ],
+    "song": "Bossbattle"
+  },
+  {
+    "id": 70,
+    "file": "csgo-theme-2.mp3",
+    "game": "Counter-Strike: Global Offensive",
+    "gameAliases": [
+      "CS:GO",
+      "CSGO",
+      "Counter Strike Global Offensive",
+      "cs go",
+      "CS2",
+      "Counter Strike 2"
+    ],
+    "song": "Theme 2"
+  },
+  {
+    "id": 71,
+    "file": "csgo-theme-1.mp3",
+    "game": "Counter-Strike: Global Offensive",
+    "gameAliases": [
+      "CS:GO",
+      "CSGO",
+      "Counter Strike Global Offensive",
+      "cs go",
+      "CS2",
+      "Counter Strike 2"
+    ],
+    "song": "Theme 1"
+  },
+  {
+    "id": 72,
+    "file": "batman-arkham-knight-main-menu.mp3",
+    "game": "Batman: Arkham Knight",
+    "gameAliases": [
+      "Batman Arkham Knight",
+      "Arkham Knight"
+    ],
+    "song": "Main Menu Theme"
+  },
+  {
+    "id": 73,
+    "file": "stardew-valley-cloud-country.mp3",
+    "game": "Stardew Valley",
+    "gameAliases": [
+      "Stardew Valley",
+      "Stardew"
+    ],
+    "song": "Cloud Country"
+  },
+  {
+    "id": 74,
+    "file": "helldivers-2-loadout-select.mp3",
+    "game": "Helldivers 2",
+    "gameAliases": [
+      "Helldivers 2",
+      "Helldivers II",
+      "HD2"
+    ],
+    "song": "Loadout Select"
+  },
+  {
+    "id": 75,
+    "file": "lethal-company-icecream-song.mp3",
+    "game": "Lethal Company",
+    "gameAliases": [
+      "Lethal Company"
+    ],
+    "song": "Icecream Song"
+  },
+  {
+    "id": 76,
+    "file": "rust-descent.mp3",
+    "game": "Rust",
+    "gameAliases": [
+      "Rust"
+    ],
+    "song": "Descent"
+  },
+  {
+    "id": 77,
+    "file": "apex-legends-jumpmaster.mp3",
+    "game": "Apex Legends",
+    "gameAliases": [
+      "Apex Legends",
+      "Apex"
+    ],
+    "song": "You Are The Jumpmaster"
+  },
+  {
+    "id": 78,
+    "file": "apex-legends-victory.mp3",
+    "game": "Apex Legends",
+    "gameAliases": [
+      "Apex Legends",
+      "Apex"
+    ],
+    "song": "Victory & Lobby Redux"
+  },
+  {
+    "id": 79,
+    "file": "among-us-theme.mp3",
+    "game": "Among Us",
+    "gameAliases": [
+      "Among Us",
+      "Amongus"
+    ],
+    "song": "Theme"
+  },
+  {
+    "id": 80,
+    "file": "freestyle-2-we-be-ballin.mp3",
+    "game": "Freestyle 2: Street Basketball",
+    "gameAliases": [
+      "Freestyle 2",
+      "Freestyle 2 Street Basketball",
+      "Freestyle Street Basketball 2"
+    ],
+    "song": "We Be Ballin"
+  },
+  {
+    "id": 81,
+    "file": "freestyle-2-lets-get-rollin.mp3",
+    "game": "Freestyle 2: Street Basketball",
+    "gameAliases": [
+      "Freestyle 2",
+      "Freestyle 2 Street Basketball",
+      "Freestyle Street Basketball 2"
+    ],
+    "song": "Lets Get Rollin"
+  },
+  {
+    "id": 82,
+    "file": "doom-at-dooms-gate.mp3",
+    "game": "DOOM",
+    "gameAliases": [
+      "DOOM",
+      "Doom",
+      "Doom 1",
+      "Doom 1993"
+    ],
+    "song": "At Doom's Gate"
+  },
+  {
+    "id": 83,
+    "file": "halo-2-installation-05-chant.mp3",
+    "game": "Halo 2",
+    "gameAliases": [
+      "Halo 2",
+      "Halo II"
+    ],
+    "song": "Installation 05 Chant"
+  },
+  {
+    "id": 84,
+    "file": "far-cry-3-main-theme.mp3",
+    "game": "Far Cry 3",
+    "gameAliases": [
+      "Far Cry 3",
+      "Farcry 3",
+      "FC3"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 85,
+    "file": "burnout-paradise-attract-mode.mp3",
+    "game": "Burnout Paradise",
+    "gameAliases": [
+      "Burnout Paradise"
+    ],
+    "song": "Attract Mode"
+  },
+  {
+    "id": 86,
+    "file": "sekiro-the-ashina-clan.mp3",
+    "game": "Sekiro: Shadows Die Twice",
+    "gameAliases": [
+      "Sekiro",
+      "Sekiro Shadows Die Twice"
+    ],
+    "song": "The Ashina Clan"
+  },
+  {
+    "id": 87,
+    "file": "sekiro-strength-and-discipline.mp3",
+    "game": "Sekiro: Shadows Die Twice",
+    "gameAliases": [
+      "Sekiro",
+      "Sekiro Shadows Die Twice"
+    ],
+    "song": "Strength and Discipline"
+  },
+  {
+    "id": 88,
+    "file": "payday-2-mayhem-dressed-in-a-suit.mp3",
+    "game": "Payday 2",
+    "gameAliases": [
+      "Payday 2",
+      "Payday2",
+      "PD2"
+    ],
+    "song": "Mayhem Dressed in a Suit"
+  },
+  {
+    "id": 89,
+    "file": "battlefield-3-main-theme.mp3",
+    "game": "Battlefield 3",
+    "gameAliases": [
+      "Battlefield 3",
+      "BF3"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 90,
+    "file": "battlefield-3-solomons-theme.mp3",
+    "game": "Battlefield 3",
+    "gameAliases": [
+      "Battlefield 3",
+      "BF3"
+    ],
+    "song": "Solomon's Theme"
+  },
+  {
+    "id": 91,
+    "file": "battlefield-1-classic-theme.mp3",
+    "game": "Battlefield 1",
+    "gameAliases": [
+      "Battlefield 1",
+      "BF1"
+    ],
+    "song": "Battlefield Classic Theme"
+  },
+  {
+    "id": 92,
+    "file": "battlefield-v-triumph.mp3",
+    "game": "Battlefield V",
+    "gameAliases": [
+      "Battlefield V",
+      "Battlefield 5",
+      "BFV",
+      "BF5"
+    ],
+    "song": "Triumph"
+  },
+  {
+    "id": 93,
+    "file": "super-meat-boy-ch5-hard.mp3",
+    "game": "Super Meat Boy",
+    "gameAliases": [
+      "Super Meat Boy",
+      "Meat Boy",
+      "SMB"
+    ],
+    "song": "Ch5 Hard"
+  },
+  {
+    "id": 94,
+    "file": "god-of-war-kratos.mp3",
+    "game": "God of War",
+    "gameAliases": [
+      "God of War",
+      "God of War 1",
+      "GoW",
+      "God of War 2005"
+    ],
+    "song": "Kratos"
+  },
+  {
+    "id": 95,
+    "file": "super-smash-bros-brawl-trophy-gallery.mp3",
+    "game": "Super Smash Bros. Brawl",
+    "gameAliases": [
+      "Super Smash Bros Brawl",
+      "Smash Bros Brawl",
+      "SSBB"
+    ],
+    "song": "Trophy Gallery"
+  },
+  {
+    "id": 96,
+    "file": "super-smash-bros-brawl-battlefield.mp3",
+    "game": "Super Smash Bros. Brawl",
+    "gameAliases": [
+      "Super Smash Bros Brawl",
+      "Smash Bros Brawl",
+      "SSBB"
+    ],
+    "song": "Battlefield"
+  },
+  {
+    "id": 97,
+    "file": "super-smash-bros-brawl-final-destination.mp3",
+    "game": "Super Smash Bros. Brawl",
+    "gameAliases": [
+      "Super Smash Bros Brawl",
+      "Smash Bros Brawl",
+      "SSBB"
+    ],
+    "song": "Final Destination"
+  },
+  {
+    "id": 98,
+    "file": "super-smash-bros-brawl-main-theme.mp3",
+    "game": "Super Smash Bros. Brawl",
+    "gameAliases": [
+      "Super Smash Bros Brawl",
+      "Smash Bros Brawl",
+      "SSBB"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 99,
+    "file": "nier-automata-city-ruins.mp3",
+    "game": "Nier: Automata",
+    "gameAliases": [
+      "Nier Automata",
+      "NieR Automata"
+    ],
+    "song": "City Ruins - Rays of Light"
+  },
+  {
+    "id": 100,
+    "file": "spider-man-2-funiculi-funicula.mp3",
+    "game": "Spider-Man 2",
+    "gameAliases": [
+      "Spider-Man 2",
+      "Spiderman 2",
+      "Spider Man 2"
+    ],
+    "song": "Funiculi Funicula"
+  },
+  {
+    "id": 101,
+    "file": "shadow-of-the-colossus-grotesque-figures.mp3",
+    "game": "Shadow of the Colossus",
+    "gameAliases": [
+      "Shadow of the Colossus",
+      "SotC"
+    ],
+    "song": "Grotesque Figures"
+  },
+  {
+    "id": 102,
+    "file": "metal-gear-solid-main-theme.mp3",
+    "game": "Metal Gear Solid",
+    "gameAliases": [
+      "Metal Gear Solid",
+      "MGS",
+      "Metal Gear Solid 1",
+      "MGS1"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 103,
+    "file": "syndicate-skrillex-remix.mp3",
+    "game": "Syndicate",
+    "gameAliases": [
+      "Syndicate",
+      "Syndicate 2012"
+    ],
+    "song": "Skrillex Remix"
+  },
+  {
+    "id": 104,
+    "file": "fifa-street-2-true-skool.mp3",
+    "game": "FIFA Street 2",
+    "gameAliases": [
+      "FIFA Street 2"
+    ],
+    "song": "True Skool"
+  },
+  {
+    "id": 105,
+    "file": "fifa-street-2-babylon-rising.mp3",
+    "game": "FIFA Street 2",
+    "gameAliases": [
+      "FIFA Street 2"
+    ],
+    "song": "Babylon Rising"
+  },
+  {
+    "id": 106,
+    "file": "fifa-street-2-blood-fire.mp3",
+    "game": "FIFA Street 2",
+    "gameAliases": [
+      "FIFA Street 2"
+    ],
+    "song": "Blood Fire"
+  },
+  {
+    "id": 107,
+    "file": "fifa-street-2-caionagandaia.mp3",
+    "game": "FIFA Street 2",
+    "gameAliases": [
+      "FIFA Street 2"
+    ],
+    "song": "Caionagandaia"
+  },
+  {
+    "id": 108,
+    "file": "fifa-street-2-samba-de-flora.mp3",
+    "game": "FIFA Street 2",
+    "gameAliases": [
+      "FIFA Street 2"
+    ],
+    "song": "Samba De Flora"
+  },
+  {
+    "id": 109,
+    "file": "simpsons-hit-and-run-sunday-drive.mp3",
+    "game": "The Simpsons: Hit & Run",
+    "gameAliases": [
+      "The Simpsons Hit and Run",
+      "Simpsons Hit and Run",
+      "Hit and Run",
+      "Hit n Run"
+    ],
+    "song": "Sunday Drive"
+  },
+  {
+    "id": 110,
+    "file": "simpsons-hit-and-run-morning-chores.mp3",
+    "game": "The Simpsons: Hit & Run",
+    "gameAliases": [
+      "The Simpsons Hit and Run",
+      "Simpsons Hit and Run",
+      "Hit and Run",
+      "Hit n Run"
+    ],
+    "song": "Morning Chores"
+  },
+  {
+    "id": 111,
+    "file": "timesplitters-title-screen.mp3",
+    "game": "TimeSplitters",
+    "gameAliases": [
+      "TimeSplitters",
+      "Time Splitters",
+      "TimeSplitters 1"
+    ],
+    "song": "Title Screen"
+  },
+  {
+    "id": 112,
+    "file": "max-payne-theme.mp3",
+    "game": "Max Payne",
+    "gameAliases": [
+      "Max Payne",
+      "Max Payne 1"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 113,
+    "file": "prince-of-persia-sands-of-time-welcome-to-persia.mp3",
+    "game": "Prince of Persia: The Sands of Time",
+    "gameAliases": [
+      "Prince of Persia Sands of Time",
+      "Sands of Time",
+      "Las Arenas del Tiempo",
+      "PoP Sands of Time"
+    ],
+    "song": "Welcome to Persia"
+  },
+  {
+    "id": 114,
+    "file": "star-wars-battlefront-2-encounters.mp3",
+    "game": "Star Wars: Battlefront II",
+    "gameAliases": [
+      "Star Wars Battlefront 2",
+      "Battlefront 2",
+      "Battlefront II",
+      "SWBF2"
+    ],
+    "song": "Encounters On The Battlefront"
+  },
+  {
+    "id": 115,
+    "file": "littlebigplanet-the-gardens.mp3",
+    "game": "LittleBigPlanet",
+    "gameAliases": [
+      "LittleBigPlanet",
+      "Little Big Planet",
+      "LBP",
+      "LittleBigPlanet 1",
+      "LBP1"
+    ],
+    "song": "The Gardens"
+  },
+  {
+    "id": 116,
+    "file": "uncharted-4-a-thiefs-end.mp3",
+    "game": "Uncharted 4: A Thief's End",
+    "gameAliases": [
+      "Uncharted 4",
+      "Uncharted 4 A Thiefs End"
+    ],
+    "song": "A Thief's End"
+  },
+  {
+    "id": 117,
+    "file": "who-wants-to-be-a-millionaire-lets-play.mp3",
+    "game": "Who Wants to Be a Millionaire?",
+    "gameAliases": [
+      "Who Wants to Be a Millionaire",
+      "Millionaire",
+      "Quien Quiere Ser Millonario"
+    ],
+    "song": "Let's Play"
+  },
+  {
+    "id": 118,
+    "file": "who-wants-to-be-a-millionaire-million-question.mp3",
+    "game": "Who Wants to Be a Millionaire?",
+    "gameAliases": [
+      "Who Wants to Be a Millionaire",
+      "Millionaire",
+      "Quien Quiere Ser Millonario"
+    ],
+    "song": "$1,000,000 Question"
+  },
+  {
+    "id": 119,
+    "file": "prototype-main-menu.mp3",
+    "game": "Prototype",
+    "gameAliases": [
+      "Prototype",
+      "Prototype 1"
+    ],
+    "song": "Main Menu"
+  },
+  {
+    "id": 120,
+    "file": "mass-effect-theme.mp3",
+    "game": "Mass Effect",
+    "gameAliases": [
+      "Mass Effect",
+      "Mass Effect 1",
+      "ME1"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 121,
+    "file": "tera-beginner-village.mp3",
+    "game": "TERA",
+    "gameAliases": [
+      "TERA",
+      "Tera Online"
+    ],
+    "song": "Beginner Village"
+  },
+  {
+    "id": 122,
+    "file": "tera-ellin-theme.mp3",
+    "game": "TERA",
+    "gameAliases": [
+      "TERA",
+      "Tera Online"
+    ],
+    "song": "Ellin Theme"
+  },
+  {
+    "id": 123,
+    "file": "tera-forest.mp3",
+    "game": "TERA",
+    "gameAliases": [
+      "TERA",
+      "Tera Online"
+    ],
+    "song": "Forest"
+  },
+  {
+    "id": 124,
+    "file": "tera-vellica.mp3",
+    "game": "TERA",
+    "gameAliases": [
+      "TERA",
+      "Tera Online"
+    ],
+    "song": "Vellica"
+  },
+  {
+    "id": 125,
+    "file": "minecraft-subwoofer-lullaby.mp3",
+    "game": "Minecraft",
+    "gameAliases": [
+      "Minecraft"
+    ],
+    "song": "Subwoofer Lullaby"
+  },
+  {
+    "id": 126,
+    "file": "minecraft-theme.mp3",
+    "game": "Minecraft",
+    "gameAliases": [
+      "Minecraft"
+    ],
+    "song": "Minecraft"
+  },
+  {
+    "id": 127,
+    "file": "minecraft-wet-hands.mp3",
+    "game": "Minecraft",
+    "gameAliases": [
+      "Minecraft"
+    ],
+    "song": "Wet Hands"
+  },
+  {
+    "id": 128,
+    "file": "baldurs-gate-3-main-theme.mp3",
+    "game": "Baldur's Gate 3",
+    "gameAliases": [
+      "Baldur's Gate 3",
+      "Baldurs Gate 3",
+      "BG3"
+    ],
+    "song": "Main Theme Part II"
+  },
+  {
+    "id": 129,
+    "file": "katamari-damacy-on-the-rocks.mp3",
+    "game": "Katamari Damacy",
+    "gameAliases": [
+      "Katamari Damacy",
+      "Katamari"
+    ],
+    "song": "Katamari on the Rocks"
+  },
+  {
+    "id": 130,
+    "file": "celeste-heart-of-the-mountain.mp3",
+    "game": "Celeste",
+    "gameAliases": [
+      "Celeste"
+    ],
+    "song": "Heart of the Mountain"
+  },
+  {
+    "id": 131,
+    "file": "fall-guys-everybody-falls.mp3",
+    "game": "Fall Guys",
+    "gameAliases": [
+      "Fall Guys"
+    ],
+    "song": "Everybody Falls"
+  },
+  {
+    "id": 132,
+    "file": "fall-guys-fall-n-roll.mp3",
+    "game": "Fall Guys",
+    "gameAliases": [
+      "Fall Guys"
+    ],
+    "song": "Fall 'n' Roll"
+  },
+  {
+    "id": 133,
+    "file": "fall-guys-final-fall.mp3",
+    "game": "Fall Guys",
+    "gameAliases": [
+      "Fall Guys"
+    ],
+    "song": "Final Fall"
+  },
+  {
+    "id": 134,
+    "file": "zelda-botw-kass-theme.mp3",
+    "game": "The Legend of Zelda: Breath of the Wild",
+    "gameAliases": [
+      "Breath of the Wild",
+      "botw",
+      "zelda botw",
+      "Zelda Breath of the Wild"
+    ],
+    "song": "Kass Theme"
+  },
+  {
+    "id": 135,
+    "file": "persona-5-life-will-change.mp3",
+    "game": "Persona 5",
+    "gameAliases": [
+      "Persona 5"
+    ],
+    "song": "Life Will Change"
+  },
+  {
+    "id": 136,
+    "file": "super-mario-odyssey-jump-up-super-star.mp3",
+    "game": "Super Mario Odyssey",
+    "gameAliases": [
+      "Super Mario Odyssey",
+      "Mario Odyssey",
+      "Odyssey"
+    ],
+    "song": "Jump Up, Super Star!"
+  },
+  {
+    "id": 137,
+    "file": "mario-kart-waluigi-pinball.mp3",
+    "game": "Mario Kart DS",
+    "gameAliases": [
+      "Mario Kart DS",
+      "MKDS"
+    ],
+    "song": "Waluigi Pinball"
+  },
+  {
+    "id": 138,
+    "file": "mario-kart-gcn-baby-park.mp3",
+    "game": "Mario Kart: Double Dash",
+    "gameAliases": [
+      "Mario Kart Double Dash",
+      "Double Dash",
+      "MKDD"
+    ],
+    "song": "GCN Baby Park"
+  },
+  {
+    "id": 139,
+    "file": "elden-ring-main-theme.mp3",
+    "game": "Elden Ring",
+    "gameAliases": [
+      "Elden Ring"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 140,
+    "file": "metin2-enter-the-east.mp3",
+    "game": "Metin2",
+    "gameAliases": [
+      "Metin2",
+      "metin 2"
+    ],
+    "song": "Enter the East"
+  },
+  {
+    "id": 141,
+    "file": "metin2-character-select.mp3",
+    "game": "Metin2",
+    "gameAliases": [
+      "Metin2",
+      "metin 2"
+    ],
+    "song": "Character Select"
+  },
+  {
+    "id": 142,
+    "file": "r4-lucid-rhythms.mp3",
+    "game": "R4 Ridge Racer Type 4",
+    "gameAliases": [
+      "R4",
+      "RR4",
+      "Ridge Racer Type 4",
+      "Ridge Racer 4"
+    ],
+    "song": "Lucid Rhythms"
+  },
+  {
+    "id": 143,
+    "file": "pokemon-dppt-battle-champion.mp3",
+    "game": "Pokemon Diamante y Perla",
+    "gameAliases": [
+      "Pokemon diamante",
+      "pokemon perla",
+      "pokemon platino",
+      "pokemon diamond",
+      "pokemon pearl",
+      "pokemon platinum",
+      "pokemon diamante y perla",
+      "pokemon diamond and pearl"
+    ],
+    "song": "Battle! Champion"
+  },
+  {
+    "id": 144,
+    "file": "pokemon-dppt-champion-cynthia.mp3",
+    "game": "Pokemon Diamante y Perla",
+    "gameAliases": [
+      "Pokemon diamante",
+      "pokemon perla",
+      "pokemon platino",
+      "pokemon diamond",
+      "pokemon pearl",
+      "pokemon platinum",
+      "pokemon diamante y perla",
+      "pokemon diamond and pearl"
+    ],
+    "song": "Champion Cynthia"
+  },
+  {
+    "id": 145,
+    "file": "pokemon-dppt-jubilife-city.mp3",
+    "game": "Pokemon Diamante y Perla",
+    "gameAliases": [
+      "Pokemon diamante",
+      "pokemon perla",
+      "pokemon platino",
+      "pokemon diamond",
+      "pokemon pearl",
+      "pokemon platinum",
+      "pokemon diamante y perla",
+      "pokemon diamond and pearl"
+    ],
+    "song": "Jubilife City"
+  },
+  {
+    "id": 146,
+    "file": "animal-crossing-kk-ska.mp3",
+    "game": "Animal Crossing",
+    "gameAliases": [
+      "Animal Crossing",
+      "Animal Crossing GC",
+      "Animal Crossing Gamecube"
+    ],
+    "song": "K.K. Ska"
+  },
+  {
+    "id": 147,
+    "file": "star-fox-corneria.mp3",
+    "game": "Star Fox",
+    "gameAliases": [
+      "Star Fox",
+      "Starfox",
+      "Star Fox SNES"
+    ],
+    "song": "Corneria"
+  },
+  {
+    "id": 148,
+    "file": "smash-ultimate-menu.mp3",
+    "game": "Super Smash Bros. Ultimate",
+    "gameAliases": [
+      "Smash Ultimate",
+      "Super Smash Bros Ultimate",
+      "SSBU",
+      "Smash Bros Ultimate"
+    ],
+    "song": "Menu"
+  },
+  {
+    "id": 149,
+    "file": "smash-ultimate-battlefield.mp3",
+    "game": "Super Smash Bros. Ultimate",
+    "gameAliases": [
+      "Smash Ultimate",
+      "Super Smash Bros Ultimate",
+      "SSBU",
+      "Smash Bros Ultimate"
+    ],
+    "song": "Battlefield"
+  },
+  {
+    "id": 150,
+    "file": "mario-kart-coconut-mall.mp3",
+    "game": "Mario Kart Wii",
+    "gameAliases": [
+      "Mario Kart Wii",
+      "MKWii",
+      "MKW"
+    ],
+    "song": "Coconut Mall"
+  },
+  {
+    "id": 151,
+    "file": "mario-kart-high-placement-results.mp3",
+    "game": "Mario Kart 8",
+    "gameAliases": [
+      "Mario Kart 8",
+      "MK8"
+    ],
+    "song": "High Placement Results"
+  },
+  {
+    "id": 152,
+    "file": "spongebob-jellyfish-fields.mp3",
+    "game": "SpongeBob SquarePants: Battle for Bikini Bottom",
+    "gameAliases": [
+      "Bob Esponja Battle for Bikini Bottom",
+      "SpongeBob Battle for Bikini Bottom",
+      "Battle for Bikini Bottom",
+      "BFBB",
+      "Bob Esponja",
+      "Spongebob",
+      "Sponge Bob"
+    ],
+    "song": "Jellyfish Fields"
+  },
+  {
+    "id": 153,
+    "file": "fzero-endless-challenge.mp3",
+    "game": "F-Zero GX",
+    "gameAliases": [
+      "F-Zero GX",
+      "FZero GX",
+      "F Zero GX"
+    ],
+    "song": "Endless Challenge"
+  },
+  {
+    "id": 154,
+    "file": "mario-kart-sweet-sweet-canyon.mp3",
+    "game": "Mario Kart 8",
+    "gameAliases": [
+      "Mario Kart 8",
+      "MK8"
+    ],
+    "song": "Sweet Sweet Canyon"
+  },
+  {
+    "id": 155,
+    "file": "mario-kart-stadium.mp3",
+    "game": "Mario Kart 8",
+    "gameAliases": [
+      "Mario Kart 8",
+      "MK8"
+    ],
+    "song": "Mario Kart Stadium"
+  },
+  {
+    "id": 156,
+    "file": "golden-sun-enemy-battle.mp3",
+    "game": "Golden Sun",
+    "gameAliases": [
+      "Golden Sun",
+      "Golden Sun 1"
+    ],
+    "song": "Enemy Battle"
+  },
+  {
+    "id": 157,
+    "file": "binding-of-isaac-fight-basic-boss.mp3",
+    "game": "The Binding of Isaac",
+    "gameAliases": [
+      "Binding of Isaac",
+      "The Binding of Isaac",
+      "Isaac",
+      "TBOI"
+    ],
+    "song": "Fight Basic Boss"
+  },
+  {
+    "id": 158,
+    "file": "binding-of-isaac-necropolis.mp3",
+    "game": "The Binding of Isaac",
+    "gameAliases": [
+      "Binding of Isaac",
+      "The Binding of Isaac",
+      "Isaac",
+      "TBOI"
+    ],
+    "song": "Necropolis"
+  },
+  {
+    "id": 159,
+    "file": "binding-of-isaac-the-depths.mp3",
+    "game": "The Binding of Isaac",
+    "gameAliases": [
+      "Binding of Isaac",
+      "The Binding of Isaac",
+      "Isaac",
+      "TBOI"
+    ],
+    "song": "The Depths"
+  },
+  {
+    "id": 160,
+    "file": "binding-of-isaac-the-caves.mp3",
+    "game": "The Binding of Isaac",
+    "gameAliases": [
+      "Binding of Isaac",
+      "The Binding of Isaac",
+      "Isaac",
+      "TBOI"
+    ],
+    "song": "The Caves"
+  },
+  {
+    "id": 161,
+    "file": "tekken-baile-de-batalla.mp3",
+    "game": "Tekken",
+    "gameAliases": [
+      "Tekken",
+      "Tekken 1"
+    ],
+    "song": "Baile de Batalla"
+  },
+  {
+    "id": 162,
+    "file": "contra-flame-fortress.mp3",
+    "game": "Contra",
+    "gameAliases": [
+      "Contra",
+      "Contra 1"
+    ],
+    "song": "Flame Fortress"
+  },
+  {
+    "id": 163,
+    "file": "r4-silhouette.mp3",
+    "game": "R4 Ridge Racer Type 4",
+    "gameAliases": [
+      "R4",
+      "RR4",
+      "Ridge Racer Type 4",
+      "Ridge Racer 4"
+    ],
+    "song": "Silhouette"
+  },
+  {
+    "id": 164,
+    "file": "wii-play-title.mp3",
+    "game": "Wii Play",
+    "gameAliases": [
+      "Wii Play"
+    ],
+    "song": "Title"
+  },
+  {
+    "id": 165,
+    "file": "mega-man-2-theme.mp3",
+    "game": "Mega Man 2",
+    "gameAliases": [
+      "Mega Man 2",
+      "Megaman 2",
+      "MM2"
+    ],
+    "song": "Mega Man Theme"
+  },
+  {
+    "id": 166,
+    "file": "mega-man-2-wily-stage.mp3",
+    "game": "Mega Man 2",
+    "gameAliases": [
+      "Mega Man 2",
+      "Megaman 2",
+      "MM2"
+    ],
+    "song": "Wily Stage"
+  },
+  {
+    "id": 167,
+    "file": "pokemon-rse-poke-mart.mp3",
+    "game": "Pokemon Rubi y Zafiro",
+    "gameAliases": [
+      "Pokemon rubi",
+      "pokemon zafiro",
+      "pokemon esmeralda",
+      "pokemon ruby",
+      "pokemon sapphire",
+      "pokemon emerald",
+      "pokemon rubi y zafiro",
+      "pokemon ruby and sapphire"
+    ],
+    "song": "Poke Mart"
+  },
+  {
+    "id": 168,
+    "file": "pokemon-emerald-frontier-brain-battle.mp3",
+    "game": "Pokemon Esmeralda",
+    "gameAliases": [
+      "Pokemon esmeralda",
+      "pokemon emerald"
+    ],
+    "song": "Frontier Brain Battle"
+  },
+  {
+    "id": 169,
+    "file": "pokemon-mystery-dungeon-top-menu.mp3",
+    "game": "Pokemon Mystery Dungeon",
+    "gameAliases": [
+      "Pokemon Mystery Dungeon",
+      "Mystery Dungeon",
+      "PMD",
+      "Pokemon Mundo Misterioso",
+      "Mundo Misterioso"
+    ],
+    "song": "Top Menu"
+  },
+  {
+    "id": 170,
+    "file": "pokemon-mystery-dungeon-pokemon-square.mp3",
+    "game": "Pokemon Mystery Dungeon",
+    "gameAliases": [
+      "Pokemon Mystery Dungeon",
+      "Mystery Dungeon",
+      "PMD",
+      "Pokemon Mundo Misterioso",
+      "Mundo Misterioso"
+    ],
+    "song": "Pokemon Square"
+  },
+  {
+    "id": 171,
+    "file": "pokemon-mystery-dungeon-sky-tower.mp3",
+    "game": "Pokemon Mystery Dungeon",
+    "gameAliases": [
+      "Pokemon Mystery Dungeon",
+      "Mystery Dungeon",
+      "PMD",
+      "Pokemon Mundo Misterioso",
+      "Mundo Misterioso"
+    ],
+    "song": "Sky Tower"
+  },
+  {
+    "id": 172,
+    "file": "sims-its-the-sims.mp3",
+    "game": "The Sims",
+    "gameAliases": [
+      "Sims",
+      "The Sims",
+      "Sims 1",
+      "The Sims 1"
+    ],
+    "song": "It's the Sims"
+  },
+  {
+    "id": 173,
+    "file": "la-noire-main-theme.mp3",
+    "game": "LA Noire",
+    "gameAliases": [
+      "LA Noire",
+      "L.A. Noire"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 174,
+    "file": "dont-starve-theme.mp3",
+    "game": "Don't Starve",
+    "gameAliases": [
+      "Don't Starve",
+      "Dont Starve"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 175,
+    "file": "sly-cooper-battle-with-dmitri.mp3",
+    "game": "Sly 2: Ladrones de Guante Blanco",
+    "gameAliases": [
+      "Sly 2",
+      "Sly Cooper 2",
+      "Sly 2 Band of Thieves"
+    ],
+    "song": "Battle with Dmitri"
+  },
+  {
+    "id": 176,
+    "file": "portal-still-alive.mp3",
+    "game": "Portal",
+    "gameAliases": [
+      "Portal",
+      "Portal 1"
+    ],
+    "song": "Still Alive"
+  },
+  {
+    "id": 177,
+    "file": "parappa-cheap-cheap-the-cooking-chicken.mp3",
+    "game": "PaRappa the Rapper",
+    "gameAliases": [
+      "Parappa",
+      "Parappa the Rapper",
+      "PaRappa the Rapper"
+    ],
+    "song": "Cheap Cheap the Cooking Chicken"
+  },
+  {
+    "id": 178,
+    "file": "parappa-instructor-mooselini.mp3",
+    "game": "PaRappa the Rapper",
+    "gameAliases": [
+      "Parappa",
+      "Parappa the Rapper",
+      "PaRappa the Rapper"
+    ],
+    "song": "Instructor Mooselini"
+  },
+  {
+    "id": 179,
+    "file": "zelda-skyward-sword-main-theme.mp3",
+    "game": "The Legend of Zelda: Skyward Sword",
+    "gameAliases": [
+      "Skyward Sword",
+      "Zelda Skyward Sword"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 180,
+    "file": "ratchet-and-clank-main-theme.mp3",
+    "game": "Ratchet & Clank",
+    "gameAliases": [
+      "Ratchet and Clank",
+      "Ratchet & Clank",
+      "Ratchet and Clank 1",
+      "Ratchet & Clank 1"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 181,
+    "file": "street-fighter-ryus-theme.mp3",
+    "game": "Street Fighter",
+    "gameAliases": [
+      "Street Fighter",
+      "Street Fighter 2",
+      "SF2"
+    ],
+    "song": "Ryu's Theme"
+  },
+  {
+    "id": 182,
+    "file": "trauma-center-gentle-breeze.mp3",
+    "game": "Trauma Center",
+    "gameAliases": [
+      "Trauma Center",
+      "Trauma Center Under the Knife"
+    ],
+    "song": "Gentle Breeze"
+  },
+  {
+    "id": 183,
+    "file": "celeste-reach-for-the-summit.mp3",
+    "game": "Celeste",
+    "gameAliases": [
+      "Celeste"
+    ],
+    "song": "Reach for the Summit"
+  },
+  {
+    "id": 184,
+    "file": "arc-raiders-main-theme.mp3",
+    "game": "ARC Raiders",
+    "gameAliases": [
+      "ARC Raiders",
+      "ARC Riders"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 185,
+    "file": "league-of-legends-draft-pick.mp3",
+    "game": "League of Legends",
+    "gameAliases": [
+      "League of Legends",
+      "LoL",
+      "League"
+    ],
+    "song": "Draft Pick"
+  },
+  {
+    "id": 186,
+    "file": "league-of-legends-braum-theme.mp3",
+    "game": "League of Legends",
+    "gameAliases": [
+      "League of Legends",
+      "LoL",
+      "League"
+    ],
+    "song": "Braum Theme"
+  },
+  {
+    "id": 187,
+    "file": "league-of-legends-nami-theme.mp3",
+    "game": "League of Legends",
+    "gameAliases": [
+      "League of Legends",
+      "LoL",
+      "League"
+    ],
+    "song": "Nami Theme"
+  },
+  {
+    "id": 188,
+    "file": "league-of-legends-2012-login-theme.mp3",
+    "game": "League of Legends",
+    "gameAliases": [
+      "League of Legends",
+      "LoL",
+      "League"
+    ],
+    "song": "2012 Login Theme"
+  },
+  {
+    "id": 189,
+    "file": "animal-crossing-new-leaf-hermanas-manitas.mp3",
+    "game": "Animal Crossing: New Leaf",
+    "gameAliases": [
+      "Animal Crossing New Leaf",
+      "New Leaf",
+      "ACNL"
+    ],
+    "song": "Hermanas Manitas"
+  },
+  {
+    "id": 190,
+    "file": "animal-crossing-new-leaf-main-theme.mp3",
+    "game": "Animal Crossing: New Leaf",
+    "gameAliases": [
+      "Animal Crossing New Leaf",
+      "New Leaf",
+      "ACNL"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 191,
+    "file": "chrono-trigger-secret-of-the-forest.mp3",
+    "game": "Chrono Trigger",
+    "gameAliases": [
+      "Chrono Trigger"
+    ],
+    "song": "Secret of the Forest"
+  },
+  {
+    "id": 192,
+    "file": "earthbound-sanctuary-guardian.mp3",
+    "game": "Earthbound",
+    "gameAliases": [
+      "Earthbound",
+      "Mother 2"
+    ],
+    "song": "Sanctuary Guardian"
+  },
+  {
+    "id": 193,
+    "file": "final-fantasy-7-remake-sephiroth-theme.mp3",
+    "game": "Final Fantasy VII Remake",
+    "gameAliases": [
+      "Final Fantasy 7 Remake",
+      "FF7 Remake",
+      "FF7R",
+      "Final Fantasy VII Remake",
+      "ff7",
+      "final fantasy 7"
+    ],
+    "song": "Sephiroth Theme"
+  },
+  {
+    "id": 194,
+    "file": "luigis-mansion-mansion-humming.mp3",
+    "game": "Luigi's Mansion",
+    "gameAliases": [
+      "Luigis Mansion",
+      "Luigi's Mansion"
+    ],
+    "song": "Mansion Humming"
+  },
+  {
+    "id": 195,
+    "file": "mario-paint-creative-exercise.mp3",
+    "game": "Mario Paint",
+    "gameAliases": [
+      "Mario Paint"
+    ],
+    "song": "Creative Exercise"
+  },
+  {
+    "id": 196,
+    "file": "mother-onett.mp3",
+    "game": "Mother",
+    "gameAliases": [
+      "Mother",
+      "Earthbound Beginnings",
+      "Mother 1"
+    ],
+    "song": "Onett"
+  },
+  {
+    "id": 197,
+    "file": "runescape-sea-shanty.mp3",
+    "game": "Runescape",
+    "gameAliases": [
+      "Runescape",
+      "OSRS",
+      "Old School Runescape"
+    ],
+    "song": "Sea Shanty 2"
+  },
+  {
+    "id": 198,
+    "file": "super-mario-galaxy-overture.mp3",
+    "game": "Super Mario Galaxy",
+    "gameAliases": [
+      "Super Mario Galaxy",
+      "Mario Galaxy"
+    ],
+    "song": "Overture"
+  },
+  {
+    "id": 199,
+    "file": "super-mario-rpg-forest-mushrooms.mp3",
+    "game": "Super Mario RPG",
+    "gameAliases": [
+      "Super Mario RPG",
+      "Mario RPG"
+    ],
+    "song": "Forest Mushrooms"
+  },
+  {
+    "id": 200,
+    "file": "terraria-mushrooms.mp3",
+    "game": "Terraria",
+    "gameAliases": [
+      "Terraria"
+    ],
+    "song": "Mushrooms"
+  },
+  {
+    "id": 201,
+    "file": "tony-hawks-pro-skater-superman.mp3",
+    "game": "Tony Hawk's Pro Skater",
+    "gameAliases": [
+      "Tony Hawks Pro Skater",
+      "Tony Hawk's Pro Skater",
+      "THPS",
+      "Tony Hawk",
+      "Tony Hawk Pro Skater"
+    ],
+    "song": "Superman"
+  },
+  {
+    "id": 202,
+    "file": "undertale-dummy.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Dummy!"
+  },
+  {
+    "id": 203,
+    "file": "undertale-home.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Home"
+  },
+  {
+    "id": 204,
+    "file": "undertale-nyeh-heh-heh.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Nyeh Heh Heh!"
+  },
+  {
+    "id": 205,
+    "file": "undertale-sans.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "sans."
+  },
+  {
+    "id": 206,
+    "file": "undertale-shop.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Shop"
+  },
+  {
+    "id": 207,
+    "file": "undertale-spear-of-justice.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Spear of Justice"
+  },
+  {
+    "id": 208,
+    "file": "undertale-uwa-so-temperate.mp3",
+    "game": "Undertale",
+    "gameAliases": [
+      "Undertale"
+    ],
+    "song": "Uwa!! So Temperate"
+  },
+  {
+    "id": 209,
+    "file": "yoshis-woolly-world-yearn-yoshi-takes-shape.mp3",
+    "game": "Yoshi's Woolly World",
+    "gameAliases": [
+      "Yoshis Woolly World",
+      "Yoshi's Woolly World",
+      "Woolly World"
+    ],
+    "song": "Yoshi Takes Shape"
+  },
+  {
+    "id": 210,
+    "file": "alan-wake-2-herald-of-darkness.mp3",
+    "game": "Alan Wake 2",
+    "gameAliases": [
+      "Alan Wake 2",
+      "Alan Wake II"
+    ],
+    "song": "Herald of Darkness"
+  },
+  {
+    "id": 211,
+    "file": "bomb-rush-cyberfunk-JACK-DA-FUNK.mp3",
+    "game": "Bomb Rush Cyberfunk",
+    "gameAliases": [
+      "Bomb Rush Cyberfunk",
+      "BRC"
+    ],
+    "song": "JACK DA FUNK"
+  },
+  {
+    "id": 212,
+    "file": "bomb-rush-cyberfunk-light-switch.mp3",
+    "game": "Bomb Rush Cyberfunk",
+    "gameAliases": [
+      "Bomb Rush Cyberfunk",
+      "BRC"
+    ],
+    "song": "Light Switch"
+  },
+  {
+    "id": 213,
+    "file": "bubble-bobble-main-theme.mp3",
+    "game": "Bubble Bobble",
+    "gameAliases": [
+      "Bubble Bobble"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 214,
+    "file": "crazy-taxi-track-01.mp3",
+    "game": "Crazy Taxi",
+    "gameAliases": [
+      "Crazy Taxi"
+    ],
+    "song": "Track 01"
+  },
+  {
+    "id": 215,
+    "file": "ducktales-the-moon-autismo.mp3",
+    "game": "DuckTales",
+    "gameAliases": [
+      "DuckTales",
+      "Duck Tales",
+      "Patoaventuras"
+    ],
+    "song": "The Moon"
+  },
+  {
+    "id": 216,
+    "file": "ducktales-title.mp3",
+    "game": "DuckTales",
+    "gameAliases": [
+      "DuckTales",
+      "Duck Tales",
+      "Patoaventuras"
+    ],
+    "song": "Title"
+  },
+  {
+    "id": 217,
+    "file": "golf-it-casual-theme.mp3",
+    "game": "Golf It!",
+    "gameAliases": [
+      "Golf It",
+      "Golf It!"
+    ],
+    "song": "Casual Theme"
+  },
+  {
+    "id": 218,
+    "file": "kirby-super-star-ultra-green-greens.mp3",
+    "game": "Kirby Super Star Ultra",
+    "gameAliases": [
+      "Kirby Super Star Ultra",
+      "Kirby Super Star",
+      "Super Star Ultra"
+    ],
+    "song": "Green Greens"
+  },
+  {
+    "id": 219,
+    "file": "mega-man-3-opening.mp3",
+    "game": "Mega Man 3",
+    "gameAliases": [
+      "Mega Man 3",
+      "Megaman 3",
+      "MM3"
+    ],
+    "song": "Opening"
+  },
+  {
+    "id": 220,
+    "file": "persona-5-the-days-when-my-mother-was-there.mp3",
+    "game": "Persona 5",
+    "gameAliases": [
+      "Persona 5",
+      "P5"
+    ],
+    "song": "The Days When My Mother Was There"
+  },
+  {
+    "id": 221,
+    "file": "plants-vs-zombies-grasswalk.mp3",
+    "game": "Plants vs Zombies",
+    "gameAliases": [
+      "Plantas vs Zombies",
+      "Plants vs Zombies",
+      "Plantas contra Zombies",
+      "PvZ"
+    ],
+    "song": "Grasswalk"
+  },
+  {
+    "id": 222,
+    "file": "plants-vs-zombies-loonboon.mp3",
+    "game": "Plants vs Zombies",
+    "gameAliases": [
+      "Plantas vs Zombies",
+      "Plants vs Zombies",
+      "Plantas contra Zombies",
+      "PvZ"
+    ],
+    "song": "Loonboon"
+  },
+  {
+    "id": 223,
+    "file": "pokemon-ranger-fall-city-harbor.mp3",
+    "game": "Pokemon Ranger",
+    "gameAliases": [
+      "Pokemon Ranger"
+    ],
+    "song": "Fall City Harbor"
+  },
+  {
+    "id": 224,
+    "file": "ronaldihno-soccer-64-title-screen.mp3",
+    "game": "Ronaldinho Soccer 64",
+    "gameAliases": [
+      "Ronaldinho Soccer 64",
+      "Ronaldinho 64",
+      "Ronaldinho Soccer"
+    ],
+    "song": "Title Screen"
+  },
+  {
+    "id": 225,
+    "file": "sonic-adventure-2-live-and-learn.mp3",
+    "game": "Sonic Adventure 2",
+    "gameAliases": [
+      "Sonic Adventure 2",
+      "SA2",
+      "Sonic Adventure 2 Battle"
+    ],
+    "song": "Live and Learn"
+  },
+  {
+    "id": 226,
+    "file": "sonic-colors-reach-for-the-stars.mp3",
+    "game": "Sonic Colors",
+    "gameAliases": [
+      "Sonic Colors",
+      "Sonic Colours"
+    ],
+    "song": "Reach for the Stars"
+  },
+  {
+    "id": 227,
+    "file": "sonic-lost-world-windy-hill.mp3",
+    "game": "Sonic Lost World",
+    "gameAliases": [
+      "Sonic Lost World"
+    ],
+    "song": "Windy Hill"
+  },
+  {
+    "id": 228,
+    "file": "sonic-r-can-you-feel-the-sunshine.mp3",
+    "game": "Sonic R",
+    "gameAliases": [
+      "Sonic R"
+    ],
+    "song": "Can You Feel the Sunshine"
+  },
+  {
+    "id": 229,
+    "file": "sonic-the-hedgehog-his-world.mp3",
+    "game": "Sonic the Hedgehog (2006)",
+    "gameAliases": [
+      "Sonic the Hedgehog",
+      "Sonic"
+    ],
+    "song": "His World"
+  },
+  {
+    "id": 230,
+    "file": "sonic-the-hedgehog-spring-yard-zone.mp3",
+    "game": "Sonic the Hedgehog",
+    "gameAliases": [
+      "Sonic the Hedgehog",
+      "Sonic 1",
+      "Sonic"
+    ],
+    "song": "Spring Yard Zone"
+  },
+  {
+    "id": 231,
+    "file": "sonic-unleashed-dragon-road.mp3",
+    "game": "Sonic Unleashed",
+    "gameAliases": [
+      "Sonic Unleashed"
+    ],
+    "song": "Dragon Road"
+  },
+  {
+    "id": 232,
+    "file": "sonic-unleashed-windmill-isle.mp3",
+    "game": "Sonic Unleashed",
+    "gameAliases": [
+      "Sonic Unleashed"
+    ],
+    "song": "Windmill Isle"
+  },
+  {
+    "id": 233,
+    "file": "star-wars-imperial-march.mp3",
+    "game": "Star Wars",
+    "gameAliases": [
+      "Star Wars",
+      "La Guerra de las Galaxias"
+    ],
+    "song": "Imperial March"
+  },
+  {
+    "id": 234,
+    "file": "super-mario-64-bowsers-road.mp3",
+    "game": "Super Mario 64",
+    "gameAliases": [
+      "Super Mario 64",
+      "Mario 64",
+      "SM64"
+    ],
+    "song": "Bowser's Road"
+  },
+  {
+    "id": 235,
+    "file": "super-mario-64-dire-dire-docks.mp3",
+    "game": "Super Mario 64",
+    "gameAliases": [
+      "Super Mario 64",
+      "Mario 64",
+      "SM64"
+    ],
+    "song": "Dire Dire Docks"
+  },
+  {
+    "id": 236,
+    "file": "super-mario-64-main-theme.mp3",
+    "game": "Super Mario 64",
+    "gameAliases": [
+      "Super Mario 64",
+      "Mario 64",
+      "SM64"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 237,
+    "file": "super-mario-64-slider.mp3",
+    "game": "Super Mario 64",
+    "gameAliases": [
+      "Super Mario 64",
+      "Mario 64",
+      "SM64"
+    ],
+    "song": "Slider"
+  },
+  {
+    "id": 238,
+    "file": "super-mario-galaxy-2-honeybloom-galaxy.mp3",
+    "game": "Super Mario Galaxy 2",
+    "gameAliases": [
+      "Super Mario Galaxy"
+    ],
+    "song": "Honeybloom Galaxy"
+  },
+  {
+    "id": 239,
+    "file": "super-mario-galaxy-2-luma-returns-to-rosalina.mp3",
+    "game": "Super Mario Galaxy 2",
+    "gameAliases": [
+      "Super Mario Galaxy"
+    ],
+    "song": "Luma Returns to Rosalina"
+  },
+  {
+    "id": 240,
+    "file": "super-mario-galaxy-2-yoshi-star-galaxy.mp3",
+    "game": "Super Mario Galaxy 2",
+    "gameAliases": [
+      "Super Mario Galaxy"
+    ],
+    "song": "Yoshi Star Galaxy"
+  },
+  {
+    "id": 241,
+    "file": "super-mario-maker-bgm.mp3",
+    "game": "Super Mario Maker",
+    "gameAliases": [
+      "Super Mario Maker",
+      "Mario Maker",
+      "SMM"
+    ],
+    "song": "BGM"
+  },
+  {
+    "id": 242,
+    "file": "tetris-99-50-personas.mp3",
+    "game": "Tetris 99",
+    "gameAliases": [
+      "Tetris 99",
+      "Tetris"
+    ],
+    "song": "50 Personas"
+  },
+  {
+    "id": 243,
+    "file": "the-legend-of-zelda-ocarina-of-time-market.mp3",
+    "game": "The Legend of Zelda: Ocarina of Time",
+    "gameAliases": [
+      "The Legend of Zelda Ocarina of Time",
+      "Ocarina of Time",
+      "Zelda Ocarina of Time",
+      "OOT"
+    ],
+    "song": "Market"
+  },
+  {
+    "id": 244,
+    "file": "yakuza-baka-mitai.mp3",
+    "game": "Yakuza",
+    "gameAliases": [
+      "Yakuza",
+      "Yakuza 0",
+      "Like a Dragon"
+    ],
+    "song": "Baka Mitai"
+  },
+  {
+    "id": 245,
+    "file": "sonic-heroes-main-theme.mp3",
+    "game": "Sonic Heroes",
+    "gameAliases": [
+      "Sonic Heroes"
+    ],
+    "song": "Main Theme"
+  },
+  {
+    "id": 246,
+    "file": "Angry Birds - Main Theme.mp3",
+    "game": "Angry Birds",
+    "gameAliases": ["Angry Birds"],
+    "song": "Main Theme"
+  },
+  {
+    "id": 247,
+    "file": "The Flintstones - Title Screen.mp3",
+    "game": "The Flintstones: The Rescue of Dino & Hoppy",
+    "gameAliases": ["The Flintstones", "Flintstones", "Los Picapiedra"],
+    "song": "Title Screen"
+  },
+  {
+    "id": 248,
+    "file": "WarioWare D.I.Y. - Main Menu.mp3",
+    "game": "WarioWare D.I.Y.",
+    "gameAliases": ["WarioWare DIY", "WarioWare D.I.Y.", "Wario Ware DIY"],
+    "song": "Main Menu"
+  },
+  {
+    "id": 249,
+    "file": "WarioWare Touched - Main Menu.mp3",
+    "game": "WarioWare: Touched!",
+    "gameAliases": ["WarioWare Touched", "WarioWare Touched!", "Wario Ware Touched"],
+    "song": "Main Menu"
+  },
+  {
+    "id": 250,
+    "file": "Geometry Dash - Stereo Madness.mp3",
+    "game": "Geometry Dash",
+    "gameAliases": ["Geometry Dash", "GD"],
+    "song": "Stereo Madness"
+  },
+  {
+    "id": 251,
+    "file": "World of Warcraft - Orgrimmar.mp3",
+    "game": "World of Warcraft",
+    "gameAliases": ["World of Warcraft", "WoW", "Warcraft"],
+    "song": "Orgrimmar"
+  },
+  {
+    "id": 252,
+    "file": "World of Warcraft - Elwynn Forest.mp3",
+    "game": "World of Warcraft",
+    "gameAliases": ["World of Warcraft", "WoW", "Warcraft"],
+    "song": "Elwynn Forest"
+  },
+  {
+    "id": 253,
+    "file": "World of Warcraft - Arthas My Son.mp3",
+    "game": "World of Warcraft: Wrath of the Lich King",
+    "gameAliases": ["World of Warcraft", "WoW", "Wrath of the Lich King", "WotLK"],
+    "song": "Arthas My Son"
+  },
+  {
+    "id": 254,
+    "file": "Metroid Prime Remastered - Menu Select.mp3",
+    "game": "Metroid Prime Remastered",
+    "gameAliases": ["Metroid Prime Remastered", "Metroid Prime", "Metroid"],
+    "song": "Menu Select"
+  },
+  {
+    "id": 255,
+    "file": "Cube World - Main Theme.mp3",
+    "game": "Cube World",
+    "gameAliases": ["Cube World", "CubeWorld"],
+    "song": "Main Theme"
+  },
+  {
+    "id": 256,
+    "file": "The Legend of Zelda Tears of the Kingdom - Title.mp3",
+    "game": "The Legend of Zelda: Tears of the Kingdom",
+    "gameAliases": ["Tears of the Kingdom", "TotK", "Zelda Tears of the Kingdom", "Zelda TotK"],
+    "song": "Title"
+  },
+  {
+    "id": 257,
+    "file": "The Legend of Zelda Tears of the Kingdom - Zora Park.mp3",
+    "game": "The Legend of Zelda: Tears of the Kingdom",
+    "gameAliases": ["Tears of the Kingdom", "TotK", "Zelda Tears of the Kingdom", "Zelda TotK"],
+    "song": "Zora Park"
+  },
+  {
+    "id": 258,
+    "file": "The Legend of Zelda The Wind Waker - Inside a House.mp3",
+    "game": "The Legend of Zelda: The Wind Waker",
+    "gameAliases": ["Wind Waker", "Zelda Wind Waker", "The Wind Waker"],
+    "song": "Inside a House"
+  },
+  {
+    "id": 259,
+    "file": "The Legend of Zelda The Wind Waker - The Great Sea.mp3",
+    "game": "The Legend of Zelda: The Wind Waker",
+    "gameAliases": ["Wind Waker", "Zelda Wind Waker", "The Wind Waker"],
+    "song": "The Great Sea"
+  },
+  {
+    "id": 260,
+    "file": "World of Warcraft - Legends of Azeroth.mp3",
+    "game": "World of Warcraft",
+    "gameAliases": ["World of Warcraft", "WoW", "Warcraft"],
+    "song": "Legends of Azeroth"
+  },
+  {
+    "id": 261,
+    "file": "The Legend of Zelda The Wind Waker - Title.mp3",
+    "game": "The Legend of Zelda: The Wind Waker",
+    "gameAliases": ["Wind Waker", "Zelda Wind Waker", "The Wind Waker"],
+    "song": "Title"
+  },
+  {
+    "id": 262,
+    "file": "Brain Age - Home Screen.mp3",
+    "game": "Brain Age: Train Your Brain in Minutes a Day!",
+    "gameAliases": ["Brain Age", "Brain Training", "Dr. Kawashima"],
+    "song": "Home Screen"
+  },
+  {
+    "id": 263,
+    "file": "Nintendogs - Walking.mp3",
+    "game": "Nintendogs",
+    "gameAliases": ["Nintendogs", "Nintendo Dogs"],
+    "song": "Walking"
+  },
+  {
+    "id": 264,
+    "file": "Nintendogs - Title Screen.mp3",
+    "game": "Nintendogs",
+    "gameAliases": ["Nintendogs", "Nintendo Dogs"],
+    "song": "Title Screen"
+  },
+  {
+    "id": 265,
+    "file": "Donkey Kong Country - Bonus Room Blitz.mp3",
+    "game": "Donkey Kong Country",
+    "gameAliases": ["Donkey Kong Country", "DKC", "DK Country"],
+    "song": "Bonus Room Blitz"
+  },
+  {
+    "id": 266,
+    "file": "Donkey Kong 64 - DK Rap.mp3",
+    "game": "Donkey Kong 64",
+    "gameAliases": ["Donkey Kong 64", "DK64"],
+    "song": "DK Rap"
+  },
+  {
+    "id": 267,
+    "file": "Donkey Kong 64 - Jungle Melody.mp3",
+    "game": "Donkey Kong 64",
+    "gameAliases": ["Donkey Kong 64", "DK64"],
+    "song": "Jungle Melody"
+  },
+  {
+    "id": 268,
+    "file": "Hades II - Death to Chronos.mp3",
+    "game": "Hades II",
+    "gameAliases": ["Hades 2", "Hades II"],
+    "song": "Death to Chronos"
+  },
+  {
+    "id": 269,
+    "file": "Street Fighter 6 - Mae Mai Mud Muay.mp3",
+    "game": "Street Fighter 6",
+    "gameAliases": ["Street Fighter 6", "SF6"],
+    "song": "Mae Mai Mud Muay"
+  },
+  {
+    "id": 270,
+    "file": "Catherine - Roux.mp3",
+    "game": "Catherine",
+    "gameAliases": ["Catherine", "Catherine Full Body"],
+    "song": "Roux"
+  },
+  {
+    "id": 271,
+    "file": "Fire Emblem - Opening Title.mp3",
+    "game": "Fire Emblem: Shadow Dragon and the Blade of Light",
+    "gameAliases": ["Fire Emblem", "Fire Emblem NES", "FE1"],
+    "song": "Opening Title"
+  },
+  {
+    "id": 272,
+    "file": "Street Fighter 6 - Genbu Temple.mp3",
+    "game": "Street Fighter 6",
+    "gameAliases": ["Street Fighter 6", "SF6"],
+    "song": "Genbu Temple"
+  },
+  {
+    "id": 273,
+    "file": "GRIS - Gris Pt. 1.mp3",
+    "game": "GRIS",
+    "gameAliases": ["GRIS", "Gris"],
+    "song": "Gris Pt. 1"
+  },
+  {
+    "id": 274,
+    "file": "Phoenix Wright Ace Attorney - Courtroom Lounge.mp3",
+    "game": "Phoenix Wright: Ace Attorney",
+    "gameAliases": ["Phoenix Wright", "Ace Attorney", "Phoenix Wright Ace Attorney"],
+    "song": "Courtroom Lounge"
+  },
+  {
+    "id": 275,
+    "file": "Phoenix Wright Ace Attorney - Maya Fey Theme.mp3",
+    "game": "Phoenix Wright: Ace Attorney",
+    "gameAliases": ["Phoenix Wright", "Ace Attorney", "Phoenix Wright Ace Attorney"],
+    "song": "Maya Fey Theme"
+  },
+  {
+    "id": 276,
+    "file": "Phoenix Wright Ace Attorney - Pursuit Cornered.mp3",
+    "game": "Phoenix Wright: Ace Attorney",
+    "gameAliases": ["Phoenix Wright", "Ace Attorney", "Phoenix Wright Ace Attorney"],
+    "song": "Pursuit Cornered"
+  },
+  {
+    "id": 277,
+    "file": "Bayonetta 2 - Moon River.mp3",
+    "game": "Bayonetta 2",
+    "gameAliases": ["Bayonetta 2", "Bayonetta II"],
+    "song": "Moon River"
+  },
+  {
+    "id": 278,
+    "file": "Super Mario World - Title.mp3",
+    "game": "Super Mario World",
+    "gameAliases": ["Super Mario World", "SMW"],
+    "song": "Title"
+  },
+  {
+    "id": 279,
+    "file": "Super Mario World - Athletic.mp3",
+    "game": "Super Mario World",
+    "gameAliases": ["Super Mario World", "SMW"],
+    "song": "Athletic"
+  },
+  {
+    "id": 280,
+    "file": "Super Mario Sunshine - Ricco Harbor.mp3",
+    "game": "Super Mario Sunshine",
+    "gameAliases": ["Super Mario Sunshine", "Mario Sunshine", "SMS"],
+    "song": "Ricco Harbor"
+  },
+  {
+    "id": 281,
+    "file": "Super Mario Sunshine - Isle Delfino.mp3",
+    "game": "Super Mario Sunshine",
+    "gameAliases": ["Super Mario Sunshine", "Mario Sunshine", "SMS"],
+    "song": "Isle Delfino"
+  },
+  {
+    "id": 282,
+    "file": "The Sims - Buy Mode.mp3",
+    "game": "The Sims",
+    "gameAliases": ["The Sims", "Sims", "Sims 1", "Los Sims"],
+    "song": "Buy Mode"
+  },
+  {
+    "id": 283,
+    "file": "Overwatch - Volskaya Industries.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Volskaya Industries"
+  },
+  {
+    "id": 284,
+    "file": "Overwatch - Situation Critical.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Situation Critical"
+  },
+  {
+    "id": 285,
+    "file": "The Sims - Groceries.mp3",
+    "game": "The Sims",
+    "gameAliases": ["The Sims", "Sims", "Sims 1", "Los Sims"],
+    "song": "Groceries"
+  },
+  {
+    "id": 286,
+    "file": "Mega Man 3 - Title Screen.mp3",
+    "game": "Mega Man 3",
+    "gameAliases": ["Mega Man 3", "Megaman 3", "MM3"],
+    "song": "Title Screen"
+  },
+  {
+    "id": 287,
+    "file": "Overwatch - Overture.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Overture"
+  },
+  {
+    "id": 288,
+    "file": "Overwatch - Rally the Heroes.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Rally the Heroes"
+  },
+  {
+    "id": 289,
+    "file": "Overwatch - Temple of Anubis.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Temple of Anubis"
+  },
+  {
+    "id": 290,
+    "file": "Overwatch - Kings Row.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "King's Row"
+  },
+  {
+    "id": 291,
+    "file": "Overwatch - Route 66.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Route 66"
+  },
+  {
+    "id": 292,
+    "file": "Ori and the Blind Forest - Ori Lost In the Storm.mp3",
+    "game": "Ori and the Blind Forest",
+    "gameAliases": ["Ori and the Blind Forest", "Ori", "Ori Blind Forest"],
+    "song": "Ori Lost In the Storm"
+  },
+  {
+    "id": 293,
+    "file": "Hollow Knight - Enter Hallownest.mp3",
+    "game": "Hollow Knight",
+    "gameAliases": ["Hollow Knight", "HK"],
+    "song": "Enter Hallownest"
+  },
+  {
+    "id": 294,
+    "file": "Hollow Knight - Hollow Knight.mp3",
+    "game": "Hollow Knight",
+    "gameAliases": ["Hollow Knight", "HK"],
+    "song": "Hollow Knight"
+  },
+  {
+    "id": 295,
+    "file": "Terraria Calamity - Universal Collapse.mp3",
+    "game": "Terraria Calamity Mod",
+    "gameAliases": ["Terraria Calamity", "Calamity Mod", "Terraria Calamidad"],
+    "song": "Universal Collapse"
+  },
+  {
+    "id": 296,
+    "file": "Kingdom Hearts - Dearly Beloved.mp3",
+    "game": "Kingdom Hearts",
+    "gameAliases": ["Kingdom Hearts", "KH", "KH1"],
+    "song": "Dearly Beloved"
+  },
+  {
+    "id": 297,
+    "file": "Shovel Knight - Main Theme.mp3",
+    "game": "Shovel Knight",
+    "gameAliases": ["Shovel Knight"],
+    "song": "Main Theme"
+  },
+  {
+    "id": 298,
+    "file": "Dark Souls II - Majula.mp3",
+    "game": "Dark Souls II",
+    "gameAliases": ["Dark Souls 2", "Dark Souls II", "DS2"],
+    "song": "Majula"
+  },
+  {
+    "id": 299,
+    "file": "Dark Souls - Gwyn Lord of Cinder.mp3",
+    "game": "Dark Souls",
+    "gameAliases": ["Dark Souls", "Dark Souls 1", "DS1"],
+    "song": "Gwyn Lord of Cinder"
+  },
+  {
+    "id": 300,
+    "file": "Shantae and the Pirates Curse - We Love Burning Town.mp3",
+    "game": "Shantae and the Pirate's Curse",
+    "gameAliases": ["Shantae", "Shantae and the Pirates Curse", "Shantae Pirates Curse"],
+    "song": "We Love Burning Town"
+  },
+  {
+    "id": 301,
+    "file": "Clair Obscur Expedition 33 - Main Theme.mp3",
+    "game": "Clair Obscur: Expedition 33",
+    "gameAliases": ["Clair Obscur", "Expedition 33", "Clair Obscur Expedition 33"],
+    "song": "Main Theme"
+  },
+  {
+    "id": 302,
+    "file": "Deltarune - Rude Buster.mp3",
+    "game": "Deltarune",
+    "gameAliases": ["Deltarune", "Delta Rune"],
+    "song": "Rude Buster"
+  },
+  {
+    "id": 303,
+    "file": "Devil May Cry 5 - Bury The Light.mp3",
+    "game": "Devil May Cry 5",
+    "gameAliases": ["DMC5", "Devil May Cry 5", "DMC 5", "Devil May Cry V"],
+    "song": "Bury The Light"
+  },
+  {
+    "id": 304,
+    "file": "Final Fantasy VI - Terras Theme.mp3",
+    "game": "Final Fantasy VI",
+    "gameAliases": ["FF6", "Final Fantasy 6", "Final Fantasy VI", "FFVI"],
+    "song": "Terra's Theme"
+  },
+  {
+    "id": 305,
+    "file": "Overwatch - Play of the Game.mp3",
+    "game": "Overwatch",
+    "gameAliases": ["Overwatch", "OW", "Overwatch 1"],
+    "song": "Play of the Game"
+  },
+  {
+    "id": 306,
+    "file": "Rocket League - Infinite Power.mp3",
+    "game": "Rocket League",
+    "gameAliases": ["Rocket League", "RL"],
+    "song": "Infinite Power"
+  },
+  {
+    "id": 307,
+    "file": "The Elder Scrolls V Skyrim - Dragonborn.mp3",
+    "game": "The Elder Scrolls V: Skyrim",
+    "gameAliases": ["Skyrim", "Elder Scrolls Skyrim", "TES Skyrim", "The Elder Scrolls V"],
+    "song": "Dragonborn"
+  },
+  {
+    "id": 308,
+    "file": "Sonic Mania - Lights, Camera, Action.mp3",
+    "game": "Sonic Mania",
+    "gameAliases": ["Sonic Mania", "Mania"],
+    "song": "Lights, Camera, Action!"
+  },
+  {
+    "id": 309,
+    "file": "Sonic Mania - Stardust Speedway Zone Act 2.mp3",
+    "game": "Sonic Mania",
+    "gameAliases": ["Sonic Mania", "Mania"],
+    "song": "Stardust Speedway Zone Act 2"
+  },
+  {
+    "id": 310,
+    "file": "ff7-remake-one-winged-angel.mp3",
+    "game": "Final Fantasy VII Remake",
+    "gameAliases": ["FF7 Remake", "Final Fantasy 7 Remake", "FF7R", "FFVII Remake"],
+    "song": "One Winged Angel"
+  },
+  {
+    "id": 311,
+    "file": "mario-strikers-charged-luigis-theme.mp3",
+    "game": "Mario Strikers Charged",
+    "gameAliases": ["Mario Strikers", "Strikers Charged", "Mario Strikers Charged Football"],
+    "song": "Luigi's Theme"
+  },
+  {
+    "id": 312,
+    "file": "team-fortress-2-archimedes.mp3",
+    "game": "Team Fortress 2",
+    "gameAliases": ["Team Fortress 2", "TF2", "Team Fortress"],
+    "song": "Archimedes"
+  },
+  {
+    "id": 313,
+    "file": "team-fortress-2-medic.mp3",
+    "game": "Team Fortress 2",
+    "gameAliases": ["Team Fortress 2", "TF2", "Team Fortress"],
+    "song": "Medic!"
+  },
+  {
+    "id": 314,
+    "file": "team-fortress-2-rocket-jump-waltz.mp3",
+    "game": "Team Fortress 2",
+    "gameAliases": ["Team Fortress 2", "TF2", "Team Fortress"],
+    "song": "Rocket Jump Waltz"
+  }
+]

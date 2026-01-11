@@ -1,0 +1,596 @@
+/**
+ * Mobile Responsive Styles
+ *
+ * Consolidated mobile breakpoints for SQRRR minigames.
+ * Breakpoints:
+ *   - 768px: Tablet - stack layouts, adjust windows
+ *   - 480px: Phone - full-width everything, touch optimized
+ */
+
+/* ==================== TOUCH IMPROVEMENTS ==================== */
+
+/* Prevent text selection during gameplay */
+.typing-game-screen,
+.drawing-game-screen {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Drawing canvas - prevent scroll/zoom while drawing */
+#drawing-canvas {
+  touch-action: none;
+}
+
+/* Minimum touch target size (44px per Apple/Google guidelines) */
+button,
+.xp-btn,
+.tool-btn,
+.xp-tool-btn,
+[role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent iOS zoom on input focus (16px minimum) */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Smooth scrolling for touch devices */
+.msn-messages,
+.player-list-container,
+.game-messages,
+.xp-chat-messages {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ==================== TABLET (768px) ==================== */
+@media (max-width: 768px) {
+  /* Base layout fixes */
+  body {
+    overflow: auto;
+    overflow-x: hidden;
+    min-height: 100vh;
+    height: auto;
+  }
+
+  .screen-container {
+    position: relative;
+    min-height: 100vh;
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .screen-container.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  /* All windows should be max-width on tablet */
+  .window {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .window-body {
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  /* ===== VGM Game ===== */
+  .game-window {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .game-main {
+    flex-direction: column;
+  }
+
+  .game-right {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--xp-border-blue, #5a7bc0);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* ===== Typing Game ===== */
+  .typing-menu-window,
+  .typing-lobby-window,
+  .typing-game-window,
+  .typing-results-window {
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* ===== Drawing Game ===== */
+  .drawing-lobby-window,
+  .drawing-game-window,
+  .drawing-results-window {
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .xp-drawing-layout {
+    flex-direction: column;
+  }
+
+  .xp-drawing-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid var(--xp-border-blue, #7b9ebd);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .xp-drawing-sidebar .players-section,
+  .xp-drawing-sidebar .chat-section {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  /* Drawing toolbox - horizontal on tablet */
+  .xp-toolbox {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .xp-tool-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Color palette - larger on touch */
+  .xp-color-cell {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* ===== Fellowship ===== */
+  .fellowship-menu-window,
+  .fellowship-gear-window,
+  .fellowship-dungeon-window,
+  .fellowship-choice-window,
+  .fellowship-talent-window {
+    width: 100%;
+    max-height: none;
+    height: auto;
+  }
+
+  .fellowship-characters {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .fellowship-talent-tree {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .fellowship-gear-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fellowship-talent-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .talent-row {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .talent-node {
+    width: 100%;
+    padding: 6px 8px;
+  }
+
+  /* ===== Arc Raiders ===== */
+  .arcraiders-window {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    min-height: 100vh;
+  }
+
+  .arcraiders-dark-theme {
+    padding: 10px;
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .arcraiders-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .arcraiders-back-btn,
+  .arcraiders-reset-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+
+  .arcraiders-tree-container {
+    min-height: 400px;
+    max-height: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .arcraiders-node {
+    width: 32px;
+    height: 32px;
+    border-width: 2px;
+  }
+
+  .arcraiders-node.major {
+    width: 50px;
+    height: 50px;
+    border-width: 3px;
+  }
+
+  /* Hide edit controls on mobile for cleaner UI */
+  #arc-edit-controls {
+    display: none;
+  }
+
+  /* Login, Hub, Menu windows - centered with max-width */
+  .login-window,
+  .hub-window,
+  .menu-window,
+  .lobby-window,
+  .round-end-window,
+  .profile-window {
+    width: 95%;
+    max-width: 450px;
+  }
+
+  /* Hub activities grid - 2 columns on tablet */
+  .hub-activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .hub-activity-btn {
+    padding: 8px;
+  }
+
+  .activity-icon {
+    font-size: 20px;
+    width: 26px;
+    margin-right: 8px;
+  }
+
+  .activity-text strong {
+    font-size: 13px;
+  }
+
+  .activity-text small {
+    font-size: 11px;
+  }
+}
+
+/* ==================== PHONE (480px) ==================== */
+@media (max-width: 480px) {
+  /* All windows full width */
+  .window {
+    width: 100%;
+    max-width: 100vw;
+    min-width: auto;
+    height: auto;
+    min-height: auto;
+    border-radius: 0;
+    position: relative;
+    top: auto;
+    left: auto;
+  }
+
+  .screen-container {
+    padding: 0;
+    min-height: 100vh;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .screen-container.active {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .window-body {
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  /* Title bar - hide decorative controls on very small screens */
+  .title-bar-controls {
+    display: none;
+  }
+
+  /* ===== VGM Game - Stack Vertically ===== */
+  .game-main {
+    flex-direction: column;
+  }
+
+  .game-left {
+    flex: 1;
+    min-height: 0;
+    order: 1;
+  }
+
+  .game-right {
+    width: 100%;
+    height: auto;
+    max-height: 120px;
+    order: 2;
+    border-left: none;
+    border-top: 1px solid var(--xp-border-blue, #5a7bc0);
+  }
+
+  .player-list-container {
+    max-height: 100px;
+    overflow-y: auto;
+  }
+
+  /* VGM MSN Chat - optimize for mobile */
+  .msn-input-container {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .msn-input-container input[type="text"] {
+    width: 100%;
+    height: 44px;
+  }
+
+  .msn-input-container button {
+    width: 100%;
+    height: 44px;
+  }
+
+  /* MSN messages area - more space */
+  .msn-messages {
+    min-height: 150px;
+    max-height: 250px;
+  }
+
+  /* Stats grid - 2 columns on phone */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+
+  .stat-item {
+    padding: 4px;
+    font-size: 11px;
+  }
+
+  /* Hub activities grid - keep 2 columns on phone, compact */
+  .hub-activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .hub-activity-btn {
+    padding: 8px 6px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .activity-icon {
+    font-size: 24px;
+    width: auto;
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
+
+  .activity-text {
+    line-height: 1.3;
+  }
+
+  .activity-text strong {
+    font-size: 11px;
+    display: block;
+  }
+
+  .activity-text small {
+    font-size: 9px;
+    display: block;
+  }
+
+  /* ===== Typing Game - Optimize for Phone ===== */
+  .typing-text-container {
+    font-size: 16px; /* Prevent iOS zoom */
+    padding: 10px;
+  }
+
+  .typing-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .typing-keyboard {
+    display: none; /* Hide decorative keyboard on phone */
+  }
+
+  /* ===== Drawing Game - Compact Layout ===== */
+  .xp-drawing-sidebar {
+    max-height: 150px;
+    order: 2;
+  }
+
+  .xp-canvas-area {
+    order: 1;
+    min-height: 250px;
+  }
+
+  .xp-toolbox {
+    padding: 4px;
+    gap: 2px;
+  }
+
+  .xp-tool-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .xp-color-cell {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Chat input - full width */
+  .xp-chat-input-container {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .xp-chat-input-container input {
+    width: 100%;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .xp-chat-input-container button {
+    width: 100%;
+  }
+
+  /* ===== Fellowship - Compact ===== */
+  .fellowship-character-card {
+    padding: 8px;
+  }
+
+  .fellowship-char-portrait {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fellowship-char-name {
+    font-size: 13px;
+  }
+
+  .talent-icon-wrapper,
+  .talent-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .talent-level-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+    min-height: 28px; /* Override touch target for compact UI */
+  }
+
+  /* ===== Arc Raiders - Compact ===== */
+  .arcraiders-header {
+    padding: 5px;
+    gap: 5px;
+  }
+
+  .arcraiders-points-display {
+    font-size: 11px;
+  }
+
+  .arcraiders-node {
+    width: 28px;
+    height: 28px;
+  }
+
+  .arcraiders-node.major {
+    width: 44px;
+    height: 44px;
+  }
+
+  .arcraiders-tooltip {
+    max-width: 200px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  /* ===== Buttons - Touch Optimized ===== */
+  button,
+  .xp-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* Mode selection buttons */
+  .mode-btn,
+  .typing-mode-btn {
+    min-height: 48px;
+    padding: 12px;
+  }
+}
+
+/* ==================== LANDSCAPE PHONE ==================== */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Reduce vertical space usage */
+  .screen-container.active {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .window .title-bar {
+    padding: 2px 4px;
+  }
+
+  /* VGM - side by side in landscape */
+  .game-main {
+    flex-direction: row;
+  }
+
+  .game-right {
+    width: 200px;
+    max-height: none;
+    border-top: none;
+    border-left: 1px solid var(--xp-border-blue, #5a7bc0);
+  }
+
+  /* Drawing - more canvas space */
+  .xp-drawing-sidebar {
+    max-height: none;
+    width: 180px;
+    flex-direction: column;
+  }
+}
+
+/* ==================== SAFE AREA (Notch) ==================== */
+@supports (padding: env(safe-area-inset-top)) {
+  .screen-container {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

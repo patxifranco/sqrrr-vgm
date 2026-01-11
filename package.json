@@ -1,0 +1,18 @@
+{
+  "name": "music-guess-game",
+  "version": "1.0.0",
+  "description": "Video game music guessing multiplayer game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cannon-es": "^0.20.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "mongoose": "^8.20.2",
+    "socket.io": "^4.7.2"
+  }
+}

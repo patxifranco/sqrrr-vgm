@@ -1,0 +1,933 @@
+/**
+ * Windows 7 Aero Theme Overrides
+ * Applied when body.theme-aero is active
+ */
+
+/* ==================== AERO BASE STYLES ==================== */
+body.theme-aero {
+  /* Update CSS variables for Aero colors */
+  --xp-bg: #f0f0f0;
+  --xp-bg-dark: #e5e5e5;
+  --xp-border-light: rgba(255, 255, 255, 0.8);
+  --xp-border-dark: rgba(0, 0, 0, 0.2);
+  --msn-sidebar: #4a90d9;
+  --msn-sidebar-light: #6cb0f0;
+
+  /* Aero uses Segoe UI font */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  /* Aero wallpaper */
+  background-image: url('../windows-aero.jpg') !important;
+}
+
+/* ==================== GLASS EFFECT FOR WINDOWS ==================== */
+body.theme-aero .window {
+  background: rgba(220, 235, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(120, 170, 230, 0.5);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 2px 10px rgba(0, 0, 0, 0.2),
+    inset 0 0 60px rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== TITLE BAR - VIBRANT BLUE ==================== */
+body.theme-aero .title-bar {
+  background: linear-gradient(180deg,
+    #4a9eff 0%,
+    #2878e0 10%,
+    #1a5cbf 50%,
+    #2878e0 90%,
+    #4a9eff 100%);
+  border-bottom: 1px solid rgba(0, 60, 140, 0.5);
+  border-radius: 5px 5px 0 0;
+  padding: 6px 8px;
+  min-height: 26px;
+}
+
+body.theme-aero .title-bar-text {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+body.theme-aero .title-bar-theme {
+  margin-left: auto;
+  margin-right: 6px;
+  position: relative;
+  z-index: 1000;
+}
+
+body.theme-aero .title-bar .theme-selector {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  padding: 1px 16px 1px 4px;
+  font-size: 10px;
+  height: 16px;
+  min-width: 45px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%23fff' d='M1 2l3 4 3-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 3px center;
+  background-size: 8px;
+}
+
+body.theme-aero .title-bar .theme-selector:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+body.theme-aero .title-bar .theme-selector option {
+  background: #fff;
+  color: #000;
+}
+
+body.theme-aero .title-bar-controls {
+  display: flex;
+  gap: 2px;
+}
+
+body.theme-aero .title-bar-controls button {
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(0, 0, 0, 0.05) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  width: 26px;
+  height: 18px;
+  min-width: 26px;
+  min-height: 18px;
+  padding: 0;
+}
+
+body.theme-aero .title-bar-controls button:hover {
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(200, 220, 255, 0.4) 100%);
+}
+
+body.theme-aero .title-bar-controls button:active {
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.05) 100%);
+}
+
+/* Close button red on hover */
+body.theme-aero .title-bar-controls button[aria-label="Close"]:hover {
+  background: linear-gradient(180deg,
+    #f06548 0%,
+    #dc3c28 50%,
+    #b82010 100%);
+  border-color: rgba(100, 0, 0, 0.5);
+}
+
+/* ==================== WINDOW BODY ==================== */
+body.theme-aero .window-body {
+  background: rgba(240, 245, 255, 0.95);
+  margin: 0;
+  padding: 8px;
+  border-radius: 0 0 5px 5px;
+}
+
+/* ==================== STATUS BAR FIX ==================== */
+body.theme-aero .status-bar,
+body.theme-aero [class*="status-bar"] {
+  background: linear-gradient(180deg, #eff4fc 0%, #d8e4f0 100%);
+  border-top: 1px solid rgba(0, 60, 140, 0.2);
+  border-radius: 0 0 5px 5px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  min-height: 22px;
+}
+
+body.theme-aero .status-bar-field {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ==================== SELECT DROPDOWN FIX ==================== */
+body.theme-aero select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 12px;
+  border: 1px solid #7a7a7a;
+  border-radius: 3px;
+  padding: 3px 22px 3px 6px;
+  font-size: 12px;
+  color: #000;
+  cursor: pointer;
+  min-height: 22px;
+}
+
+body.theme-aero select:hover {
+  border-color: #4a9eff;
+  background: linear-gradient(180deg, #ffffff 0%, #e8f4ff 100%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 12px;
+}
+
+body.theme-aero select:focus {
+  border-color: #4a9eff;
+  outline: none;
+  box-shadow: 0 0 3px rgba(74, 158, 255, 0.5);
+}
+
+/* ==================== THEME SELECTOR SPECIFIC ==================== */
+body.theme-aero .theme-selector {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23333' d='M2 3l3 4 3-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 3px center;
+  background-size: 10px;
+  border: 1px solid #7a7a7a;
+  border-radius: 2px;
+  padding: 2px 18px 2px 4px;
+  font-size: 11px;
+  min-width: 55px;
+  height: 20px;
+}
+
+/* ==================== BUTTONS ==================== */
+body.theme-aero button,
+body.theme-aero .xp-btn {
+  background: linear-gradient(180deg,
+    #f7f7f7 0%,
+    #e9e9e9 45%,
+    #d8d8d8 50%,
+    #e9e9e9 100%);
+  border: 1px solid #8e8f8f;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #000;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+body.theme-aero button:hover,
+body.theme-aero .xp-btn:hover {
+  background: linear-gradient(180deg,
+    #e3f1fc 0%,
+    #c4e0f9 45%,
+    #add3f5 50%,
+    #c4e0f9 100%);
+  border-color: #3c7fb1;
+}
+
+body.theme-aero button:active,
+body.theme-aero .xp-btn:active {
+  background: linear-gradient(180deg,
+    #c4e0f9 0%,
+    #add3f5 100%);
+}
+
+/* ==================== INPUT FIELDS ==================== */
+body.theme-aero input[type="text"],
+body.theme-aero input[type="password"],
+body.theme-aero textarea {
+  background: #fff;
+  border: 1px solid #7a7a7a;
+  border-radius: 3px;
+  padding: 4px 6px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body.theme-aero input[type="text"]:focus,
+body.theme-aero input[type="password"]:focus,
+body.theme-aero textarea:focus {
+  border-color: #4a9eff;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 3px rgba(74, 158, 255, 0.5);
+}
+
+/* ==================== PROGRESS BARS ==================== */
+body.theme-aero progress {
+  background: #e6e6e6;
+  border: 1px solid #bcbcbc;
+  border-radius: 3px;
+  height: 18px;
+}
+
+body.theme-aero progress::-webkit-progress-bar {
+  background: #e6e6e6;
+  border-radius: 3px;
+}
+
+body.theme-aero progress::-webkit-progress-value {
+  background: linear-gradient(180deg,
+    #b4f0a8 0%,
+    #5dc94c 50%,
+    #42a831 100%);
+  border-radius: 2px;
+}
+
+body.theme-aero progress::-moz-progress-bar {
+  background: linear-gradient(180deg,
+    #b4f0a8 0%,
+    #5dc94c 50%,
+    #42a831 100%);
+  border-radius: 2px;
+}
+
+/* ==================== MSN CHAT WINDOW ==================== */
+body.theme-aero .msn-chat-window {
+  background: rgba(220, 235, 255, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 6px;
+}
+
+body.theme-aero .msn-chat-header {
+  background: linear-gradient(180deg,
+    #4a9eff 0%,
+    #2878e0 50%,
+    #1a5cbf 100%);
+  border-radius: 5px 5px 0 0;
+  color: #fff;
+}
+
+body.theme-aero .msn-messages {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #bcbcbc;
+}
+
+body.theme-aero .msn-input-container {
+  background: rgba(240, 245, 255, 0.95);
+}
+
+/* ==================== DRAWING / PAINT WINDOW ==================== */
+body.theme-aero .xp-paint {
+  background: rgba(220, 235, 255, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+body.theme-aero .xp-paint .title-bar {
+  background: linear-gradient(180deg,
+    #4a9eff 0%,
+    #2878e0 10%,
+    #1a5cbf 50%,
+    #2878e0 90%,
+    #4a9eff 100%);
+}
+
+body.theme-aero .xp-menubar {
+  background: linear-gradient(180deg, #f7f8f9 0%, #e8ecf0 100%);
+  border-bottom: 1px solid #bcbcbc;
+  display: flex;
+  align-items: center;
+}
+
+body.theme-aero .xp-toolbox {
+  background: #f0f4f8;
+  border: 1px solid #bcbcbc;
+  border-radius: 0;
+}
+
+/* Tool buttons - MATCH XP EXACTLY */
+body.theme-aero .xp-tool-grid {
+  background: #ECE9D8 !important;
+}
+
+body.theme-aero .xp-tool-btn {
+  /* Match XP exactly - no gradients, no border-radius */
+  background: #ECE9D8 !important;
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  padding: 1px !important;
+  box-sizing: border-box !important;
+}
+
+body.theme-aero .xp-tool-btn:not(.disabled):hover {
+  border: 1px solid #0A246A !important;
+  background: #B6BDD2 !important;
+}
+
+body.theme-aero .xp-tool-btn.active {
+  border: 1px solid #404040 !important;
+  border-right-color: #fff !important;
+  border-bottom-color: #fff !important;
+  background: #B0B0B0 !important;
+}
+
+body.theme-aero .xp-canvas-area {
+  background: #fff;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+body.theme-aero .xp-palette-bar {
+  background: #f0f4f8;
+}
+
+body.theme-aero .xp-color {
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-aero .xp-color.selected {
+  box-shadow: 0 0 0 2px #4a9eff, 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== TYPING GAME ==================== */
+body.theme-aero .typing-window,
+body.theme-aero .typing-menu-window {
+  background: rgba(220, 235, 255, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+/* ==================== LOGIN SCREEN ==================== */
+body.theme-aero .login-window {
+  background: rgba(220, 235, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ==================== HUB SCREEN ==================== */
+body.theme-aero .hub-window {
+  background: rgba(220, 235, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ==================== FIELDSETS ==================== */
+body.theme-aero fieldset {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #bcbcbc;
+  border-radius: 3px;
+}
+
+body.theme-aero legend {
+  background: #f0f4f8;
+  border: 1px solid #bcbcbc;
+  border-radius: 2px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+/* ==================== TABS ==================== */
+body.theme-aero [role="tablist"] {
+  background: transparent;
+}
+
+body.theme-aero [role="tab"] {
+  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+  border: 1px solid #a0a0a0;
+  border-radius: 3px 3px 0 0;
+}
+
+body.theme-aero [role="tab"][aria-selected="true"] {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%);
+  border-bottom-color: transparent;
+}
+
+/* ==================== SCROLLBARS ==================== */
+body.theme-aero ::-webkit-scrollbar {
+  width: 17px;
+  height: 17px;
+}
+
+body.theme-aero ::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+}
+
+body.theme-aero ::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg,
+    #c8d4e8 0%,
+    #a8b8d0 50%,
+    #c8d4e8 100%);
+  border: 1px solid #8898b0;
+  border-radius: 0;
+}
+
+body.theme-aero ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg,
+    #b8c8e0 0%,
+    #98a8c8 50%,
+    #b8c8e0 100%);
+}
+
+body.theme-aero ::-webkit-scrollbar-button {
+  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+  border: 1px solid #a0a0a0;
+}
+
+/* ==================== FALLBACK FOR OLDER BROWSERS ==================== */
+@supports not (backdrop-filter: blur(10px)) {
+  body.theme-aero .window,
+  body.theme-aero .msn-chat-window,
+  body.theme-aero .xp-paint,
+  body.theme-aero .login-window,
+  body.theme-aero .hub-window {
+    background: rgba(220, 235, 255, 0.98);
+  }
+}
+
+/* ==================== EXCLUDE FELLOWSHIP & ARC RAIDERS ==================== */
+/* IMPORTANT: These rules MUST be at the END to override all generic Aero styles */
+/* These screens keep their dark theme regardless of Aero selection */
+
+/* Reset font for entire screens */
+body.theme-aero #fellowship-menu-screen,
+body.theme-aero #fellowship-choice-screen,
+body.theme-aero #fellowship-talent-screen,
+body.theme-aero #fellowship-gear-screen,
+body.theme-aero #fellowship-dungeon-screen,
+body.theme-aero #arcraiders-screen {
+  font-family: inherit !important;
+}
+
+/* Fellowship window classes - override Aero glass completely */
+/* Use multiple selector patterns for maximum specificity */
+body.theme-aero .fellowship-menu-window,
+body.theme-aero .fellowship-gear-window,
+body.theme-aero .fellowship-choice-window,
+body.theme-aero .fellowship-talent-window,
+body.theme-aero .fellowship-dungeon-window,
+body.theme-aero .arcraiders-window,
+body.theme-aero .window.fellowship-menu-window,
+body.theme-aero .window.fellowship-gear-window,
+body.theme-aero .window.fellowship-choice-window,
+body.theme-aero .window.fellowship-talent-window,
+body.theme-aero .window.fellowship-dungeon-window,
+body.theme-aero .window.arcraiders-window {
+  background: #0f1419 !important;
+  background-color: #0f1419 !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Also target by screen ID + .window for safety */
+body.theme-aero #fellowship-menu-screen .window,
+body.theme-aero #fellowship-choice-screen .window,
+body.theme-aero #fellowship-talent-screen .window,
+body.theme-aero #fellowship-gear-screen .window,
+body.theme-aero #fellowship-dungeon-screen .window,
+body.theme-aero #arcraiders-screen .window {
+  background: #0f1419 !important;
+  background-color: #0f1419 !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Override any ::before or ::after pseudo-elements from 7.css */
+body.theme-aero #fellowship-menu-screen .window::before,
+body.theme-aero #fellowship-menu-screen .window::after,
+body.theme-aero #fellowship-choice-screen .window::before,
+body.theme-aero #fellowship-choice-screen .window::after,
+body.theme-aero #fellowship-talent-screen .window::before,
+body.theme-aero #fellowship-talent-screen .window::after,
+body.theme-aero #fellowship-gear-screen .window::before,
+body.theme-aero #fellowship-gear-screen .window::after,
+body.theme-aero #fellowship-dungeon-screen .window::before,
+body.theme-aero #fellowship-dungeon-screen .window::after,
+body.theme-aero #arcraiders-screen .window::before,
+body.theme-aero #arcraiders-screen .window::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Window body - keep dark and transparent */
+body.theme-aero #fellowship-menu-screen .window-body,
+body.theme-aero #fellowship-choice-screen .window-body,
+body.theme-aero #fellowship-talent-screen .window-body,
+body.theme-aero #fellowship-gear-screen .window-body,
+body.theme-aero #fellowship-dungeon-screen .window-body,
+body.theme-aero #arcraiders-screen .window-body,
+body.theme-aero .fellowship-dark-theme,
+body.theme-aero .arcraiders-dark-theme {
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+/* Title bars - keep dark */
+body.theme-aero #fellowship-menu-screen .title-bar,
+body.theme-aero #fellowship-choice-screen .title-bar,
+body.theme-aero #fellowship-talent-screen .title-bar,
+body.theme-aero #fellowship-gear-screen .title-bar,
+body.theme-aero #fellowship-dungeon-screen .title-bar,
+body.theme-aero #arcraiders-screen .title-bar {
+  background: #1a1f2e !important;
+  border-radius: 7px 7px 0 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 8px 12px !important;
+}
+
+body.theme-aero #fellowship-menu-screen .title-bar-text,
+body.theme-aero #fellowship-choice-screen .title-bar-text,
+body.theme-aero #fellowship-talent-screen .title-bar-text,
+body.theme-aero #fellowship-gear-screen .title-bar-text,
+body.theme-aero #fellowship-dungeon-screen .title-bar-text,
+body.theme-aero #arcraiders-screen .title-bar-text {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+
+/* Title bar controls */
+body.theme-aero #fellowship-menu-screen .title-bar-controls button,
+body.theme-aero #fellowship-choice-screen .title-bar-controls button,
+body.theme-aero #fellowship-talent-screen .title-bar-controls button,
+body.theme-aero #fellowship-gear-screen .title-bar-controls button,
+body.theme-aero #fellowship-dungeon-screen .title-bar-controls button,
+body.theme-aero #arcraiders-screen .title-bar-controls button {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* All buttons inside these screens */
+body.theme-aero #fellowship-menu-screen button,
+body.theme-aero #fellowship-choice-screen button,
+body.theme-aero #fellowship-talent-screen button,
+body.theme-aero #fellowship-gear-screen button,
+body.theme-aero #fellowship-dungeon-screen button,
+body.theme-aero #arcraiders-screen button {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 4px !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+body.theme-aero #fellowship-menu-screen button:hover,
+body.theme-aero #fellowship-choice-screen button:hover,
+body.theme-aero #fellowship-talent-screen button:hover,
+body.theme-aero #fellowship-gear-screen button:hover,
+body.theme-aero #fellowship-dungeon-screen button:hover,
+body.theme-aero #arcraiders-screen button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.theme-aero #fellowship-menu-screen button:active,
+body.theme-aero #fellowship-choice-screen button:active,
+body.theme-aero #fellowship-talent-screen button:active,
+body.theme-aero #fellowship-gear-screen button:active,
+body.theme-aero #fellowship-dungeon-screen button:active,
+body.theme-aero #arcraiders-screen button:active {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Fellowship-specific elements that need dark theme preserved */
+body.theme-aero .fellowship-slot {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-aero .fellowship-slot:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(139, 92, 246, 0.5) !important;
+}
+
+body.theme-aero .fellowship-slot-label {
+  color: rgba(255, 255, 255, 0.6) !important;
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-slot-item {
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-item-name {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-item-dungeon {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.theme-aero .fellowship-gear-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-aero .fellowship-gear-header button {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-gear-header button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.theme-aero .fellowship-current-char {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-gear-layout {
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-gear-column {
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-dungeon-btn {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3)) !important;
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-dungeon-btn:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(59, 130, 246, 0.4)) !important;
+}
+
+/* Fellowship character buttons */
+body.theme-aero .fellowship-char-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-char-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(139, 92, 246, 0.5) !important;
+}
+
+body.theme-aero .fellowship-char-name {
+  color: #fff !important;
+}
+
+/* Fellowship dungeon list */
+body.theme-aero .fellowship-dungeon-list {
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-dungeon-group {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-aero .fellowship-dungeon-header {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-dungeon-item {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-aero .fellowship-dungeon-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-aero .fellowship-dungeon-item-name {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-dungeon-item-stats {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Fellowship tooltips */
+body.theme-aero .fellowship-tooltip {
+  background: #1a1f2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-tooltip-name {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-tooltip-stats {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Fellowship talent screen */
+body.theme-aero .fellowship-talent-tree {
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-talent-header {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-talent-title {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-talent-points {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Fellowship choice screen */
+body.theme-aero .fellowship-choice-header {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-choice-portrait {
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-choice-buttons {
+  background: transparent !important;
+}
+
+body.theme-aero .fellowship-choice-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .fellowship-choice-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(139, 92, 246, 0.5) !important;
+}
+
+/* Arc Raiders specific */
+body.theme-aero .arcraiders-header {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+body.theme-aero .arcraiders-points-display {
+  color: #fff !important;
+}
+
+body.theme-aero .arcraiders-tree-container {
+  background: transparent !important;
+}
+
+body.theme-aero .arcraiders-nodes {
+  background: transparent !important;
+}
+
+body.theme-aero .arcraiders-tooltip {
+  background: #1a1f2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .arcraiders-back-btn,
+body.theme-aero .arcraiders-reset-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+body.theme-aero .arcraiders-back-btn:hover,
+body.theme-aero .arcraiders-reset-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.theme-aero .arcraiders-category-label {
+  color: #fff !important;
+}
+
+body.theme-aero .arcraiders-category-points {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Select dropdowns - keep dark */
+body.theme-aero #fellowship-menu-screen select,
+body.theme-aero #fellowship-choice-screen select,
+body.theme-aero #fellowship-talent-screen select,
+body.theme-aero #fellowship-gear-screen select,
+body.theme-aero #fellowship-dungeon-screen select,
+body.theme-aero #arcraiders-screen select {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 4px !important;
+  color: #fff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 4px center !important;
+}
+
+body.theme-aero #fellowship-menu-screen select:hover,
+body.theme-aero #fellowship-choice-screen select:hover,
+body.theme-aero #fellowship-talent-screen select:hover,
+body.theme-aero #fellowship-gear-screen select:hover,
+body.theme-aero #fellowship-dungeon-screen select:hover,
+body.theme-aero #arcraiders-screen select:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Input fields - keep dark */
+body.theme-aero #fellowship-menu-screen input,
+body.theme-aero #fellowship-choice-screen input,
+body.theme-aero #fellowship-talent-screen input,
+body.theme-aero #fellowship-gear-screen input,
+body.theme-aero #fellowship-dungeon-screen input,
+body.theme-aero #arcraiders-screen input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 4px !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+/* Fieldsets - keep dark */
+body.theme-aero #fellowship-menu-screen fieldset,
+body.theme-aero #fellowship-choice-screen fieldset,
+body.theme-aero #fellowship-talent-screen fieldset,
+body.theme-aero #fellowship-gear-screen fieldset,
+body.theme-aero #fellowship-dungeon-screen fieldset,
+body.theme-aero #arcraiders-screen fieldset {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.theme-aero #fellowship-menu-screen legend,
+body.theme-aero #fellowship-choice-screen legend,
+body.theme-aero #fellowship-talent-screen legend,
+body.theme-aero #fellowship-gear-screen legend,
+body.theme-aero #fellowship-dungeon-screen legend,
+body.theme-aero #arcraiders-screen legend {
+  background: transparent !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+/* Progress bars - keep dark */
+body.theme-aero #fellowship-menu-screen progress,
+body.theme-aero #fellowship-choice-screen progress,
+body.theme-aero #fellowship-talent-screen progress,
+body.theme-aero #fellowship-gear-screen progress,
+body.theme-aero #fellowship-dungeon-screen progress,
+body.theme-aero #arcraiders-screen progress {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}

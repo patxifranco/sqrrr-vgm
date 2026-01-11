@@ -1,0 +1,152 @@
+{
+  "REASON": {
+    "username": "REASON",
+    "password": "$2b$10$BtTsw6vaceWJUu6A102ET.trQkOTC4pbVz/L8SFvjMyrCTOk6jIOO",
+    "isAdmin": true,
+    "profilePicture": "profiles/REASON.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "KINÜS": {
+    "username": "KINÜS",
+    "password": "$2b$10$b0Kl06E1lQ08k88b1wBbs.UvQfRciiR9B/WWlMqAzUeG4/qKlZa2u",
+    "isAdmin": false,
+    "profilePicture": "profiles/KINÜS.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "Mugi": {
+    "username": "Mugi",
+    "password": "$2b$10$LrohXGa3iq7iBuWyml8r9urdkWVurNB4mhiWgIC5.gkH1.Sw3gZQq",
+    "isAdmin": false,
+    "profilePicture": "profiles/Mugi.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "JosebaS": {
+    "username": "JosebaS",
+    "password": "$2b$10$3W.vLQhtybw.nNOSUkBQt.3BttfqeCsNmsoaq6GI1MmMZCA4MfPHe",
+    "isAdmin": false,
+    "profilePicture": "profiles/JosebaS.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "Vaktor23": {
+    "username": "Vaktor23",
+    "password": "$2b$10$tWCjLt188xm6K.MPW9dPtuWq6YTyNEnVZ1Vdy/906pWeIw3Dnnq9q",
+    "isAdmin": false,
+    "profilePicture": "profiles/Vaktor23.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "Minmin": {
+    "username": "Minmin",
+    "password": "$2b$10$TpDHGe440GG/VMqtsNt5v.eKBB7LXN20t/AfRYN3e9BSo1OxEq1gS",
+    "isAdmin": false,
+    "profilePicture": "profiles/Minmin.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "imanol13keif": {
+    "username": "imanol13keif",
+    "password": "$2b$10$NzpV6NWralJ2ckbyhld9IeHZsSnjIm5YFuYJMVCRUE56GKJbV9BhS",
+    "isAdmin": false,
+    "profilePicture": "profiles/imanol13keif.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "Layson": {
+    "username": "Layson",
+    "password": "$2b$10$lYsR2u9LM8Qi1zJjcfpND.jUTp6cNBPZjlvTYdtp13TA9Dew8icIu",
+    "isAdmin": false,
+    "profilePicture": "profiles/Layson.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "Jesus": {
+    "username": "Jesus",
+    "password": "$2b$10$wpkKwqjxjHZqpBd1Ib4KG.0ZhZgtJB4emHX3eMdTOJikAeBoO.8YK",
+    "isAdmin": false,
+    "profilePicture": "profiles/Jesus.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  },
+  "oli": {
+    "username": "oli",
+    "password": "$2b$10$u.gLokdSihvCX1CDpsrxZOjvIwVyfMYE.iuHPMwS.bSg3qFgBQAeu",
+    "isAdmin": false,
+    "profilePicture": "profiles/oli.png",
+    "stats": {
+      "gamesPlayed": 0,
+      "gamesGuessed": 0,
+      "songsGuessed": 0,
+      "superSonics": 0,
+      "hintsUsed": 0,
+      "totalPoints": 0,
+      "gameHistory": {}
+    }
+  }
+}
