@@ -1,0 +1,835 @@
+/**
+ * SQRRR Cards - Pokemon TCG Style Holographic Effects
+ *
+ * Features:
+ * - 3D perspective transforms
+ * - Rainbow holographic gradient overlay
+ * - Shine/glare effect following mouse
+ * - Album grid layout
+ */
+
+/* ==================== CSS VARIABLES ==================== */
+:root {
+  --card-width: 120px;
+  --card-height: 168px;
+  --card-border-radius: 8px;
+  --card-transition: 0.15s ease-out;
+}
+
+/* ==================== CARD ALBUM MODAL ==================== */
+.card-album-window {
+  width: 90vw;
+  max-width: 900px;
+  max-height: 85vh;
+}
+
+.card-album-window .window-body {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(85vh - 40px);
+  overflow: hidden;
+}
+
+.card-album-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--surface-color, #ece9d8);
+  border-bottom: 1px solid var(--border-color, #808080);
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.card-album-header .card-count {
+  font-weight: bold;
+}
+
+.card-album-header .card-back-btn {
+  margin-right: auto;
+}
+
+.card-album-header .card-coins {
+  font-weight: bold;
+  color: #b8860b;
+}
+
+.card-album-header button {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.card-free-btn.on-cooldown {
+  opacity: 0.7;
+}
+
+.card-free-cooldown {
+  font-size: 9px;
+  color: #666;
+  margin-left: 4px;
+}
+
+/* ==================== ALBUM GRID ==================== */
+.card-album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+
+  /* Hide XP-style scrollbar arrows, use thin modern scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Webkit scrollbar override for card album */
+.card-album-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.card-album-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.card-album-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.card-album-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.card-album-grid::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* ==================== CARD SLOT ==================== */
+.card-slot {
+  position: relative;
+  width: var(--card-width);
+  height: var(--card-height);
+  border-radius: var(--card-border-radius);
+  cursor: pointer;
+  transition: transform var(--card-transition);
+}
+
+.card-slot:hover {
+  transform: scale(1.05);
+}
+
+/* Empty slot (card not owned) */
+.card-slot.empty {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-slot.empty::after {
+  content: '?';
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.15);
+  font-weight: bold;
+}
+
+.card-slot.empty:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: none;
+  cursor: default;
+}
+
+/* Card image */
+.card-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--card-border-radius);
+}
+
+/* Duplicate count badge */
+.card-count-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffd700;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Card number */
+.card-number {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* ==================== CARD INSPECT MODAL ==================== */
+#card-inspect-modal {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+#card-inspect-modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-inspect-container {
+  position: relative;
+  perspective: 1500px;
+}
+
+.card-inspect-close {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.card-inspect-close:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Card navigation arrows */
+.card-inspect-nav {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.card-inspect-nav-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 22px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.card-inspect-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.card-inspect-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.card-inspect-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  transform: none;
+}
+
+.card-inspect-nav-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: none;
+}
+
+/* ==================== 3D CARD WITH HOLO EFFECT ==================== */
+.card-3d {
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --background-x: 50%;
+  --background-y: 50%;
+
+  position: relative;
+  width: 400px;
+  height: 560px;
+  border-radius: 12px;
+  transform-style: preserve-3d;
+  cursor: grab;
+}
+
+.card-3d:active {
+  cursor: grabbing;
+}
+
+.card-3d img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+/* Holographic rainbow gradient overlay */
+.card-3d.card-holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 25%,
+    rgba(255, 0, 0, 0.15) 30%,
+    rgba(255, 127, 0, 0.15) 35%,
+    rgba(255, 255, 0, 0.15) 40%,
+    rgba(0, 255, 0, 0.15) 45%,
+    rgba(0, 127, 255, 0.15) 50%,
+    rgba(75, 0, 130, 0.15) 55%,
+    rgba(143, 0, 255, 0.15) 60%,
+    transparent 65%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  background-position: var(--background-x) var(--background-y);
+  mix-blend-mode: color-dodge;
+  opacity: 0.8;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 5;
+}
+
+/* Animated sparkle/glitter effect */
+.card-3d.card-holo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    );
+  background-position: var(--background-x) var(--background-y);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Shine/glare effect */
+.card-3d.card-shine .card-shine-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: radial-gradient(
+    circle at var(--pointer-x) var(--pointer-y),
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    transparent 50%
+  );
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 10;
+}
+
+/* Card name display - hidden by default */
+.card-inspect-name {
+  display: none;
+}
+
+/* ==================== CARD ENTRANCE ANIMATION ==================== */
+/* Animation handled by JavaScript for proper 3D combination */
+
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: rotateY(-120deg) rotateX(30deg) scale(0.3);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg) rotateX(0deg) scale(1);
+  }
+}
+
+/* ==================== PACK OPENING ANIMATION ==================== */
+.pack-opening-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.pack-opening-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Pack container */
+.pack-container {
+  position: relative;
+  width: 350px;
+  height: 490px;
+  perspective: 1500px;
+  cursor: pointer;
+}
+
+.pack-container.opened {
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-container.opened .pack-wrapper {
+  pointer-events: none;
+}
+
+.pack-container.opened .pack-card-inside {
+  cursor: grab;
+  /* Override position:absolute to match card-inspect behavior */
+  position: relative;
+  inset: auto;
+  width: 350px;
+  height: 490px;
+}
+
+.pack-container.opened .pack-card-inside:active {
+  cursor: grabbing;
+}
+
+/* The actual card inside (hidden initially) */
+.pack-card-inside {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+/* Override card-3d fixed dimensions when inside pack */
+.pack-card-inside.card-3d {
+  width: 100%;
+  height: 100%;
+}
+
+/* Badge shows above pack once opened */
+.pack-container.opened .pack-card-inside .pack-card-new {
+  z-index: 20;
+}
+
+.pack-card-inside img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.pack-container.opened .pack-card-inside img {
+  opacity: 1;
+  transform: none;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  transition: opacity 0.5s ease, box-shadow 0.3s ease;
+}
+
+/* Holo card inside gets special glow */
+.pack-container.opened .pack-card-inside.card-holo img {
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 100, 255, 0.4);
+}
+
+/* Pack wrapper (the plastic pack) */
+.pack-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  transform-style: preserve-3d;
+}
+
+/* Top half of pack that rips away */
+.pack-wrapper-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  transform-origin: bottom center;
+  z-index: 11;
+}
+
+.pack-wrapper-top img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  border-radius: 12px 12px 0 0;
+}
+
+/* Bottom half stays in place then fades */
+.pack-wrapper-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.pack-wrapper-bottom img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Holo effect on pack wrapper */
+.pack-wrapper-holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 25%,
+    rgba(255, 0, 0, 0.25) 30%,
+    rgba(255, 127, 0, 0.25) 35%,
+    rgba(255, 255, 0, 0.25) 40%,
+    rgba(0, 255, 0, 0.25) 45%,
+    rgba(0, 127, 255, 0.25) 50%,
+    rgba(75, 0, 130, 0.25) 55%,
+    rgba(143, 0, 255, 0.25) 60%,
+    transparent 65%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: color-dodge;
+  animation: packHoloShimmer 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.pack-wrapper-bottom.pack-wrapper-holo::after {
+  border-radius: 0 0 12px 12px;
+}
+
+/* Pack slides down when opened */
+.pack-container.opened .pack-wrapper {
+  animation: packSlideDown 0.6s ease-out forwards;
+}
+
+@keyframes packSlideDown {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(150%);
+    opacity: 0;
+  }
+}
+
+/* Tear edge - hidden (not used with slide animation) */
+.pack-tear-edge {
+  display: none;
+}
+
+/* Click to open hint */
+.pack-click-hint {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  animation: hintPulse 1.5s ease-in-out infinite;
+}
+
+.pack-container.opened .pack-click-hint {
+  display: none;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes packHoloShimmer {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* New card badge - hidden initially */
+.pack-card-inside .pack-card-new {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: linear-gradient(90deg, #ffd700, #ffaa00);
+  color: #000;
+  font-weight: bold;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  opacity: 0;
+  z-index: 20;
+  transition: none;
+}
+
+/* Badge appears when pack is opened */
+.pack-container.opened .pack-card-inside .pack-card-new {
+  animation: newBadgeAppear 0.4s 0.3s ease-out forwards, newBadgePulse 0.5s 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes newBadgeAppear {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+}
+
+@keyframes newBadgePulse {
+  from { transform: translateX(-50%) scale(1); }
+  to { transform: translateX(-50%) scale(1.1); }
+}
+
+.pack-card-name {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.pack-card-count {
+  color: #aaa;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.pack-close-btn {
+  margin-top: 30px;
+  padding: 10px 30px;
+  font-size: 16px;
+  z-index: 100;
+  position: relative;
+  cursor: pointer;
+  display: none;
+}
+
+.pack-container.opened ~ .pack-close-btn {
+  display: block;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  :root {
+    --card-width: 90px;
+    --card-height: 126px;
+  }
+
+  .card-album-window {
+    width: 95vw;
+    max-height: 90vh;
+  }
+
+  .card-album-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-album-grid {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .card-3d {
+    width: 320px;
+    height: 448px;
+  }
+
+  .pack-card {
+    width: 280px;
+    height: 392px;
+  }
+}
+
+/* ==================== ALBUM BUTTON FOR HUB/GAMBA ==================== */
+.card-album-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-album-btn-icon {
+  font-size: 18px;
+}
+
+/* Button in gamba screen */
+.slots-album-btn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* ==================== SHOP MODAL ==================== */
+.shop-window {
+  width: 400px;
+  max-width: 90vw;
+}
+
+.shop-body {
+  padding: 16px;
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%);
+  border: 2px solid #808080;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.shop-item:hover {
+  background: linear-gradient(180deg, #e8f4ff 0%, #d0e8ff 100%);
+  border-color: #0066cc;
+}
+
+.shop-item:active {
+  background: linear-gradient(180deg, #d0e8ff 0%, #b8d8ff 100%);
+}
+
+.shop-item-icon {
+  font-size: 32px;
+  width: 48px;
+  text-align: center;
+}
+
+.shop-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shop-item-info strong {
+  font-size: 14px;
+  color: #000;
+}
+
+.shop-item-info small {
+  font-size: 11px;
+  color: #666;
+}
+
+/* ==================== WINDOWS-STYLE POPUP ==================== */
+.sqrrr-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.sqrrr-popup-overlay.active {
+  opacity: 1;
+}
+
+.sqrrr-popup-window {
+  min-width: 300px;
+  max-width: 400px;
+  animation: popupBounce 0.2s ease-out;
+}
+
+@keyframes popupBounce {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.sqrrr-popup-body {
+  padding: 16px;
+}
+
+.sqrrr-popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.sqrrr-popup-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.sqrrr-popup-message {
+  margin: 0;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.sqrrr-popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sqrrr-popup-btn {
+  min-width: 80px;
+  padding: 6px 16px;
+}

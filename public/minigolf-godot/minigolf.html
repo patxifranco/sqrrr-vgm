@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+  <title>SQRRR Golf</title>
+  <style>
+    html, body, #canvas {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    body {
+      color: white;
+      background-color: #1a1a2e;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #canvas {
+      display: block;
+    }
+    #canvas:focus {
+      outline: none;
+    }
+    #status, #status-splash, #status-progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+    }
+    #status, #status-splash {
+      top: 0;
+      bottom: 0;
+    }
+    #status {
+      background-color: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      visibility: hidden;
+    }
+    #status-splash {
+      max-height: 100%;
+      max-width: 100%;
+      margin: auto;
+    }
+    #status-progress {
+      bottom: 10%;
+      width: 50%;
+      margin: 0 auto;
+      display: none;
+    }
+    #status-notice {
+      background-color: #5b3943;
+      border-radius: 0.5rem;
+      border: 1px solid #9b3943;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      line-height: 1.3;
+      margin: 0 2rem;
+      padding: 1rem;
+      text-align: center;
+      display: none;
+    }
+    /* Lobby overlay */
+    #lobby-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(26, 26, 46, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      z-index: 100;
+    }
+    #lobby-overlay.hidden {
+      display: none;
+    }
+    .lobby-title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #4ECDC4;
+    }
+    .lobby-status {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      color: #ccc;
+    }
+    .lobby-players {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      max-width: 600px;
+    }
+    .lobby-player {
+      background: rgba(255,255,255,0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .lobby-player img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    .lobby-player.ready {
+      background: rgba(78, 205, 196, 0.3);
+      border: 2px solid #4ECDC4;
+    }
+    .lobby-btn {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: #4ECDC4;
+      border: none;
+      border-radius: 8px;
+      color: #1a1a2e;
+      font-weight: bold;
+      margin: 0.5rem;
+    }
+    .lobby-btn:hover {
+      background: #45B7D1;
+    }
+    .lobby-btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+    .lobby-btn.back {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+    }
+  </style>
+  <link id="-gd-engine-icon" rel="icon" type="image/png" href="minigolf.icon.png" />
+</head>
+<body>
+  <!-- Lobby Overlay -->
+  <div id="lobby-overlay">
+    <button class="lobby-btn back" id="back-btn">Volver</button>
+    <h1 class="lobby-title">SQRRR Golf</h1>
+    <p class="lobby-status" id="lobby-status">Conectando...</p>
+    <div class="lobby-players" id="lobby-players"></div>
+    <button class="lobby-btn" id="ready-btn" disabled>JUGAR</button>
+  </div>
+
+  <!-- Godot Canvas -->
+  <canvas id="canvas">
+    Your browser does not support the canvas tag.
+  </canvas>
+
+  <noscript>
+    Your browser does not support JavaScript.
+  </noscript>
+
+  <div id="status">
+    <img id="status-splash" src="minigolf.png" alt="">
+    <progress id="status-progress"></progress>
+    <div id="status-notice"></div>
+  </div>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Godot Engine -->
+  <script src="minigolf.js"></script>
+
+  <script>
+    // ==================== SOCKET.IO BRIDGE ====================
+    let socket = null;
+    let myPlayerId = null;
+    let currentUsername = 'Guest';
+    let currentProfilePic = 'profiles/default.svg';
+    let isReady = false;
+    let gameStarted = false;
+
+    // Get user info from parent window or URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    currentUsername = urlParams.get('username') || 'Guest';
+    currentProfilePic = urlParams.get('profile') || '/profiles/default.svg';
+
+    // DOM elements
+    const lobbyOverlay = document.getElementById('lobby-overlay');
+    const lobbyStatus = document.getElementById('lobby-status');
+    const lobbyPlayers = document.getElementById('lobby-players');
+    const readyBtn = document.getElementById('ready-btn');
+    const backBtn = document.getElementById('back-btn');
+
+    // Initialize socket connection
+    function initSocket() {
+      socket = io();
+
+      socket.on('connect', () => {
+        console.log('[MINIGOLF] Connected to server');
+        socket.emit('minigolfJoin', {
+          username: currentUsername,
+          profilePicture: currentProfilePic
+        });
+      });
+
+      socket.on('minigolfJoined', (data) => {
+        console.log('[MINIGOLF] Joined lobby', data);
+        myPlayerId = data.playerId;
+        readyBtn.disabled = false;
+        updateLobbyUI(data.players, data.gameState);
+      });
+
+      socket.on('minigolfPlayerJoined', (data) => {
+        console.log('[MINIGOLF] Player joined', data);
+        updateLobbyUI(data.players, 'waiting');
+      });
+
+      socket.on('minigolfPlayerLeft', (data) => {
+        console.log('[MINIGOLF] Player left', data);
+        updateLobbyUI(data.players, 'waiting');
+      });
+
+      socket.on('minigolfLobbyState', (data) => {
+        updateLobbyUI(data.players, data.gameState);
+      });
+
+      socket.on('minigolfStartLoading', (data) => {
+        console.log('[MINIGOLF] Game starting, loading course...');
+        lobbyStatus.textContent = 'Cargando campo...';
+        startGodotGame();
+      });
+
+      socket.on('minigolfHoleStart', (data) => {
+        console.log('[MINIGOLF] Hole start', data);
+        sendToGodot('holeStart', data);
+      });
+
+      socket.on('minigolfState', (data) => {
+        // Forward ball positions to Godot for other players
+        sendToGodot('gameState', data);
+      });
+
+      socket.on('minigolfShotTaken', (data) => {
+        console.log('[MINIGOLF] Shot taken', data);
+        sendToGodot('shotTaken', data);
+      });
+
+      socket.on('minigolfBallInHole', (data) => {
+        console.log('[MINIGOLF] Ball in hole!', data);
+        sendToGodot('ballInHole', data);
+      });
+
+      socket.on('minigolfHoleComplete', (data) => {
+        console.log('[MINIGOLF] Hole complete', data);
+        sendToGodot('holeComplete', data);
+      });
+
+      socket.on('minigolfGameEnd', (data) => {
+        console.log('[MINIGOLF] Game ended', data);
+        sendToGodot('gameEnd', data);
+      });
+
+      socket.on('minigolfLobbyReset', (data) => {
+        console.log('[MINIGOLF] Lobby reset');
+        gameStarted = false;
+        isReady = false;
+        readyBtn.textContent = 'JUGAR';
+        lobbyOverlay.classList.remove('hidden');
+        updateLobbyUI(data.players, 'waiting');
+      });
+
+      socket.on('minigolfError', (data) => {
+        alert(data.message);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('[MINIGOLF] Disconnected');
+        lobbyStatus.textContent = 'Desconectado. Recargando...';
+        setTimeout(() => location.reload(), 2000);
+      });
+    }
+
+    function updateLobbyUI(players, gameState) {
+      // Update player list
+      lobbyPlayers.innerHTML = '';
+      let readyCount = 0;
+
+      players.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'lobby-player' + (player.ready ? ' ready' : '');
+        const profilePath = player.profilePicture.startsWith('/') ? player.profilePicture : '/' + player.profilePicture;
+        div.innerHTML = `
+          <img src="${profilePath}" alt="${player.username}">
+          <span>${player.username}</span>
+          ${player.ready ? '<span style="color:#4ECDC4">✓</span>' : ''}
+        `;
+        lobbyPlayers.appendChild(div);
+        if (player.ready) readyCount++;
+      });
+
+      // Update status
+      if (gameState === 'waiting') {
+        const total = players.length;
+        lobbyStatus.textContent = `${total} jugador${total !== 1 ? 'es' : ''} en sala`;
+      } else if (gameState === 'loading') {
+        lobbyStatus.textContent = 'Cargando campo...';
+      } else if (gameState === 'playing') {
+        lobbyStatus.textContent = 'Partida en curso';
+      }
+    }
+
+    // Ready button handler
+    readyBtn.addEventListener('click', () => {
+      isReady = !isReady;
+      readyBtn.textContent = isReady ? 'CANCELAR' : 'JUGAR';
+      socket.emit('minigolfReady');
+    });
+
+    // Back button handler
+    backBtn.addEventListener('click', () => {
+      socket.emit('minigolfLeave');
+      // Notify parent window to go back
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'minigolfBack' }, '*');
+      } else {
+        window.location.href = '/';
+      }
+    });
+
+    // ==================== GODOT BRIDGE ====================
+    let godotReady = false;
+    let engine = null;
+    let eventQueue = []; // Queue events until Godot is ready
+
+    // Called by Godot when it's ready
+    window.godotReady = function() {
+      console.log('[MINIGOLF] Godot is ready');
+      godotReady = true;
+
+      // Send player info to Godot
+      sendToGodot('init', {
+        playerId: myPlayerId,
+        username: currentUsername
+      });
+
+      // Flush queued events (using same packed format as sendToGodot)
+      console.log('[MINIGOLF] Flushing', eventQueue.length, 'queued events');
+      eventQueue.forEach(evt => {
+        if (window.godotCallback) {
+          const payload = JSON.stringify({ event: evt.type, data: evt.data });
+          window.godotCallback(payload);
+        }
+      });
+      eventQueue = [];
+    };
+
+    // Called by Godot when course is loaded
+    window.godotLoaded = function() {
+      console.log('[MINIGOLF] Godot loaded course');
+      socket.emit('minigolfLoaded', {
+        holePositions: [],
+        collisionMeshes: []
+      });
+    };
+
+    // Called by Godot to send a shot
+    window.godotShot = function(direction, power) {
+      console.log('[MINIGOLF] Shot:', direction, power);
+      socket.emit('minigolfShot', { direction, power });
+    };
+
+    // Called by Godot to reset ball
+    window.godotResetBall = function(position) {
+      socket.emit('minigolfResetBall', { position });
+    };
+
+    // Called by Godot to update ball position (for multiplayer sync)
+    window.godotBallUpdate = function(x, y, z) {
+      if (socket && socket.connected) {
+        socket.emit('minigolfBallUpdate', {
+          position: { x: x, y: y, z: z }
+        });
+      }
+    };
+
+    // Send message to Godot
+    // IMPORTANT: Godot's JavaScriptBridge.create_callback only captures the FIRST argument
+    // So we pack event type and data into a single JSON string
+    function sendToGodot(eventType, data) {
+      if (!godotReady || !window.godotCallback) {
+        console.log('[MINIGOLF] Godot not ready, queuing:', eventType, 'godotReady:', godotReady, 'callback:', !!window.godotCallback);
+        eventQueue.push({ type: eventType, data: data });
+        return;
+      }
+      // Pack both event and data into single JSON string
+      const payload = JSON.stringify({ event: eventType, data: data });
+      console.log('[MINIGOLF] Sending to Godot:', payload);
+      window.godotCallback(payload);
+    }
+
+    // ==================== GODOT ENGINE ====================
+    const GODOT_CONFIG = {
+      "args": [],
+      "canvasResizePolicy": 2,
+      "emscriptenPoolSize": 8,
+      "ensureCrossOriginIsolationHeaders": false,
+      "executable": "minigolf",
+      "experimentalVK": false,
+      "fileSizes": {"minigolf.pck": 446656, "minigolf.wasm": 36145869},
+      "focusCanvas": true,
+      "gdextensionLibs": [],
+      "godotPoolSize": 4
+    };
+
+    function startGodotGame() {
+      if (gameStarted) return;
+      gameStarted = true;
+
+      // Hide lobby, show game
+      lobbyOverlay.classList.add('hidden');
+
+      // Show loading status
+      const statusOverlay = document.getElementById('status');
+      const statusProgress = document.getElementById('status-progress');
+      statusOverlay.style.visibility = 'visible';
+      statusProgress.style.display = 'block';
+
+      // Start Godot engine
+      engine = new Engine(GODOT_CONFIG);
+
+      engine.startGame({
+        'onProgress': function(current, total) {
+          if (current > 0 && total > 0) {
+            statusProgress.value = current;
+            statusProgress.max = total;
+          }
+        }
+      }).then(() => {
+        statusOverlay.style.visibility = 'hidden';
+        console.log('[MINIGOLF] Godot engine started');
+      }).catch((err) => {
+        console.error('[MINIGOLF] Failed to start Godot:', err);
+        document.getElementById('status-notice').style.display = 'block';
+        document.getElementById('status-notice').textContent = 'Error cargando el juego: ' + err.message;
+      });
+    }
+
+    // Listen for messages from parent window (for back button)
+    window.addEventListener('message', (event) => {
+      // Handle any future parent messages here
+    });
+
+    // Always initialize - we get user info from URL params
+    initSocket();
+  </script>
+</body>
+</html>

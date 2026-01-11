@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>SQRRR</title>
+  <link rel="icon" type="image/png" href="jovani.png">
+  <!-- Theme stylesheets - one active at a time -->
+  <link id="theme-xp" rel="stylesheet" href="https://unpkg.com/xp.css@0.2.6/dist/XP.css">
+  <link id="theme-aero" rel="stylesheet" href="https://unpkg.com/7.css" disabled>
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/theme-aero.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/wordle.css">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="screen-container active">
+    <div class="window login-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR - Iniciar Sesion</div>
+        <div class="title-bar-theme">
+          <select class="theme-selector">
+            <option value="xp">XP</option>
+            <option value="aero">Aero</option>
+          </select>
+        </div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="login-content">
+          <div class="avatar-container">
+            <img id="login-avatar" class="login-avatar" src="profiles/default.svg" alt="Avatar">
+          </div>
+
+          <div class="field-row-stacked">
+            <label for="user-select">Usuario:</label>
+            <select id="user-select">
+              <option value="">Cargando usuarios...</option>
+            </select>
+          </div>
+
+          <div class="field-row-stacked">
+            <label for="login-password">Contrasena:</label>
+            <input type="password" id="login-password" placeholder="">
+          </div>
+
+          <div class="field-row">
+            <input type="checkbox" id="remember-me" checked>
+            <label for="remember-me">Recordarme</label>
+          </div>
+
+          <button id="login-btn">Iniciar sesión</button>
+
+          <div id="login-error" class="error-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUB SCREEN -->
+  <div id="hub-screen" class="screen-container">
+    <div class="window hub-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR - Menú Principal</div>
+        <div class="title-bar-theme">
+          <select class="theme-selector">
+            <option value="xp">XP</option>
+            <option value="aero">Aero</option>
+          </select>
+        </div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="hub-content">
+          <div class="hub-header-row">
+            <div class="hub-user" id="hub-user-info">
+              <img id="hub-avatar" class="hub-avatar" src="profiles/default.svg" alt="Avatar">
+              <div class="hub-user-info">
+                <span id="hub-username" class="hub-username">Player</span>
+                <span class="hub-status"><span class="online-dot"></span> Online</span>
+              </div>
+            </div>
+            <button id="hub-leaderboard-btn" class="leaderboard-btn" title="Leaderboards">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+              </svg>
+            </button>
+          </div>
+
+          <fieldset>
+            <legend>¿Qué ostias quieres?</legend>
+            <div class="hub-activities-grid">
+              <button id="vgm-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x266B;</span>
+                <span class="activity-text">
+                  <strong>SQRRR VGM</strong><br>
+                  <small>Música de frikitones</small>
+                </span>
+              </button>
+              <button id="typing-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x2328;</span>
+                <span class="activity-text">
+                  <strong>SQRRR Tikitiki</strong><br>
+                  <small>Click clack de frikitones</small>
+                </span>
+              </button>
+              <button id="drawing-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x270F;</span>
+                <span class="activity-text">
+                  <strong>SQRRRILLO</strong><br>
+                  <small>Dibujitos de frikitones</small>
+                </span>
+              </button>
+              <button id="slots-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x1F3B0;</span>
+                <span class="activity-text">
+                  <strong>SQRRR Gamba</strong><br>
+                  <small>Gamba de frikitones</small>
+                </span>
+              </button>
+              <button id="cards-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x1F0CF;</span>
+                <span class="activity-text">
+                  <strong>SQRRR Cartas</strong><br>
+                  <small>Coleccion de frikitones</small>
+                </span>
+              </button>
+              <button id="fishing-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x1F3A3;</span>
+                <span class="activity-text">
+                  <strong>SQRRR GluGlu</strong><br>
+                  <small>Pesca frikitones</small>
+                </span>
+              </button>
+              <button id="minigolf-btn" class="hub-activity-btn" style="display: none;">
+                <span class="activity-icon">&#x26F3;</span>
+                <span class="activity-text">
+                  <strong>SQRRR Golf</strong><br>
+                  <small>Minigolf de frikitones</small>
+                </span>
+              </button>
+              <!-- Fellowship hidden for now -->
+              <button id="fellowship-btn" class="hub-activity-btn" style="display: none;">
+                <span class="activity-icon">&#x2694;</span>
+                <span class="activity-text">
+                  <strong>Fellowship</strong><br>
+                  <small>Negro shi de frikitones</small>
+                </span>
+              </button>
+              <button id="arcraiders-btn" class="hub-activity-btn">
+                <span class="activity-icon arcraiders-icon">&#x25CB;</span>
+                <span class="activity-text">
+                  <strong>Arc Raiders</strong><br>
+                  <small>Talento generacional de frikitones</small>
+                </span>
+              </button>
+              <button id="wordle-btn" class="hub-activity-btn">
+                <span class="activity-icon">🇸</span>
+                <span class="activity-text">
+                  <strong>SQRRRDLE</strong><br>
+                  <small>Palabras de frikitones</small>
+                </span>
+              </button>
+            </div>
+          </fieldset>
+
+          <button id="hub-logout-btn">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU SCREEN -->
+  <div id="menu-screen" class="screen-container">
+    <div class="window menu-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR VGM</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="menu-header">
+          <div class="user-info" id="user-info-btn">
+            <img id="user-avatar" class="user-avatar" src="profiles/default.svg" alt="Avatar">
+            <span id="user-display-name">Player</span>
+          </div>
+          <button id="back-to-hub-btn">Volver</button>
+        </div>
+
+        <div class="menu-content">
+          <div class="logo-text">SQRRR <span>VGM</span></div>
+          <p class="subtitle">Video Game Music Guessing Game</p>
+
+          <fieldset class="menu-form">
+            <legend>Jugar</legend>
+            <button id="create-lobby-btn">Crear Nueva Partida</button>
+            <hr>
+            <div class="field-row-stacked">
+              <label for="room-code-input">Codigo de sala:</label>
+              <input type="text" id="room-code-input" placeholder="XXXX" maxlength="4" style="text-transform: uppercase;">
+            </div>
+            <button id="join-lobby-btn">Unirse a Partida</button>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOBBY SCREEN -->
+  <div id="lobby-screen" class="screen-container">
+    <div class="window lobby-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Sala de Espera</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <fieldset>
+          <legend>Código de Sala</legend>
+          <div class="room-code-display">
+            <span id="room-code-display">----</span>
+            <small>Comparte este código con tus amigos</small>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Jugadores Online</legend>
+          <ul id="player-list" class="tree-view player-tree"></ul>
+        </fieldset>
+
+        <section class="field-row" style="justify-content: flex-end">
+          <button id="start-game-btn">Iniciar Ronda</button>
+        </section>
+
+        <fieldset>
+          <legend>Chat</legend>
+          <div id="chat-messages" class="chat-box"></div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="screen-container game-screen-container">
+    <div class="window game-window">
+      <div class="resize-handle resize-n" data-edge="n"></div>
+      <div class="resize-handle resize-s" data-edge="s"></div>
+      <div class="resize-handle resize-e" data-edge="e"></div>
+      <div class="resize-handle resize-w" data-edge="w"></div>
+      <div class="resize-handle resize-ne" data-edge="ne"></div>
+      <div class="resize-handle resize-nw" data-edge="nw"></div>
+      <div class="resize-handle resize-se" data-edge="se"></div>
+      <div class="resize-handle resize-sw" data-edge="sw"></div>
+
+      <div class="title-bar">
+        <div class="title-bar-text">
+          <span>&#x1F3B5;</span> SQRRR VGM - Ronda <span id="round-number">1</span>
+        </div>
+        <div class="title-bar-theme">
+          <select class="theme-selector">
+            <option value="xp">XP</option>
+            <option value="aero">Aero</option>
+          </select>
+        </div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+        <span id="game-room-code" style="display:none"></span>
+      </div>
+
+      <div class="window-body game-body">
+        <div class="game-toolbar">
+          <button id="back-to-hub-game">Volver al Menu</button>
+          <button id="game-leaderboard-btn" class="leaderboard-btn" title="Leaderboards">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="game-main">
+          <div class="game-left">
+            <!-- MSN-style "To:" header -->
+            <div class="msn-chat-header">
+              <span>Para:</span> <strong>SQRRR</strong> <span class="msn-chat-status">(sqrrr_vgm@sqrrr.com)</span>
+            </div>
+            <div id="game-messages" class="chat-box game-chat"></div>
+
+            <div class="game-input-area">
+              <!-- Typing indicator - above toolbar so it doesn't push things around -->
+              <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                <span id="typing-indicator-text"></span>
+              </div>
+
+              <!-- MSN-style format toolbar -->
+              <div class="msn-format-bar">
+                <button id="emoticon-btn" class="msn-toolbar-btn" title="Emojiconicos">
+                  <img src="emoticons/regular_smile.png" class="msn-toolbar-emoticon" alt=":)"> Emojiconicos
+                </button>
+                <span class="msn-toolbar-divider"></span>
+                <button id="hint-btn" class="msn-toolbar-btn" title="Usar pista (4 puntos)">
+                  <span class="msn-toolbar-icon">&#x1F4A1;</span> Pista
+                </button>
+                <label id="hint-points-text" class="msn-toolbar-label">4/4</label>
+                <span class="msn-toolbar-divider"></span>
+                <div class="font-btn-wrapper">
+                  <button id="font-btn" class="msn-toolbar-btn" title="Fuente">
+                    <span class="msn-toolbar-icon">A</span> Fuente
+                  </button>
+                  <!-- Font popup -->
+                  <div id="font-popup" class="font-popup" style="display: none;">
+                    <fieldset>
+                      <legend>Configuracion de fuente</legend>
+                      <div class="field-row">
+                        <label for="font-size-select">Tamano:</label>
+                        <select id="font-size-select">
+                          <option value="11">Pequeno</option>
+                          <option value="13" selected>Normal</option>
+                          <option value="16">Grande</option>
+                          <option value="20">Muy Grande</option>
+                        </select>
+                      </div>
+                      <div class="field-row">
+                        <label for="font-color-input">Color texto:</label>
+                        <input type="color" id="font-color-input" value="#000000">
+                      </div>
+                      <div class="field-row">
+                        <label for="name-color-input">Color nombre:</label>
+                        <input type="color" id="name-color-input" value="#0000ff">
+                      </div>
+                      <div class="field-row">
+                        <label for="font-effect-select">Efecto:</label>
+                        <select id="font-effect-select">
+                          <option value="none" selected>Ninguno</option>
+                          <option value="wave">Ola</option>
+                        </select>
+                      </div>
+                      <button id="font-save-btn">Guardar</button>
+                    </fieldset>
+                  </div>
+                </div>
+                <span class="msn-toolbar-divider"></span>
+                <button id="vote-extend-btn" class="msn-toolbar-btn" title="Votar para extender tiempo">
+                  <span class="msn-toolbar-icon">&#x23F1;</span> +10s
+                </button>
+                <label id="extend-votes" class="msn-toolbar-label">0/0</label>
+                <span class="msn-toolbar-divider"></span>
+                <button id="nudge-btn" class="msn-toolbar-btn" title="Zumbido">
+                  <img src="nudge.png" class="msn-toolbar-nudge-icon" alt="nudge">
+                </button>
+
+                <div class="msn-toolbar-spacer"></div>
+
+                <div class="volume-control">
+                  <label>Vol:</label>
+                  <input id="volume-slider" type="range" min="0" max="100" value="100">
+                </div>
+
+                <!-- Emoticons popup -->
+                <div id="emoticon-popup" class="emoticon-popup" style="display: none;">
+                  <div class="emoticon-grid">
+                    <img src="emoticons/regular_smile.png" data-code=":)" title=":)" alt=":)">
+                    <img src="emoticons/teeth_smile.png" data-code=":D" title=":D" alt=":D">
+                    <img src="emoticons/wink_smile.gif" data-code=";)" title=";)" alt=";)">
+                    <img src="emoticons/sad_smile.png" data-code=":(" title=":(" alt=":(">
+                    <img src="emoticons/cry_smile.gif" data-code=":'(" title=":'(" alt=":'(">
+                    <img src="emoticons/tongue_smile.png" data-code=":P" title=":P" alt=":P">
+                    <img src="emoticons/angry_smile.png" data-code=":@" title=":@" alt=":@">
+                    <img src="emoticons/confused_smile.png" data-code=":S" title=":S" alt=":S">
+                    <img src="emoticons/shades_smile.png" data-code="8)" title="8)" alt="8)">
+                    <img src="emoticons/red_smile.png" data-code=":$" title=":$" alt=":$">
+                    <img src="emoticons/angel_smile.png" data-code="(A)" title="(A)" alt="(A)">
+                    <img src="emoticons/devil_smile.png" data-code="(6)" title="(6)" alt="(6)">
+                    <img src="emoticons/kiss.png" data-code=":*" title=":*" alt=":*">
+                    <img src="emoticons/omg_smile.png" data-code=":O" title=":O" alt=":O">
+                    <img src="emoticons/what_face.png" data-code=":|" title=":|" alt=":|">
+                    <img src="emoticons/47_47.png" data-code="(47)" title="(47)" alt="(47)">
+                    <img src="emoticons/48_48.png" data-code="(48)" title="(48)" alt="(48)">
+                    <img src="emoticons/49_49.png" data-code="(49)" title="(49)" alt="(49)">
+                    <img src="emoticons/50_50.png" data-code="(50)" title="(50)" alt="(50)">
+                    <img src="emoticons/51_51.png" data-code="(51)" title="(51)" alt="(51)">
+                    <img src="emoticons/52_52.png" data-code="(52)" title="(52)" alt="(52)">
+                    <img src="emoticons/71_71.png" data-code="(71)" title="(71)" alt="(71)">
+                    <img src="emoticons/72_72.png" data-code="(72)" title="(72)" alt="(72)">
+                    <img src="emoticons/74_74.gif" data-code="(74)" title="(74)" alt="(74)">
+                    <img src="emoticons/77_77.png" data-code="(77)" title="(77)" alt="(77)">
+                  </div>
+                </div>
+              </div>
+
+              <!-- MSN-style input row -->
+              <div class="msn-input-row">
+                <input type="text" id="guess-input" placeholder="Escribe tu respuesta..." maxlength="100">
+                <button id="guess-btn">Enviar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-right">
+            <div class="msn-sidebar-header">Jugadores</div>
+            <div class="msn-sidebar-content">
+              <ul id="game-player-list" class="tree-view player-tree msn-player-list"></ul>
+            </div>
+            <div class="msn-sidebar-user">
+              <img id="game-user-avatar" class="game-avatar" src="profiles/default.svg" alt="Avatar">
+              <span id="game-user-name" style="display:none;">Player</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="hint-display" class="hint-display" style="display:none;"></div>
+      <div id="hint-fill" style="display:none;"></div>
+      <div id="timer-fill" style="display:none;"></div>
+      <div id="game-status" style="display:none;"></div>
+      <div id="game-status-value" style="display:none;"></div>
+      <div id="song-status" style="display:none;"></div>
+      <div id="song-status-value" style="display:none;"></div>
+      <audio id="audio-player" preload="auto"></audio>
+    </div>
+  </div>
+
+  <!-- ROUND END SCREEN -->
+  <div id="round-end-screen" class="screen-container">
+    <div class="window round-end-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Ronda Completada</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <fieldset>
+          <legend>Respuesta</legend>
+          <div class="answer-reveal">
+            <div class="answer-item">
+              <label>La canción era:</label>
+              <strong id="reveal-full">---</strong>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Puntuaciones</legend>
+          <ul id="final-player-list" class="tree-view player-tree"></ul>
+        </fieldset>
+
+        <section class="field-row" style="justify-content: flex-end">
+          <button id="next-round-btn">Siguiente Ronda</button>
+          <button id="back-to-lobby-btn">Volver al Lobby</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING MENU SCREEN -->
+  <div id="typing-menu-screen" class="screen-container">
+    <div class="window typing-menu-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Tikitiki</div>
+        <div class="title-bar-theme">
+          <select class="theme-selector">
+            <option value="xp">XP</option>
+            <option value="aero">Aero</option>
+          </select>
+        </div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="menu-header">
+          <button id="typing-back-to-hub-btn">Volver</button>
+          <button id="typing-leaderboard-btn" class="leaderboard-btn" title="Leaderboards">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+            </svg>
+          </button>
+          <div class="user-info">
+            <img id="typing-user-avatar" class="user-avatar" src="profiles/default.svg" alt="Avatar">
+            <span id="typing-user-name">Player</span>
+          </div>
+        </div>
+
+        <div class="menu-content">
+          <!-- Interactive keyboard display -->
+          <div id="typing-keyboard" class="typing-keyboard">
+            <div class="keyboard-row">
+              <span class="key" data-key="Q">Q</span>
+              <span class="key" data-key="W">W</span>
+              <span class="key" data-key="E">E</span>
+              <span class="key" data-key="R">R</span>
+              <span class="key" data-key="T">T</span>
+              <span class="key" data-key="Y">Y</span>
+              <span class="key" data-key="U">U</span>
+              <span class="key" data-key="I">I</span>
+              <span class="key" data-key="O">O</span>
+              <span class="key" data-key="P">P</span>
+            </div>
+            <div class="keyboard-row">
+              <span class="key" data-key="A">A</span>
+              <span class="key" data-key="S">S</span>
+              <span class="key" data-key="D">D</span>
+              <span class="key" data-key="F">F</span>
+              <span class="key" data-key="G">G</span>
+              <span class="key" data-key="H">H</span>
+              <span class="key" data-key="J">J</span>
+              <span class="key" data-key="K">K</span>
+              <span class="key" data-key="L">L</span>
+              <span class="key" data-key="Ñ">Ñ</span>
+            </div>
+            <div class="keyboard-row">
+              <span class="key" data-key="Z">Z</span>
+              <span class="key" data-key="X">X</span>
+              <span class="key" data-key="C">C</span>
+              <span class="key" data-key="V">V</span>
+              <span class="key" data-key="B">B</span>
+              <span class="key" data-key="N">N</span>
+              <span class="key" data-key="M">M</span>
+            </div>
+            <div class="keyboard-row">
+              <span class="key space-key" data-key=" "></span>
+            </div>
+          </div>
+          <p class="subtitle">Click clack de frikitones</p>
+
+          <div class="typing-tildes-toggle">
+            <button id="typing-tildes-off" class="tildes-btn active">Sin tildes</button>
+            <button id="typing-tildes-on" class="tildes-btn">Con tildes</button>
+          </div>
+
+          <div class="typing-menu-buttons">
+            <button id="typing-solo-btn" class="typing-menu-btn">Solo</button>
+            <button id="typing-vs-btn" class="typing-menu-btn">Vs.</button>
+            <button id="typing-coop-btn" class="typing-menu-btn">Co-op</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING LOBBY SCREEN -->
+  <div id="typing-lobby-screen" class="screen-container">
+    <div class="window typing-lobby-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Tikitiki - Vs.</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="typing-lobby-header">
+          <button id="typing-leave-room-btn">Volver</button>
+        </div>
+
+        <div class="typing-lobby-status">
+          <p id="typing-lobby-status-text">Esperando jugadores...</p>
+          <p id="typing-lobby-tildes-mode" class="typing-tildes-indicator">Modo: Sin tildes</p>
+        </div>
+
+        <div id="typing-players-container" class="typing-players-container">
+          <!-- Player boxes will be added dynamically -->
+        </div>
+
+        <div id="typing-spectators-container" class="typing-spectators-container">
+          <!-- Spectators will be shown here -->
+        </div>
+
+        <div class="typing-lobby-controls">
+          <button id="typing-start-btn" class="typing-lobby-main-btn" disabled>Empezar</button>
+          <button id="typing-spectate-btn" class="typing-lobby-corner-btn">Espectar</button>
+          <button id="typing-join-next-btn" class="typing-lobby-corner-btn" style="display: none;">Unirse</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING GAME SCREEN -->
+  <div id="typing-game-screen" class="screen-container">
+    <div class="window typing-game-window">
+      <button id="typing-solo-menu-btn" class="typing-back-tab" style="display: none;">Volver</button>
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Tikitiki</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body typing-game-body">
+        <div class="typing-stats-bar">
+          <div class="typing-stat">
+            <span class="typing-stat-value" id="typing-timer">60</span>
+            <span class="typing-stat-label">segundos</span>
+          </div>
+          <div class="typing-stat">
+            <span class="typing-stat-value" id="typing-wpm">0</span>
+            <span class="typing-stat-label">WPM</span>
+          </div>
+          <div class="typing-stat">
+            <span class="typing-stat-value" id="typing-accuracy">100%</span>
+            <span class="typing-stat-label">Precision</span>
+          </div>
+        </div>
+
+        <!-- Hidden input for mobile keyboard -->
+        <input type="text" id="typing-hidden-input"
+               autocomplete="off" autocorrect="off"
+               autocapitalize="off" spellcheck="false"
+               style="position: absolute; left: -9999px; opacity: 0;">
+
+        <div id="typing-game-spectators" class="typing-game-spectators" style="display: none;">
+          <!-- Spectator panel -->
+        </div>
+
+        <div id="typing-game-players" class="typing-game-players">
+          <!-- Player boxes rendered dynamically -->
+        </div>
+
+        <div id="typing-solo-controls" class="typing-solo-controls" style="display: none;">
+          <button id="typing-solo-start-btn" class="typing-solo-main-btn">Empezar</button>
+          <button id="typing-solo-restart-btn" class="typing-solo-main-btn" style="display: none;">Reiniciar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING RESULTS SCREEN -->
+  <div id="typing-results-screen" class="screen-container">
+    <div class="window typing-results-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Tikitiki - Resultados</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div id="typing-results-vs" class="typing-results-vs" style="display: none;">
+          <!-- Old VS display - kept for compatibility -->
+        </div>
+
+        <div id="typing-results-ranking" class="typing-results-ranking" style="display: none;">
+          <!-- Ranking will be rendered dynamically -->
+        </div>
+
+        <fieldset id="typing-personal-stats">
+          <legend>Tus Estadísticas</legend>
+          <div class="typing-final-stats">
+            <div class="typing-final-stat">
+              <span class="typing-final-stat-value" id="typing-final-wpm">0</span>
+              <span class="typing-final-stat-label">WPM</span>
+            </div>
+            <div class="typing-final-stat">
+              <span class="typing-final-stat-value" id="typing-final-accuracy">100%</span>
+              <span class="typing-final-stat-label">Precision</span>
+            </div>
+            <div class="typing-final-stat">
+              <span class="typing-final-stat-value" id="typing-final-chars">0</span>
+              <span class="typing-final-stat-label">Caracteres</span>
+            </div>
+            <div class="typing-final-stat">
+              <span class="typing-final-stat-value" id="typing-final-errors">0</span>
+              <span class="typing-final-stat-label">Errores</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <section class="field-row" style="justify-content: center; gap: 10px;">
+          <button id="typing-play-again-btn">Jugar de Nuevo</button>
+          <button id="typing-spectator-join-btn" style="display: none;">Unirse al Siguiente</button>
+          <button id="typing-back-to-menu-btn">Volver al Menu</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWING LOBBY SCREEN -->
+  <div id="drawing-lobby-screen" class="screen-container">
+    <div class="window drawing-lobby-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRRILLO - Sala de Espera</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="drawing-lobby-status">
+          <p id="drawing-lobby-status-text">Esperando jugadores...</p>
+          <p id="drawing-player-count">0/3 jugadores (mínimo 3)</p>
+        </div>
+        <div id="drawing-players-container" class="drawing-players-container">
+          <!-- Player boxes rendered dynamically -->
+        </div>
+        <div id="drawing-spectators-container" class="drawing-spectators-container" style="display: none;">
+          <p class="spectators-title">Espectadores:</p>
+          <div id="drawing-spectators-list"></div>
+        </div>
+        <div class="drawing-lobby-controls">
+          <button id="drawing-leave-btn">Volver</button>
+          <button id="drawing-start-btn" disabled>Empezar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWING GAME SCREEN -->
+  <div id="drawing-game-screen" class="screen-container">
+    <div class="window drawing-game-window xp-paint">
+      <!-- Title Bar -->
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRRILLO - Ronda <span id="drawing-round-number">1</span>/<span id="drawing-total-rounds">1</span></div>
+        <div class="title-bar-theme">
+          <select class="theme-selector">
+            <option value="xp">XP</option>
+            <option value="aero">Aero</option>
+          </select>
+        </div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+
+      <!-- XP Paint Menu Bar -->
+      <div class="xp-menubar">
+        <span class="xp-menu-item"><u>F</u>ile</span>
+        <span class="xp-menu-item"><u>E</u>dit</span>
+        <span class="xp-menu-item"><u>V</u>iew</span>
+        <span class="xp-menu-item"><u>I</u>mage</span>
+        <span class="xp-menu-item"><u>C</u>olors</span>
+        <span class="xp-menu-item"><u>H</u>elp</span>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="xp-paint-body">
+        <!-- Left: XP Paint Toolbox -->
+        <div class="xp-toolbox">
+          <div class="xp-tool-grid">
+            <!-- Brush -->
+            <button class="xp-tool-btn active" data-tool="brush" title="Pincel">
+              <svg viewBox="0 0 16 16"><path d="M2 14 L4 10 L12 2 L14 4 L6 12 Z" fill="#FFD700" stroke="#000"/><path d="M2 14 L4 12 L4 14 Z" fill="#000"/></svg>
+            </button>
+            <!-- Eraser -->
+            <button class="xp-tool-btn" data-tool="eraser" title="Borrador">
+              <svg viewBox="0 0 16 16"><rect x="2" y="8" width="12" height="6" fill="#FFC0CB" stroke="#000"/><rect x="2" y="4" width="12" height="4" fill="#4169E1" stroke="#000"/></svg>
+            </button>
+            <!-- Fill Bucket -->
+            <button class="xp-tool-btn" data-tool="fill" title="Rellenar">
+              <svg viewBox="0 0 16 16"><path d="M4 12 L8 4 L12 12 Z" fill="currentColor"/><path d="M3 13 L13 13 L13 15 L3 15 Z" fill="#FFD700"/></svg>
+            </button>
+            <!-- Spray -->
+            <button class="xp-tool-btn" data-tool="spray" title="Aerografo">
+              <svg viewBox="0 0 16 16"><circle cx="4" cy="3" r="1" fill="currentColor"/><circle cx="7" cy="2" r="1" fill="currentColor"/><circle cx="5" cy="5" r="1" fill="currentColor"/><circle cx="8" cy="4" r="1" fill="currentColor"/><circle cx="3" cy="6" r="1" fill="currentColor"/><path d="M10 6 L14 6 L14 14 L10 14 Z" fill="#808080" stroke="#000"/><path d="M11 4 L13 4 L13 6 L11 6 Z" fill="#000"/></svg>
+            </button>
+            <!-- Rectangle -->
+            <button class="xp-tool-btn" data-tool="rectangle" title="Rectangulo">
+              <svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+            <!-- Circle -->
+            <button class="xp-tool-btn" data-tool="circle" title="Circulo">
+              <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+          </div>
+
+          <!-- Size Options (below tools) -->
+          <div class="xp-size-options" id="xp-size-options">
+            <button class="xp-size-btn" data-size="2"><div class="size-preview" style="width:2px;height:2px;"></div></button>
+            <button class="xp-size-btn" data-size="4"><div class="size-preview" style="width:4px;height:4px;"></div></button>
+            <button class="xp-size-btn active" data-size="6"><div class="size-preview" style="width:6px;height:6px;"></div></button>
+            <button class="xp-size-btn" data-size="10"><div class="size-preview" style="width:10px;height:10px;"></div></button>
+          </div>
+        </div>
+
+        <!-- Center: Canvas Area -->
+        <div class="xp-canvas-area">
+          <!-- Word Display above canvas -->
+          <div class="xp-word-bar">
+            <span class="xp-turn-info">Turno: <span id="drawing-turn-player">---</span></span>
+            <span class="xp-word-display" id="drawing-word-display">_ _ _ _ _</span>
+            <span class="xp-timer"><span id="drawing-timer">60</span>s</span>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="xp-canvas-wrapper">
+            <canvas id="drawing-canvas"></canvas>
+
+            <!-- Word Selection Overlay -->
+            <div id="drawing-word-selection" class="xp-word-selection hidden">
+              <div class="xp-word-selection-box">
+                <h3>Elige una palabra:</h3>
+                <div class="xp-word-options" id="drawing-word-options">
+                  <!-- Word buttons rendered dynamically -->
+                </div>
+                <p class="xp-word-timer">Tiempo: <span id="drawing-word-timer">15</span>s</p>
+              </div>
+            </div>
+
+            <!-- Turn End Overlay -->
+            <div id="drawing-turn-end" class="xp-turn-end hidden">
+              <div class="xp-turn-end-box">
+                <p>La palabra era:</p>
+                <h2 id="drawing-revealed-word">---</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Game Sidebar -->
+        <div class="xp-game-sidebar">
+          <!-- Player List (VGM style) -->
+          <div class="xp-player-list">
+            <ul id="drawing-players-list">
+              <!-- Players rendered dynamically -->
+            </ul>
+          </div>
+
+          <!-- Chat/Guess Area -->
+          <div class="xp-chat-area">
+            <div class="xp-chat-messages" id="drawing-chat-messages">
+              <!-- Messages rendered dynamically -->
+            </div>
+            <div class="xp-chat-input">
+              <input type="text" id="drawing-chat-input" placeholder="Escribe tu respuesta..." maxlength="50" autocomplete="off">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: Color Palette (exact XP Paint style) -->
+      <div class="xp-palette-bar">
+        <div class="xp-current-colors">
+          <div class="xp-color-stack">
+            <div class="xp-fg-color" id="drawing-fg-color" style="background:#000000;"></div>
+            <div class="xp-bg-color" id="drawing-bg-color" style="background:#FFFFFF;"></div>
+          </div>
+        </div>
+        <div class="xp-color-palette">
+          <div class="xp-palette-row">
+            <button class="xp-color" data-color="#000000" style="background:#000000;"></button>
+            <button class="xp-color" data-color="#808080" style="background:#808080;"></button>
+            <button class="xp-color" data-color="#800000" style="background:#800000;"></button>
+            <button class="xp-color" data-color="#808000" style="background:#808000;"></button>
+            <button class="xp-color" data-color="#008000" style="background:#008000;"></button>
+            <button class="xp-color" data-color="#008080" style="background:#008080;"></button>
+            <button class="xp-color" data-color="#000080" style="background:#000080;"></button>
+            <button class="xp-color" data-color="#800080" style="background:#800080;"></button>
+            <button class="xp-color" data-color="#808040" style="background:#808040;"></button>
+            <button class="xp-color" data-color="#004040" style="background:#004040;"></button>
+            <button class="xp-color" data-color="#0080FF" style="background:#0080FF;"></button>
+            <button class="xp-color" data-color="#004080" style="background:#004080;"></button>
+            <button class="xp-color" data-color="#8000FF" style="background:#8000FF;"></button>
+            <button class="xp-color" data-color="#804000" style="background:#804000;"></button>
+          </div>
+          <div class="xp-palette-row">
+            <button class="xp-color" data-color="#FFFFFF" style="background:#FFFFFF;"></button>
+            <button class="xp-color" data-color="#C0C0C0" style="background:#C0C0C0;"></button>
+            <button class="xp-color" data-color="#FF0000" style="background:#FF0000;"></button>
+            <button class="xp-color" data-color="#FFFF00" style="background:#FFFF00;"></button>
+            <button class="xp-color" data-color="#00FF00" style="background:#00FF00;"></button>
+            <button class="xp-color" data-color="#00FFFF" style="background:#00FFFF;"></button>
+            <button class="xp-color" data-color="#0000FF" style="background:#0000FF;"></button>
+            <button class="xp-color" data-color="#FF00FF" style="background:#FF00FF;"></button>
+            <button class="xp-color" data-color="#FFFF80" style="background:#FFFF80;"></button>
+            <button class="xp-color" data-color="#00FF80" style="background:#00FF80;"></button>
+            <button class="xp-color" data-color="#80FFFF" style="background:#80FFFF;"></button>
+            <button class="xp-color" data-color="#8080FF" style="background:#8080FF;"></button>
+            <button class="xp-color" data-color="#FCD1C6" style="background:#FCD1C6;"></button>
+            <button class="xp-color" data-color="#FF8000" style="background:#FF8000;"></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DRAWING RESULTS SCREEN -->
+  <div id="drawing-results-screen" class="screen-container">
+    <div class="window drawing-results-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRRILLO - Resultados</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div id="drawing-results-ranking" class="drawing-results-ranking">
+          <!-- Rankings rendered dynamically -->
+        </div>
+        <section class="field-row" style="justify-content: center; gap: 10px;">
+          <button id="drawing-play-again-btn">Jugar de Nuevo</button>
+          <button id="drawing-spectator-join-btn" style="display: none;">Unirse al Siguiente</button>
+          <button id="drawing-results-back-btn">Volver</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- FELLOWSHIP MENU SCREEN -->
+  <div id="fellowship-menu-screen" class="screen-container">
+    <div class="window fellowship-menu-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Fellowship BiS Tracker</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body fellowship-dark-theme">
+        <div class="menu-header">
+          <button id="fellowship-back-to-hub-btn">Volver</button>
+        </div>
+        <div class="fellowship-characters">
+          <button class="fellowship-char-btn" data-char="helena">
+            <img class="fellowship-char-portrait" src="fellowship/helena.webp" alt="Helena">
+            <span class="fellowship-char-name">Helena</span>
+          </button>
+          <button class="fellowship-char-btn" data-char="sylvie">
+            <img class="fellowship-char-portrait" src="fellowship/sylvie.webp" alt="Sylvie">
+            <span class="fellowship-char-name">Sylvie</span>
+          </button>
+          <button class="fellowship-char-btn" data-char="mara">
+            <img class="fellowship-char-portrait" src="fellowship/mara.webp" alt="Mara">
+            <span class="fellowship-char-name">Mara</span>
+          </button>
+          <button class="fellowship-char-btn" data-char="elarion">
+            <img class="fellowship-char-portrait" src="fellowship/elarion.webp" alt="Elarion">
+            <span class="fellowship-char-name">Elarion</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FELLOWSHIP CHARACTER CHOICE SCREEN (Gear vs Talents) -->
+  <div id="fellowship-choice-screen" class="screen-container">
+    <div class="window fellowship-choice-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Fellowship - <span id="fellowship-choice-char-title">Character</span></div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body fellowship-dark-theme">
+        <div class="fellowship-choice-header">
+          <button id="fellowship-choice-back-btn" class="fellowship-back-btn-dark">Volver</button>
+        </div>
+        <div class="fellowship-choice-portrait">
+          <img id="fellowship-choice-portrait-img" src="" alt="">
+          <span id="fellowship-choice-char-name"></span>
+          <span id="fellowship-choice-char-comment" class="fellowship-char-comment"></span>
+        </div>
+        <div class="fellowship-choice-buttons">
+          <button id="fellowship-gear-choice-btn" class="fellowship-choice-btn">
+            <span class="choice-text">Gear</span>
+          </button>
+          <button id="fellowship-talent-choice-btn" class="fellowship-choice-btn">
+            <span class="choice-text">Talento generacional</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FELLOWSHIP TALENT SCREEN -->
+  <div id="fellowship-talent-screen" class="screen-container">
+    <div class="window fellowship-talent-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Fellowship Talentos - <span id="fellowship-talent-char-title">Character</span></div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body fellowship-dark-theme">
+        <div class="fellowship-talent-header">
+          <div class="fellowship-talent-title-row">
+            <button id="fellowship-talent-back-btn" class="fellowship-back-btn-dark">Volver</button>
+            <span class="fellowship-talent-title">Build General</span>
+          </div>
+          <div class="fellowship-talent-level-selector">
+            <div class="talent-level-buttons" id="talent-level-buttons">
+              <!-- Level buttons 2-13 will be generated dynamically -->
+            </div>
+          </div>
+          <div class="fellowship-talent-points">
+            Talent Points: <span id="fellowship-talent-points-used" class="fellowship-talent-points-used">0</span> / <span id="fellowship-talent-points-total">13</span>
+          </div>
+        </div>
+        <div id="fellowship-talent-tree" class="fellowship-talent-tree">
+          <!-- Talent tree will be rendered dynamically -->
+        </div>
+        <!-- Talent Tooltip -->
+        <div id="fellowship-talent-tooltip" class="fellowship-tooltip">
+          <div class="fellowship-tooltip-name"></div>
+          <div class="fellowship-tooltip-desc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FELLOWSHIP GEAR SCREEN -->
+  <div id="fellowship-gear-screen" class="screen-container">
+    <div class="window fellowship-gear-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Fellowship BiS - <span id="fellowship-char-title">Character</span></div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body fellowship-dark-theme">
+        <div class="fellowship-gear-header">
+          <button id="fellowship-back-to-chars-btn">Volver</button>
+          <div class="fellowship-current-char">
+            <img id="fellowship-current-portrait" class="fellowship-char-portrait-small" src="" alt="">
+            <span id="fellowship-current-name"></span>
+          </div>
+        </div>
+
+        <div class="fellowship-gear-layout">
+          <!-- Left column: Head to Feet -->
+          <div class="fellowship-gear-column">
+            <div class="fellowship-slot" data-slot="head">
+              <div class="fellowship-slot-label">Head</div>
+              <div class="fellowship-slot-item" id="slot-head"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="neck">
+              <div class="fellowship-slot-label">Neck</div>
+              <div class="fellowship-slot-item" id="slot-neck"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="shoulders">
+              <div class="fellowship-slot-label">Shoulders</div>
+              <div class="fellowship-slot-item" id="slot-shoulders"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="back">
+              <div class="fellowship-slot-label">Back</div>
+              <div class="fellowship-slot-item" id="slot-back"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="chest">
+              <div class="fellowship-slot-label">Chest</div>
+              <div class="fellowship-slot-item" id="slot-chest"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="wrists">
+              <div class="fellowship-slot-label">Wrists</div>
+              <div class="fellowship-slot-item" id="slot-wrists"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="hands">
+              <div class="fellowship-slot-label">Hands</div>
+              <div class="fellowship-slot-item" id="slot-hands"></div>
+            </div>
+          </div>
+
+          <!-- Right column: Legs to Weapon -->
+          <div class="fellowship-gear-column">
+            <div class="fellowship-slot" data-slot="legs">
+              <div class="fellowship-slot-label">Legs</div>
+              <div class="fellowship-slot-item" id="slot-legs"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="feet">
+              <div class="fellowship-slot-label">Feet</div>
+              <div class="fellowship-slot-item" id="slot-feet"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="ring1">
+              <div class="fellowship-slot-label">Ring 1</div>
+              <div class="fellowship-slot-item" id="slot-ring1"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="ring2">
+              <div class="fellowship-slot-label">Ring 2</div>
+              <div class="fellowship-slot-item" id="slot-ring2"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="relic1">
+              <div class="fellowship-slot-label">Relic 1</div>
+              <div class="fellowship-slot-item" id="slot-relic1"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="relic2">
+              <div class="fellowship-slot-label">Relic 2</div>
+              <div class="fellowship-slot-item" id="slot-relic2"></div>
+            </div>
+            <div class="fellowship-slot" data-slot="weapon">
+              <div class="fellowship-slot-label">Weapon</div>
+              <div class="fellowship-slot-item" id="slot-weapon"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Por Mazmorras button -->
+        <div class="fellowship-gear-dungeon-btn-container">
+          <button id="fellowship-dungeon-btn" class="fellowship-dungeon-btn">Por Mazmorras</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FELLOWSHIP DUNGEON SCREEN -->
+  <div id="fellowship-dungeon-screen" class="screen-container">
+    <div class="window fellowship-dungeon-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Fellowship BiS - Por Mazmorras</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body fellowship-dark-theme">
+        <div class="fellowship-gear-header">
+          <button id="fellowship-dungeon-back-btn">Personajes</button>
+        </div>
+        <div id="fellowship-dungeon-list" class="fellowship-dungeon-list">
+          <!-- Dungeons will be rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARC RAIDERS SKILL TREE SCREEN -->
+  <div id="arcraiders-screen" class="screen-container">
+    <div class="window arcraiders-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Arc Raiders - Skill Tree Builder</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body arcraiders-dark-theme">
+        <div class="arcraiders-header">
+          <button id="arcraiders-back-btn" class="arcraiders-back-btn">Volver</button>
+          <div class="arcraiders-points-display">
+            <span>Points Used:</span>
+            <span id="arcraiders-points-used">0</span>
+            <span>/</span>
+            <span id="arcraiders-points-total">75</span>
+          </div>
+          <div class="arcraiders-category-points">
+            <span class="category-badge conditioning">CONDITIONING: <span id="cond-points">0</span></span>
+            <span class="category-badge mobility">MOBILITY: <span id="mob-points">0</span></span>
+            <span class="category-badge survival">SURVIVAL: <span id="surv-points">0</span></span>
+          </div>
+          <button id="arcraiders-reset-btn" class="arcraiders-reset-btn">Reset</button>
+        </div>
+        <div id="arcraiders-tree-container" class="arcraiders-tree-container">
+          <svg id="arcraiders-connections" class="arcraiders-connections"></svg>
+          <div id="arcraiders-nodes" class="arcraiders-nodes"></div>
+          <!-- Category labels inside tree -->
+          <div class="arcraiders-category-label conditioning">
+            <span class="category-name">CONDITIONING</span>
+            <span class="category-count" id="cond-tree-points">0</span>
+          </div>
+          <div class="arcraiders-category-label mobility">
+            <span class="category-name">MOBILITY</span>
+            <span class="category-count" id="mob-tree-points">0</span>
+          </div>
+          <div class="arcraiders-category-label survival">
+            <span class="category-name">SURVIVAL</span>
+            <span class="category-count" id="surv-tree-points">0</span>
+          </div>
+        </div>
+        <div id="arcraiders-tooltip" class="arcraiders-tooltip">
+          <div class="arcraiders-tooltip-name"></div>
+          <div class="arcraiders-tooltip-desc"></div>
+          <div class="arcraiders-tooltip-impact"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLOTS CASINO SCREEN -->
+  <div id="slots-screen" class="screen-container">
+    <div class="window slots-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Gamba</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="slots-header">
+          <button id="slots-back-btn" class="slots-back-btn">Volver</button>
+          <div class="slots-facto-container">
+            <span class="slots-facto-text">Facto: Al apostar puedes ganar hasta 2000% y solo perder el 100%</span>
+            <button class="slots-facto-arrow" title="Siguiente facto">▶</button>
+          </div>
+        </div>
+        <div id="slots-game-container" class="slots-game-container">
+          <!-- Slot machine will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profile-modal" class="modal-overlay">
+    <div class="window profile-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Perfil</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="profile-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="profile-header">
+          <img id="profile-avatar" class="profile-avatar-large" src="profiles/default.svg" alt="Avatar">
+          <h3 id="profile-username">Username</h3>
+        </div>
+
+        <fieldset>
+          <legend>Estadísticas</legend>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-value" id="stat-games-played">0</span>
+              <span class="stat-label">Rondas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="stat-games-guessed">0</span>
+              <span class="stat-label">Juegos</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="stat-songs-guessed">0</span>
+              <span class="stat-label">Canciones</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="stat-super-sonics">0</span>
+              <span class="stat-label">Super Sonics</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="stat-total-points">0</span>
+              <span class="stat-label">Puntos</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="stat-hints-used">0</span>
+              <span class="stat-label">Pistas</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Juego mas adivinado</legend>
+          <p id="most-guessed-game">Ninguno todavia</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Cambiar Contrasena</legend>
+          <div class="field-row-stacked">
+            <label for="current-password">Contrasena actual:</label>
+            <input type="password" id="current-password">
+          </div>
+          <div class="field-row-stacked">
+            <label for="new-password">Nueva contrasena:</label>
+            <input type="password" id="new-password">
+          </div>
+          <div class="field-row-stacked">
+            <label for="confirm-password">Confirmar contrasena:</label>
+            <input type="password" id="confirm-password">
+          </div>
+          <div id="password-error" class="error-text"></div>
+          <div id="password-success" class="success-text"></div>
+          <section class="field-row" style="justify-content: flex-end">
+            <button id="change-password-btn">Cambiar Contrasena</button>
+          </section>
+        </fieldset>
+
+        <fieldset id="admin-section" style="display: none;">
+          <legend>Admin: Resetear Contrasena</legend>
+          <div class="field-row-stacked">
+            <label for="admin-user-select">Usuario:</label>
+            <select id="admin-user-select">
+              <option value="">Seleccionar usuario...</option>
+            </select>
+          </div>
+          <div class="field-row-stacked">
+            <label for="admin-new-password">Nueva contrasena:</label>
+            <input type="password" id="admin-new-password">
+          </div>
+          <div id="admin-error" class="error-text"></div>
+          <div id="admin-success" class="success-text"></div>
+          <section class="field-row" style="justify-content: flex-end">
+            <button id="admin-reset-btn">Resetear Contrasena</button>
+          </section>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYER PROFILE POPUP -->
+  <div id="player-profile-popup" class="modal-overlay">
+    <div class="window player-popup-window">
+      <div class="title-bar">
+        <div class="title-bar-text" id="popup-profile-title">Perfil de Jugador</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="popup-profile-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="popup-profile-header">
+          <img id="popup-profile-avatar" class="popup-avatar" src="profiles/default.svg" alt="Avatar">
+          <div class="popup-user-info">
+            <span id="popup-profile-username" class="popup-username">Username</span>
+            <span class="popup-status"><span class="online-dot"></span> Online</span>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Estadísticas</legend>
+          <div class="popup-stats">
+            <div class="popup-stat-row">
+              <span>Rondas Jugadas:</span>
+              <span id="popup-stat-games-played">0</span>
+            </div>
+            <div class="popup-stat-row">
+              <span>Juegos Adivinados:</span>
+              <span id="popup-stat-games-guessed">0</span>
+            </div>
+            <div class="popup-stat-row">
+              <span>Canciones Adivinadas:</span>
+              <span id="popup-stat-songs-guessed">0</span>
+            </div>
+            <div class="popup-stat-row">
+              <span>Super Sonics:</span>
+              <span id="popup-stat-super-sonics">0</span>
+            </div>
+            <div class="popup-stat-row">
+              <span>Puntos Totales:</span>
+              <span id="popup-stat-total-points">0</span>
+            </div>
+            <div class="popup-stat-row">
+              <span>Pistas Usadas:</span>
+              <span id="popup-stat-hints-used">0</span>
+            </div>
+            <div class="popup-stat-row">
+              <span>Records en posesión:</span>
+              <span id="popup-stat-records-held">0</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Juego más adivinado</legend>
+          <p id="popup-most-guessed">Ninguno todavía</p>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Fellowship Tooltips (outside containers for proper fixed positioning) -->
+  <div id="fellowship-tooltip" class="fellowship-tooltip">
+    <div class="fellowship-tooltip-name"></div>
+    <div class="fellowship-tooltip-stats"></div>
+    <div class="fellowship-tooltip-dungeon"></div>
+  </div>
+  <div id="fellowship-dungeon-tooltip" class="fellowship-tooltip">
+    <div class="fellowship-tooltip-name"></div>
+    <div class="fellowship-tooltip-stats"></div>
+    <div class="fellowship-tooltip-dungeon"></div>
+  </div>
+
+  <!-- LEADERBOARD MODAL -->
+  <div id="leaderboard-modal" class="modal-overlay">
+    <div class="window leaderboard-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Leaderboards</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="leaderboard-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="leaderboard-tabs">
+          <button id="leaderboard-tab-vgm" class="leaderboard-tab active">VGM</button>
+          <button id="leaderboard-tab-typing" class="leaderboard-tab">Tikitiki</button>
+          <button id="leaderboard-tab-gamba" class="leaderboard-tab">Gamba</button>
+          <button id="leaderboard-tab-sqrrrdle" class="leaderboard-tab">SQRRRDLE</button>
+        </div>
+
+        <div id="leaderboard-vgm" class="leaderboard-content active">
+          <fieldset>
+            <legend>Correctos</legend>
+            <div id="leaderboard-vgm-guesses" class="leaderboard-list">
+              <div class="leaderboard-loading">Cargando...</div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Records</legend>
+            <div id="leaderboard-vgm-records" class="leaderboard-list">
+              <div class="leaderboard-loading">Cargando...</div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div id="leaderboard-typing" class="leaderboard-content">
+          <fieldset>
+            <legend>WPM / Precision</legend>
+            <div id="leaderboard-typing-wpm" class="leaderboard-list">
+              <div class="leaderboard-loading">Cargando...</div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div id="leaderboard-gamba" class="leaderboard-content">
+          <fieldset>
+            <legend>$qr Coins</legend>
+            <div id="leaderboard-gamba-coins" class="leaderboard-list">
+              <div class="leaderboard-loading">Cargando...</div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Deudas con Israel</legend>
+            <div id="leaderboard-gamba-debt" class="leaderboard-list">
+              <div class="leaderboard-loading">Cargando...</div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div id="leaderboard-sqrrrdle" class="leaderboard-content">
+          <fieldset>
+            <legend>Palabras adivinadas</legend>
+            <div id="leaderboard-sqrrrdle-words" class="leaderboard-list">
+              <div class="leaderboard-loading">Cargando...</div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOP MODAL -->
+  <div id="shop-modal" class="modal-overlay">
+    <div class="window shop-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Tienda</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="shop-close"></button>
+        </div>
+      </div>
+      <div class="window-body shop-body">
+        <div class="shop-items">
+          <button class="shop-item" id="shop-cards-btn">
+            <span class="shop-item-icon">&#x1F0CF;</span>
+            <div class="shop-item-info">
+              <strong>SQRRR Cartas</strong>
+              <small>Coleccion de cartas</small>
+            </div>
+          </button>
+          <button class="shop-item" id="shop-discord-btn">
+            <span class="shop-item-icon">&#x1F4AC;</span>
+            <div class="shop-item-info">
+              <strong>Canal de Discord Propio</strong>
+              <small>50000 $qr - Canal como #solo-victor durante 3 meses</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD ALBUM MODAL -->
+  <div id="card-album-modal" class="modal-overlay">
+    <div class="window card-album-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Cartas - Album</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="card-album-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="card-album-header">
+          <button id="card-album-back-btn" class="card-back-btn">Volver</button>
+          <span id="card-album-count" class="card-count">0/49 cartas</span>
+          <span id="card-album-coins" class="card-coins">0 $qr</span>
+          <button id="card-buy-pack-btn">Comprar Pack (2000 $qr)</button>
+          <button id="card-free-btn">Carta Gratis</button>
+        </div>
+        <div id="card-album-grid" class="card-album-grid">
+          <!-- Cards rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD INSPECT MODAL -->
+  <div id="card-inspect-modal" class="modal-overlay">
+    <div class="card-inspect-container">
+      <!-- Card rendered dynamically with 3D effect -->
+    </div>
+  </div>
+
+  <!-- GAMBA MENU MODAL -->
+  <div id="gamba-menu-modal" class="modal-overlay">
+    <div class="window gamba-menu-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Gamba</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="gamba-menu-close"></button>
+        </div>
+      </div>
+      <div class="window-body gamba-menu-body">
+        <div class="gamba-menu-games">
+          <button class="gamba-game-btn" id="gamba-slots-btn">
+            <span class="gamba-game-icon">&#x1F3B0;</span>
+            <div class="gamba-game-info">
+              <strong>Slots</strong>
+              <small>10-50 $qr por tirada</small>
+            </div>
+          </button>
+          <button class="gamba-game-btn" id="gamba-stacking-btn">
+            <span class="gamba-game-icon">&#x1F9F1;</span>
+            <div class="gamba-game-info">
+              <strong>Bloques</strong>
+              <small>100 $qr por partida</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STACKING GAME SCREEN -->
+  <div id="stacking-screen" class="screen-container">
+    <div class="window stacking-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Bloques</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="stacking-header">
+          <button id="stacking-back-btn" class="stacking-back-btn">Volver</button>
+          <span id="stacking-coins" class="stacking-coins">0 $qr</span>
+        </div>
+        <div id="stacking-game-container" class="stacking-game-container">
+          <!-- Stacking game will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FISHING GAME SCREEN -->
+  <div id="fishing-screen" class="screen-container">
+    <div class="window fishing-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR GluGlu</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="fishing-header">
+          <button id="fishing-back-btn" class="fishing-back-btn">Volver</button>
+          <span id="fishing-coins" class="fishing-coins">0 $qr</span>
+        </div>
+        <div id="fishing-game-container" class="fishing-game-container">
+          <!-- Fishing game will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MINIGOLF GAME SCREEN -->
+  <div id="minigolf-screen" class="screen-container">
+    <div class="window minigolf-window" style="width:100%;height:100%;max-width:none;max-height:none;">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR Golf</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close" id="minigolf-close-btn"></button>
+        </div>
+      </div>
+      <div class="window-body minigolf-body" style="padding:0;height:calc(100% - 25px);overflow:hidden;">
+        <!-- Godot game iframe container -->
+        <div id="minigolf-game" class="minigolf-game" style="width:100%;height:100%;display:block;">
+          <!-- Iframe will be injected here by minigolf.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORDLE GAME SCREEN -->
+  <div id="wordle-screen" class="screen-container">
+    <div class="window wordle-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRRDLE</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="wordle-header">
+          <button id="wordle-back-btn" class="wordle-back-btn">Volver</button>
+          <span id="wordle-coins" class="wordle-coins">0 $qr</span>
+        </div>
+        <div id="wordle-game-container" class="wordle-game-container">
+          <!-- Game board -->
+          <div id="wordle-board" class="wordle-board">
+            <!-- 6 rows x 5 tiles each, rendered by JS -->
+          </div>
+          <!-- Keyboard -->
+          <div id="wordle-keyboard" class="wordle-keyboard">
+            <div class="wordle-keyboard-row">
+              <button class="wordle-key" data-key="Q">Q</button>
+              <button class="wordle-key" data-key="W">W</button>
+              <button class="wordle-key" data-key="E">E</button>
+              <button class="wordle-key" data-key="R">R</button>
+              <button class="wordle-key" data-key="T">T</button>
+              <button class="wordle-key" data-key="Y">Y</button>
+              <button class="wordle-key" data-key="U">U</button>
+              <button class="wordle-key" data-key="I">I</button>
+              <button class="wordle-key" data-key="O">O</button>
+              <button class="wordle-key" data-key="P">P</button>
+            </div>
+            <div class="wordle-keyboard-row">
+              <button class="wordle-key" data-key="A">A</button>
+              <button class="wordle-key" data-key="S">S</button>
+              <button class="wordle-key" data-key="D">D</button>
+              <button class="wordle-key" data-key="F">F</button>
+              <button class="wordle-key" data-key="G">G</button>
+              <button class="wordle-key" data-key="H">H</button>
+              <button class="wordle-key" data-key="J">J</button>
+              <button class="wordle-key" data-key="K">K</button>
+              <button class="wordle-key" data-key="L">L</button>
+            </div>
+            <div class="wordle-keyboard-row">
+              <button class="wordle-key wordle-key-wide" data-key="ENTER">ENTER</button>
+              <button class="wordle-key" data-key="Z">Z</button>
+              <button class="wordle-key" data-key="X">X</button>
+              <button class="wordle-key" data-key="C">C</button>
+              <button class="wordle-key" data-key="V">V</button>
+              <button class="wordle-key" data-key="B">B</button>
+              <button class="wordle-key" data-key="N">N</button>
+              <button class="wordle-key" data-key="M">M</button>
+              <button class="wordle-key wordle-key-wide" data-key="BACKSPACE">&#x232B;</button>
+            </div>
+          </div>
+          <!-- Message area -->
+          <div id="wordle-message" class="wordle-message"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORDLE STATS MODAL -->
+  <div id="wordle-stats-modal" class="modal-overlay">
+    <div class="window wordle-stats-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRRDLE - Estadísticas</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="wordle-stats-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="wordle-stats-grid">
+          <div class="wordle-stat">
+            <span class="wordle-stat-value" id="wordle-stat-played">0</span>
+            <span class="wordle-stat-label">Jugadas</span>
+          </div>
+          <div class="wordle-stat">
+            <span class="wordle-stat-value" id="wordle-stat-win-pct">0</span>
+            <span class="wordle-stat-label">% Victoria</span>
+          </div>
+          <div class="wordle-stat">
+            <span class="wordle-stat-value" id="wordle-stat-streak">0</span>
+            <span class="wordle-stat-label">Racha</span>
+          </div>
+          <div class="wordle-stat">
+            <span class="wordle-stat-value" id="wordle-stat-max-streak">0</span>
+            <span class="wordle-stat-label">Max Racha</span>
+          </div>
+        </div>
+        <div class="wordle-distribution">
+          <h4>Distribucion de Intentos</h4>
+          <div id="wordle-distribution-bars" class="wordle-distribution-bars">
+            <!-- Distribution bars rendered by JS -->
+          </div>
+        </div>
+        <div id="wordle-next-word" class="wordle-next-word"></div>
+        <button id="wordle-stats-ok" class="wordle-stats-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Israel Loan Collection Popup -->
+  <div id="loan-collection-overlay" class="loan-collection-overlay">
+    <div class="window loan-collection-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Benjamin Netanyahu - Cobro de Deudas</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" id="loan-collection-close"></button>
+        </div>
+      </div>
+      <div class="window-body loan-collection-body">
+        <div class="loan-collection-icon">&#x1F4B8;</div>
+        <p class="loan-collection-message">
+          Israel ha deducido <span id="loan-total-due">0</span>$ de tu cuenta con un 75%
+          (<span id="loan-interest">0</span>$) de interes de tus <span id="loan-count">0</span> prestamos.
+        </p>
+        <p class="loan-collection-balance">
+          Tu nuevo balance: <span id="loan-new-balance">0</span> $qr
+        </p>
+        <button id="loan-collection-ok" class="loan-collection-btn">Shalom</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/core/theme-manager.js"></script>
+  <script type="module" src="game.js"></script>
+  <script type="module" src="typing.js"></script>
+  <script type="module" src="fellowship.js"></script>
+  <script type="module" src="arcraiders.js"></script>
+  <script type="module" src="drawing.js"></script>
+  <script type="module" src="slots.js"></script>
+  <script type="module" src="stacking.js"></script>
+  <script type="module" src="fishing.js"></script>
+  <script type="module" src="cards.js"></script>
+  <script type="module" src="minigolf.js"></script>
+  <script type="module" src="wordle.js"></script>
+</body>
+</html>
