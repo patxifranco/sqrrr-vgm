@@ -363,14 +363,21 @@ const VALID_GUESSES = new Set([
   'ZEROS', 'ZONES', 'ZOMBI', 'FRIKI', 'LAYSI'
 ]);
 
+function getSpainDate() {
+  // Always use Madrid timezone for consistent daily reset at midnight Spain time
+  const spain = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+  const [year, month, day] = spain.split('-').map(Number);
+  return { year, month, day };
+}
+
 function getTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const { year, month, day } = getSpainDate();
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 function getDailyWord() {
-  const d = new Date();
-  let seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const { year, month, day } = getSpainDate();
+  let seed = year * 10000 + month * 100 + day;
   // Scramble seed to avoid sequential word selection (must match frontend)
   seed = ((seed * 1103515245 + 12345) >>> 0) % 2147483648;
   const idx = seed % WORDS.length;
