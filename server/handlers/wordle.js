@@ -370,7 +370,9 @@ function getTodayKey() {
 
 function getDailyWord() {
   const d = new Date();
-  const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  let seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  // Scramble seed to avoid sequential word selection (must match frontend)
+  seed = ((seed * 1103515245 + 12345) >>> 0) % 2147483648;
   const idx = seed % WORDS.length;
   return WORDS[idx];
 }
