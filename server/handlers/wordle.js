@@ -10,49 +10,73 @@
 // Per-user transaction locks to prevent race conditions
 const userLocks = new Map();
 
-// Word list for daily word selection (same as frontend)
+// Word list for daily word selection (same as frontend) - 5 and 6 letter words
 const WORDS = [
-  // Friends (Custom)
+  // Friends (Custom) - 5 letters
   'GARSI', 'KINUS', 'MOMIN', 'JESUS', 'KELMI', 'ASIER',
-  // LOL Champions
+
+  // ===== 5-LETTER WORDS =====
+  // LOL Champions (5 letters)
   'TEEMO', 'VAYNE', 'RIVEN', 'BRAND', 'NASUS', 'YASUO', 'SENNA', 'KAYLE',
   'TALON', 'DIANA', 'LEONA', 'JANNA', 'ANNIE', 'FIORA', 'JAYCE', 'AKALI',
   'KARMA', 'ZIGGS', 'QUINN', 'BRAUM', 'SYLAS', 'YUUMI', 'GAREN', 'VIEGO',
-  'VARUS', 'URGOT', 'POPPY', 'ELISE', 'SWAIN', 'SHACO', 'TARIC', 'SIVIR', 'CORKI',
-  'AMUMU', 'GALIO', 'IVERN', 'MILIO', 'NEEKO', 'NILAH', 'RAKAN', 'XAYAH',
-  // Nintendo
+  'VARUS', 'URGOT', 'POPPY', 'ELISE', 'SWAIN', 'SHACO', 'TARIC', 'SIVIR',
+  'CORKI', 'AMUMU', 'GALIO', 'IVERN', 'MILIO', 'NEEKO', 'NILAH', 'RAKAN',
+  'XAYAH',
+
+  // Overwatch (5 letters)
+  'GENJI', 'HANZO', 'MERCY', 'ZARYA', 'SIGMA', 'LUCIO', 'ORISA', 'MOIRA',
+
+  // Nintendo (5 letters)
   'MARIO', 'LUIGI', 'ZELDA', 'KIRBY', 'WARIO', 'PEACH', 'YOSHI', 'SAMUS',
-  'GANON', 'SHEIK', 'MIPHA', 'DARUK', 'SIDON', 'PURAH', 'MIDNA', 'VAATI',
-  'TOADS', 'KOOPA', 'DAISY', 'DIDDY', 'FUNKY', 'DIXIE', 'MARTH', 'ROBIN', 'CHROM',
-  // Pokemon
-  'PICHU', 'EEVEE', 'DITTO', 'ZUBAT', 'EKANS', 'ARBOK', 'UNOWN', 'RALTS',
-  'SHINX', 'LUXIO', 'RIOLU', 'SNIVY', 'TEPIG', 'ZORUA', 'INKAY', 'TOXEL', 'KUBFU',
-  // Sonic
-  'SONIC', 'TAILS', 'KNUCK', 'ROUGE', 'BLAZE', 'SHADE', 'METAL',
-  // Other Game Characters
-  'SNAKE', 'CLOUD', 'CRASH', 'SPYRO', 'DANTE', 'RAGNA', 'ELLIE', 'GENJI',
-  'HANZO', 'MERCY', 'ZARYA', 'SIGMA', 'LUCIO', 'ORISA', 'MOIRA', 'KAIRI',
-  'ROXAS', 'TERRA', 'ATLAS', 'CHELL', 'TOMMY', 'DUTCH', 'HOSEA', 'SADIE',
-  'ISAAC', 'MAGGY', 'JUDAS', 'STEVE', 'FRISK', 'CHARA', 'PAULA', 'LUCAS',
-  'POKEY', 'SHULK', 'MELIA', 'JOKER', 'RYUJI', 'NAOTO', 'KANJI', 'AIGIS',
-  'AERIS', 'RINOA', 'TIDUS', 'AURON', 'WAKKA', 'IGNIS', 'LOCKE', 'EDGAR',
-  'SABIN', 'CELES', 'KEFKA', 'CECIL', 'RYDIA', 'PROTO', 'GUILE', 'SAGAT',
-  'BISON', 'AKUMA', 'CAMMY', 'SONYA', 'ERMAC', 'BRYAN', 'ASUKA', 'ALISA',
-  'RAVEN', 'JULIA', 'PANDA', 'CHIPP', 'FAUST', 'VENOM', 'DIZZY', 'KLIFF',
-  'AMANE', 'JUBEI', 'BANJO', 'TERRY', 'SIMON',
-  // Spanish Gaming Terms
-  'NIVEL', 'MAGIA', 'PODER', 'VIDAS', 'SALUD', 'ARMAS', 'COFRE', 'LLAVE',
-  'GEMAS', 'MISIL', 'MANDO', 'SALTO', 'TURBO', 'COMBO', 'BONUS', 'FINAL',
-  'SPAWN', 'MUNDO', 'DUELO', 'RANGO', 'RACHA', 'LOGRO', 'JEFES', 'BARRA',
-  'PUNTO', 'MATAR', 'MORIR', 'CURAR', 'CARTA', 'DADOS', 'JAQUE', 'TORRE',
-  'ALFIL', 'REINA', 'CARGA', 'GOLPE', 'CORTE', 'LANZA', 'HACHA', 'ARCOS',
-  'CASCO', 'BOTAS', 'RUNAS', 'HORDA', 'CUEVA', 'MINAS', 'FUEGO', 'HIELO',
-  'RAYOS', 'PLATA', 'ACERO', 'COBRE', 'ROCAS', 'ARENA', 'SELVA', 'NIEVE',
-  'LLAMA', 'LETAL', 'MAGOS', 'BRUJO', 'BRUJA', 'NINJA', 'ROBAR', 'DRACO',
-  // Gaming Lingo
-  'CARRY', 'BUILD', 'CRITS', 'STUNS', 'SLOWS', 'SPEED', 'FLASH', 'GHOST',
-  'SMITE', 'BARON', 'DRAKE', 'NEXUS', 'WARDS', 'GANKS', 'SPLIT', 'GAMER'
+  'GANON', 'KOOPA', 'DAISY', 'DIDDY', 'TOADZ',
+
+  // Pokemon (5 letters)
+  'PICHU', 'EEVEE', 'DITTO', 'ZUBAT', 'RALTS', 'SHINX', 'LUXIO', 'ZORUA',
+
+  // Sonic (5 letters)
+  'SONIC', 'TAILS', 'ROUGE', 'BLAZE', 'METAL',
+
+  // Famous Game Characters (5 letters)
+  'SNAKE', 'CLOUD', 'CRASH', 'SPYRO', 'DANTE', 'STEVE', 'JOKER',
+
+  // Game Names (5 letters)
+  'HADES', 'BRAWL', 'SMASH',
+
+  // Gaming Terms (5 letters)
+  'COMBO', 'SPAWN', 'BONUS', 'LEVEL', 'QUEST', 'ARMOR', 'SKILL', 'LOBBY',
+  'KILLS', 'SWORD', 'MAGIC', 'HEALS', 'MAINS', 'PATCH', 'RANKS', 'STATS',
+  'BUILD', 'FLASH', 'GHOST', 'SMITE', 'BARON', 'DRAKE', 'NEXUS', 'GAMER',
+  'TOWER', 'CARRY', 'CHAMP', 'ITEMS', 'RESET', 'GANKS',
+
+  // ===== 6-LETTER WORDS =====
+  // LOL Champions (6 letters)
+  'THRESH', 'VIKTOR', 'ANIVIA', 'ZILEAN', 'SINGED', 'RAMMUS', 'GRAVES',
+  'IRELIA', 'EZREAL', 'SORAKA', 'DRAVEN', 'RENGAR', 'RUMBLE', 'KENNEN',
+  'TWITCH',
+
+  // Overwatch (6 letters)
+  'TRACER', 'REAPER', 'SOMBRA', 'PHARAH',
+
+  // Nintendo (6 letters)
+  'BOWSER', 'FALCON',
+
+  // Pokemon (6 letters)
+  'GENGAR', 'MEWTWO', 'ARCEUS', 'VULPIX', 'MUDKIP', 'GASTLY',
+
+  // Famous Game Characters (6 letters)
+  'KRATOS', 'NATHAN', 'TREVOR', 'ARTHUR',
+
+  // Game Names (6 letters)
+  'PORTAL', 'TETRIS', 'SKYRIM', 'DIABLO', 'SEKIRO', 'HITMAN', 'ROBLOX',
+  'RAYMAN',
+
+  // Gaming Terms (6 letters)
+  'DAMAGE', 'SHIELD', 'HEALTH', 'MINION', 'CREEPS',
 ];
+
+// Filter to only valid 5 and 6 letter words
+const WORDS_CLEAN = WORDS.filter(w => w.length === 5 || w.length === 6);
 
 // Extended valid guesses list - common 5-letter Spanish words + gaming terms
 // Must match the frontend list for consistent validation
@@ -381,8 +405,8 @@ function getDailyWord() {
   let seed = year * 10000 + month * 100 + day;
   // Scramble seed to avoid sequential word selection (must match frontend)
   seed = ((seed * 1103515245 + 12345) >>> 0) % 2147483648;
-  const idx = seed % WORDS.length;
-  return WORDS[idx];
+  const idx = seed % WORDS_CLEAN.length;
+  return WORDS_CLEAN[idx];
 }
 
 // ==================== INITIALIZATION ====================
@@ -467,8 +491,10 @@ function setupHandlers(io, socket, context) {
     }
 
     const guess = (data?.guess || '').toUpperCase().trim();
-    if (guess.length !== 5) {
-      socket.emit('sqrrrdle:error', { message: 'La palabra debe tener 5 letras' });
+    const targetWord = getDailyWord();
+    const expectedLength = targetWord.length;
+    if (guess.length !== expectedLength) {
+      socket.emit('sqrrrdle:error', { message: `La palabra debe tener ${expectedLength} letras` });
       return;
     }
 
@@ -491,7 +517,6 @@ function setupHandlers(io, socket, context) {
     }
 
     const todayKey = getTodayKey();
-    const targetWord = getDailyWord();
 
     // Check if already completed today
     if (user.sqrrrdle.lastCompletedDate === todayKey) {
