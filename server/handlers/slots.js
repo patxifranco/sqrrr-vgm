@@ -457,7 +457,7 @@ function setupHandlers(io, socket, context) {
           newBalance: user.coins,
           hadEnoughMoney: true,
           isPenalty: true,
-          penaltyReason: 'Explotaste el stacking game. Israel te ha confiscado todo.'
+          penaltyReason: 'EXPLOIT DETECTADO. ISRAEL TE HA CONFISCADO TODO.'
         });
         return;
       }
