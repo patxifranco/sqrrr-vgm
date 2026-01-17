@@ -51,10 +51,20 @@ function showLoanCollectionPopup(data) {
   const overlay = document.getElementById('loan-collection-overlay');
   if (!overlay) return;
 
-  // Update popup content
-  document.getElementById('loan-total-due').textContent = data.totalDue;
-  document.getElementById('loan-interest').textContent = data.totalInterest;
-  document.getElementById('loan-count').textContent = data.loansCollected;
+  const titleBar = overlay.querySelector('.title-bar-text');
+  const messageEl = overlay.querySelector('.loan-collection-message');
+
+  // Check if this is a penalty (exploit confiscation)
+  if (data.isPenalty) {
+    titleBar.textContent = 'Benjamin Netanyahu - Confiscación';
+    messageEl.innerHTML = `${data.penaltyReason}<br><br>Se te han confiscado <strong>${data.actualDeduction}</strong> $qr.`;
+  } else {
+    // Normal loan collection
+    titleBar.textContent = 'Benjamin Netanyahu - Cobro de Deudas';
+    messageEl.innerHTML = `Israel ha deducido <span id="loan-total-due">${data.totalDue}</span>$ de tu cuenta con un 75%
+      (<span id="loan-interest">${data.totalInterest}</span>$) de interes de tus <span id="loan-count">${data.loansCollected}</span> prestamos.`;
+  }
+
   document.getElementById('loan-new-balance').textContent = data.newBalance;
 
   // Show popup

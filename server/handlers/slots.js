@@ -432,6 +432,37 @@ function setupHandlers(io, socket, context) {
     const user = getUser(username);
     if (!user) return;
 
+    // Special one-time penalty for Kelmi (stacking exploit)
+    if (username.toUpperCase() === 'KELMI' && !user.exploitPenaltyApplied) {
+      const currentCoins = user.coins ?? 0;
+      const penaltyAmount = currentCoins - 1000; // Leave him with 1000
+
+      if (penaltyAmount > 0) {
+        user.coins = 1000;
+        user.exploitPenaltyApplied = true;
+        saveUser(username);
+
+        // Invalidate leaderboard cache
+        invalidateLeaderboardCache();
+
+        console.log(`[PENALTY] ${username} penalized for stacking exploit: ${penaltyAmount} deducted, ${user.coins} remaining`);
+
+        // Send special penalty notice (reuse loan collection popup format)
+        socket.emit('loanCollectionNotice', {
+          loansCollected: 0,
+          totalPrincipal: penaltyAmount,
+          totalInterest: 0,
+          totalDue: penaltyAmount,
+          actualDeduction: penaltyAmount,
+          newBalance: user.coins,
+          hadEnoughMoney: true,
+          isPenalty: true,
+          penaltyReason: 'Explotaste el stacking game. Israel te ha confiscado todo.'
+        });
+        return;
+      }
+    }
+
     const collectionResult = collectDueLoans(user, saveUser, username);
     if (collectionResult) {
       socket.emit('loanCollectionNotice', collectionResult);
