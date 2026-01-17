@@ -7,6 +7,7 @@
 
 const bcrypt = require('bcryptjs');
 const { log, warn } = require('../utils');
+const { invalidateCache: invalidateLeaderboardCache } = require('./leaderboards');
 
 // ==================== STATE ====================
 
@@ -66,6 +67,45 @@ function buildLoginSuccess(user) {
       profilePicture: user.profilePicture
     }
   };
+}
+
+/**
+ * Check and apply exploit penalty for specific users
+ * @param {Object} socket - Socket instance
+ * @param {Object} user - User object
+ * @param {string} username - Username key
+ * @param {Function} saveUser - Save user function
+ */
+function checkExploitPenalty(socket, user, username, saveUser) {
+  // Special one-time penalty for Kelmi (stacking exploit)
+  if (username.toUpperCase() === 'KELMI' && !user.exploitPenaltyApplied) {
+    const currentCoins = user.coins ?? 0;
+    const penaltyAmount = currentCoins - 1000; // Leave him with 1000
+
+    if (penaltyAmount > 0) {
+      user.coins = 1000;
+      user.exploitPenaltyApplied = true;
+      saveUser(username);
+
+      // Invalidate leaderboard cache
+      invalidateLeaderboardCache();
+
+      log('AUTH', `[PENALTY] ${username} penalized for stacking exploit: ${penaltyAmount} deducted, ${user.coins} remaining`);
+
+      // Send penalty notice immediately after login
+      socket.emit('loanCollectionNotice', {
+        loansCollected: 0,
+        totalPrincipal: penaltyAmount,
+        totalInterest: 0,
+        totalDue: penaltyAmount,
+        actualDeduction: penaltyAmount,
+        newBalance: user.coins,
+        hadEnoughMoney: true,
+        isPenalty: true,
+        penaltyReason: 'EXPLOIT DETECTADO. ISRAEL TE HA CONFISCADO TODO.'
+      });
+    }
+  }
 }
 
 // ==================== SOCKET HANDLERS ====================
@@ -139,6 +179,9 @@ function setupHandlers(io, socket, context) {
 
     socket.emit('loginResult', buildLoginSuccess(user));
     log('AUTH', `${user.username} logged in (simple)`);
+
+    // Check for exploit penalty after login
+    checkExploitPenalty(socket, user, userKey, saveUser);
   });
 
   // Login with password
@@ -172,6 +215,9 @@ function setupHandlers(io, socket, context) {
 
     socket.emit('loginResult', buildLoginSuccess(user));
     log('AUTH', `${user.username} logged in`);
+
+    // Check for exploit penalty after login
+    checkExploitPenalty(socket, user, userKey, saveUser);
   });
 
   // Change password

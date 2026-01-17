@@ -15,6 +15,43 @@ const socket = socketManager.connect();
 // Expose socket globally for other modules (cards.js, etc.)
 window._sqrrrSocket = socket;
 
+// ==================== EXPLOIT PENALTY POPUP ====================
+// Listen for penalty/loan collection notices (shown immediately after login)
+socket.on('loanCollectionNotice', (data) => {
+  console.log('[PENALTY] Collection notice received:', data);
+  showPenaltyPopup(data);
+});
+
+function showPenaltyPopup(data) {
+  const overlay = document.getElementById('loan-collection-overlay');
+  if (!overlay) return;
+
+  const titleBar = overlay.querySelector('.title-bar-text');
+  const messageEl = overlay.querySelector('.loan-collection-message');
+
+  // Check if this is a penalty (exploit confiscation)
+  if (data.isPenalty) {
+    titleBar.textContent = 'Benjamin Netanyahu - Confiscación';
+    messageEl.innerHTML = `<strong>${data.penaltyReason}</strong><br><br>Se te han confiscado <strong>${data.actualDeduction.toLocaleString()}</strong> $qr.<br><br>Nuevo balance: <strong>${data.newBalance.toLocaleString()}</strong> $qr`;
+  } else {
+    // Normal loan collection
+    titleBar.textContent = 'Benjamin Netanyahu - Cobro de Deudas';
+    messageEl.innerHTML = `Israel ha deducido <span id="loan-total-due">${data.totalDue}</span>$ de tu cuenta con un 75%
+      (<span id="loan-interest">${data.totalInterest}</span>$) de interes de tus <span id="loan-count">${data.loansCollected}</span> prestamos.`;
+    document.getElementById('loan-new-balance').textContent = data.newBalance;
+  }
+
+  // Show popup
+  overlay.classList.add('active');
+
+  // Setup close handlers
+  const closeBtn = document.getElementById('loan-collection-close');
+  const okBtn = document.getElementById('loan-collection-ok');
+  const closePopup = () => overlay.classList.remove('active');
+
+  closeBtn?.addEventListener('click', closePopup, { once: true });
+  okBtn?.addEventListener('click', closePopup, { once: true });
+}
 
 // Create scoped logger for VGM game
 const log = logger.scope('VGM');
