@@ -12,6 +12,12 @@
   margin-bottom: 10px;
 }
 
+.wordle-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .wordle-back-btn {
   min-width: 70px;
 }
@@ -19,6 +25,19 @@
 .wordle-coins {
   font-weight: bold;
   color: #006400;
+}
+
+.wordle-leaderboard-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.wordle-leaderboard-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .wordle-game-container {
@@ -72,15 +91,19 @@
   border-color: #565656;
 }
 
-.wordle-tile.reveal {
+.wordle-tile.flip {
   animation: flipTile 0.5s ease forwards;
+  transform-style: preserve-3d;
 }
 
 @keyframes flipTile {
   0% {
     transform: rotateX(0deg);
   }
-  50% {
+  45% {
+    transform: rotateX(90deg);
+  }
+  55% {
     transform: rotateX(90deg);
   }
   100% {
