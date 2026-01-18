@@ -7,6 +7,7 @@
 
 import { WordleGame } from './js/games/wordle/wordle-game.js';
 import { socketManager } from './js/core/socket-manager.js';
+import { leaderboardUI } from './js/ui/leaderboard.js';
 
 // Wordle game instance
 let wordleGame = null;
@@ -88,6 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
         wordleGame = null;
       }
       showScreen('hub-screen');
+    });
+  }
+
+  // Leaderboard button
+  const leaderboardBtn = document.getElementById('wordle-leaderboard-btn');
+  if (leaderboardBtn) {
+    leaderboardBtn.addEventListener('click', () => {
+      leaderboardUI.open('sqrrrdle');
     });
   }
 
