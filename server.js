@@ -66,7 +66,8 @@ const userSchema = new mongoose.Schema({
     totalCoins: { type: Number, default: 0 },
     lastCompletedDate: { type: String, default: null },
     currentDayGuesses: { type: [String], default: [] },
-    currentDayStatus: { type: String, default: 'playing' }
+    currentDayStatus: { type: String, default: 'playing' },
+    currentDayKey: { type: String, default: null }
   }
 });
 
@@ -138,7 +139,8 @@ async function loadUsers() {
           totalCoins: user.sqrrrdle?.totalCoins ?? 0,
           lastCompletedDate: user.sqrrrdle?.lastCompletedDate ?? null,
           currentDayGuesses: user.sqrrrdle?.currentDayGuesses ?? [],
-          currentDayStatus: user.sqrrrdle?.currentDayStatus ?? 'playing'
+          currentDayStatus: user.sqrrrdle?.currentDayStatus ?? 'playing',
+          currentDayKey: user.sqrrrdle?.currentDayKey ?? null
         }
       };
 
@@ -196,7 +198,8 @@ async function saveUser(username) {
           totalCoins: userData.sqrrrdle?.totalCoins ?? 0,
           lastCompletedDate: userData.sqrrrdle?.lastCompletedDate ?? null,
           currentDayGuesses: userData.sqrrrdle?.currentDayGuesses ?? [],
-          currentDayStatus: userData.sqrrrdle?.currentDayStatus ?? 'playing'
+          currentDayStatus: userData.sqrrrdle?.currentDayStatus ?? 'playing',
+          currentDayKey: userData.sqrrrdle?.currentDayKey ?? null
         }
       },
       { upsert: true, new: true }
@@ -842,7 +845,8 @@ function createInMemoryUsers() {
             totalCoins: userData.sqrrrdle?.totalCoins ?? 0,
             lastCompletedDate: userData.sqrrrdle?.lastCompletedDate ?? null,
             currentDayGuesses: userData.sqrrrdle?.currentDayGuesses ?? [],
-            currentDayStatus: userData.sqrrrdle?.currentDayStatus ?? 'playing'
+            currentDayStatus: userData.sqrrrdle?.currentDayStatus ?? 'playing',
+            currentDayKey: userData.sqrrrdle?.currentDayKey ?? null
           }
         };
       }
@@ -903,7 +907,8 @@ function createInMemoryUsers() {
           totalCoins: 0,
           lastCompletedDate: null,
           currentDayGuesses: [],
-          currentDayStatus: 'playing'
+          currentDayStatus: 'playing',
+          currentDayKey: null
         }
       };
     }
