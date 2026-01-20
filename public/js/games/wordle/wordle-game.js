@@ -24,68 +24,72 @@ const WORDS = [
 
   // Nintendo (5 letters)
   'MARIO', 'LUIGI', 'ZELDA', 'KIRBY', 'WARIO', 'PEACH', 'YOSHI', 'SAMUS',
-  'GANON', 'KOOPA', 'DAISY', 'DIDDY',
+  'GANON', 'KOOPA', 'DAISY', 'DIDDY', 'FALCO', 'SHULK', 'MARTH', 'ROBIN',
+  'CHROM', 'LUCAS', 'EPONA', 'MIDNA', 'MIPHA', 'DARUK', 'SIDON',
 
   // Pokemon (5 letters)
   'PICHU', 'EEVEE', 'DITTO', 'ZUBAT', 'RALTS', 'SHINX', 'LUXIO', 'ZORUA',
-  'LUGIA', 'ENTEI', 'ABSOL', 'ARBOK', 'EKANS',
+  'LUGIA', 'ENTEI', 'ABSOL', 'ARBOK', 'EKANS', 'ABRA',
 
   // Sonic (5 letters)
-  'SONIC', 'TAILS',
+  'SONIC', 'TAILS', 'ROUGE', 'BLAZE', 'METAL', 'KNUCKLES',
 
   // Final Fantasy (5 letters)
-  'CLOUD', 'AURON', 'AERIS',
+  'CLOUD', 'TIDUS', 'AURON', 'AERIS', 'SQUALL',
 
   // Street Fighter / Fighting Games (5 letters)
-  'AKUMA', 'LUFFY', 
+  'GUILE', 'CAMMY', 'SAGAT', 'BISON', 'AKUMA', 'IBUKI', 'KARIN',
+  'SONYA', 'ERMAC', 'ASUKA', 'ALISA', 'BRYAN',
 
   // Other Famous Game Characters (5 letters)
   'SNAKE', 'CRASH', 'SPYRO', 'DANTE', 'STEVE', 'JOKER', 'ELLIE',
+  'CHIEF', 'QUIET', 'SOLID', 'LARA',
 
   // Game Names (5 letters)
-  'HADES', 'BRAWL', 'SMASH', 'LIMBO', 'FORZA',
-  'OKAMI', 'ISAAC', 'AMONG',
+  'HADES', 'BRAWL', 'SMASH', 'LIMBO', 'FORZA', 'GEARS', 'FABLE',
+  'OKAMI', 'STRAY', 'TUNIC', 'BRAID', 'ISAAC', 'AMONG',
 
   // Gaming Terms (5 letters)
-  'COMBO', 'SPAWN', 'BONUS', 'NIVEL', 'ARMOR', 'SKILL', 'LOBBY',
-  'KILLS', 'MAGIC', 'HEALS', 'MAINS', 'PATCH', 'STATS',
-  'BUILD', 'FLASH', 'GHOST', 'SMITE', 'BARON', 'DRAKE', 'GAMER',
-  'TORRE', 'CARRY', 'CHAMP', 'ITEMS', 'RESET',
+  'COMBO', 'SPAWN', 'BONUS', 'LEVEL', 'ARMOR', 'SKILL', 'LOBBY',
+  'KILLS', 'SWORD', 'MAGIC', 'HEALS', 'MAINS', 'PATCH', 'RANKS', 'STATS',
+  'BUILD', 'FLASH', 'GHOST', 'SMITE', 'BARON', 'DRAKE', 'NEXUS', 'GAMER',
+  'TOWER', 'CARRY', 'CHAMP', 'ITEMS', 'RESET',
 
   // ===== 6-LETTER WORDS =====
   // LOL Champions (6 letters)
   'THRESH', 'VIKTOR', 'ANIVIA', 'ZILEAN', 'SINGED', 'RAMMUS', 'GRAVES',
   'IRELIA', 'EZREAL', 'SORAKA', 'DRAVEN', 'RENGAR', 'RUMBLE', 'KENNEN',
-  'TWITCH', 'VEIGAR', 'XERATH',
+  'TWITCH', 'VEIGAR', 'XERATH', 'KASSADIN',
 
   // Overwatch (6 letters)
-  'TRACER', 'REAPER', 'SOMBRA', 'PHARAH',
+  'TRACER', 'REAPER', 'SOMBRA', 'PHARAH', 'TORBJORN',
 
   // Nintendo (6 letters)
-  'BOWSER', 'FALCON', 'OLIMAR', 'PIKMIN',
+  'BOWSER', 'FALCON', 'TINGLE', 'URBOSA', 'REVALI', 'OLIMAR', 'PIKMIN',
+  'BYLETH', 'MYTHRA', 'RIDLEY',
 
   // Pokemon (6 letters)
   'GENGAR', 'MEWTWO', 'ARCEUS', 'VULPIX', 'MUDKIP', 'GASTLY', 'MEOWTH',
-  'LAPRAS', 'CELEBI', 'KYOGRE', 'DIALGA', 'PALKIA',
+  'LAPRAS', 'CELEBI', 'KYOGRE', 'DIALGA', 'PALKIA', 'WOBBUFFET',
+
+  // Final Fantasy / JRPG (6 letters)
+  'NOCTIS', 'SEPHIROTH',
 
   // Street Fighter / Fighting Games (6 letters)
-  'SAKURA',
+  'BLANKA', 'BALROG', 'SAKURA', 'RASHID', 'JOHNNY', 'KITANA', 'BARAKA',
+  'KAZUYA', 'RAIDEN',
 
   // Other Famous Game Characters (6 letters)
- 'NATHAN', 'TREVOR', 'ARTHUR',
+  'KRATOS', 'NATHAN', 'TREVOR', 'ARTHUR', 'GERALT', 'OCELOT', 'LIQUID',
+  'MASTER', 'CORTANA',
 
   // Game Names (6 letters)
   'PORTAL', 'TETRIS', 'SKYRIM', 'DIABLO', 'SEKIRO', 'HITMAN', 'ROBLOX',
   'RAYMAN', 'TEKKEN', 'LEAGUE', 'YAKUZA', 'HOLLOW', 'ROCKET', 'INSIDE',
-  'TARKOV',
+  'TARKOV', 'ANTHEM',
 
   // Gaming Terms (6 letters)
-  'DAMAGE', 'SHIELD', 'HEALTH', 'MINION', 'RANKED', 'JUNGLA',
-
-  // Otros (6 letters)
-  'MINMIN', 'WYKENZ', 'REASON', 'LAYSON', 'KRATOS', 'VICTOR', 'IMANOL', 'IOSEBA', 'GUILLE', 
-
-  
+  'DAMAGE', 'SHIELD', 'HEALTH', 'MINION', 'CREEPS', 'RANKED', 'JUNGLE',
 ];
 
 // Filter to only valid 5 and 6 letter words
