@@ -800,15 +800,11 @@ function setupHandlers(io, socket, context) {
 
     const todayKey = getTodayKey();
 
-    // Check if it's a new day - only reset if currentDayKey exists AND is different
-    // This prevents resetting when currentDayKey is null/undefined (migration from old data)
-    if (user.sqrrrdle.currentDayKey && user.sqrrrdle.currentDayKey !== todayKey) {
-      // It's a new day, reset daily state
+    // Reset if it's a different day (or if currentDayKey was never set)
+    // This ensures old guesses from previous days are always cleared
+    if (user.sqrrrdle.currentDayKey !== todayKey) {
       user.sqrrrdle.currentDayGuesses = [];
       user.sqrrrdle.currentDayStatus = 'playing';
-    }
-    // Always ensure currentDayKey is set to today
-    if (user.sqrrrdle.currentDayKey !== todayKey) {
       user.sqrrrdle.currentDayKey = todayKey;
       saveUser(username);
     }
@@ -875,13 +871,12 @@ function setupHandlers(io, socket, context) {
 
     const todayKey = getTodayKey();
 
-    // Check if it's a new day - only reset if currentDayKey exists AND is different
-    if (user.sqrrrdle.currentDayKey && user.sqrrrdle.currentDayKey !== todayKey) {
+    // Reset if it's a different day (or if currentDayKey was never set)
+    if (user.sqrrrdle.currentDayKey !== todayKey) {
       user.sqrrrdle.currentDayGuesses = [];
       user.sqrrrdle.currentDayStatus = 'playing';
+      user.sqrrrdle.currentDayKey = todayKey;
     }
-    // Always ensure currentDayKey is set to today
-    user.sqrrrdle.currentDayKey = todayKey;
 
     // Check if already completed today
     if (user.sqrrrdle.currentDayStatus === 'won' || user.sqrrrdle.currentDayStatus === 'lost') {

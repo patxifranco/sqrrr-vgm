@@ -920,6 +920,54 @@ export class WordleGame {
     key.classList.add(state);
   }
 
+  resetKeyboard() {
+    // Clear all keyboard key states
+    const keys = this.keyboard.querySelectorAll('.wordle-key');
+    keys.forEach(key => {
+      key.classList.remove('absent', 'present', 'correct');
+    });
+    this.keyStates = {};
+  }
+
+  fillRowWithGuess(guess, rowIdx) {
+    // Calculate letter states for this guess
+    const states = Array(this.wordLength).fill('absent');
+    const targetLetters = this.targetWord.split('');
+    const guessLetters = guess.split('');
+
+    // First pass: mark correct letters
+    for (let i = 0; i < this.wordLength; i++) {
+      if (guessLetters[i] === targetLetters[i]) {
+        states[i] = 'correct';
+        targetLetters[i] = null;
+        guessLetters[i] = null;
+      }
+    }
+
+    // Second pass: mark present letters
+    for (let i = 0; i < this.wordLength; i++) {
+      if (guessLetters[i] !== null) {
+        const idx = targetLetters.indexOf(guessLetters[i]);
+        if (idx !== -1) {
+          states[i] = 'present';
+          targetLetters[idx] = null;
+        }
+      }
+    }
+
+    // Fill in tiles (no animation for restore)
+    for (let c = 0; c < this.wordLength; c++) {
+      const tile = this.board.querySelector(
+        `.wordle-tile[data-row="${rowIdx}"][data-col="${c}"]`
+      );
+      if (tile) {
+        tile.textContent = guess[c];
+        tile.classList.add('filled', states[c]);
+        this.updateKeyboardKey(guess[c], states[c]);
+      }
+    }
+  }
+
   shakeRow(rowIdx) {
     const row = this.board.querySelector(`.wordle-row[data-row="${rowIdx}"]`);
     if (row) {
@@ -947,10 +995,31 @@ export class WordleGame {
     this.socket.on('sqrrrdle:state', (data) => {
       this.serverSynced = true;
 
-      // If server has progress for today, restore it
+      // Server is the source of truth - always sync from server
+      // First, reset all local state
+      this.guesses = [];
+      this.gameStatus = data.status || 'playing';
+      this.currentRow = 0;
+      this.currentTile = 0;
+      this.keyStates = {};
+
+      // Reset the board and keyboard visually
+      this.board.innerHTML = '';
+      this.createBoard();
+      this.resetKeyboard();
+
+      // Restore guesses from server if any exist for today
       if (data.guesses && data.guesses.length > 0 && data.todayKey === this.todayKey) {
-        this.restoreFromServer(data);
+        // Restore each guess to the board
+        data.guesses.forEach((guess, rowIdx) => {
+          this.guesses.push(guess);
+          this.fillRowWithGuess(guess, rowIdx);
+        });
+        this.currentRow = data.guesses.length;
       }
+
+      // Save synced state to localStorage as backup
+      this.saveLocalState();
     });
 
     // Receive guess result from server
@@ -975,48 +1044,17 @@ export class WordleGame {
   }
 
   restoreFromServer(data) {
-    // Clear current board state
+    // Clear current board state and reset
+    this.guesses = [];
+    this.keyStates = {};
     this.board.innerHTML = '';
     this.createBoard();
+    this.resetKeyboard();
 
-    // Restore guesses
+    // Restore each guess
     data.guesses.forEach((guess, rowIdx) => {
       this.guesses.push(guess);
-
-      // Calculate states for this guess
-      const states = Array(this.wordLength).fill('absent');
-      const targetLetters = this.targetWord.split('');
-      const guessLetters = guess.split('');
-
-      for (let i = 0; i < this.wordLength; i++) {
-        if (guessLetters[i] === targetLetters[i]) {
-          states[i] = 'correct';
-          targetLetters[i] = null;
-          guessLetters[i] = null;
-        }
-      }
-
-      for (let i = 0; i < this.wordLength; i++) {
-        if (guessLetters[i] !== null) {
-          const idx = targetLetters.indexOf(guessLetters[i]);
-          if (idx !== -1) {
-            states[i] = 'present';
-            targetLetters[idx] = null;
-          }
-        }
-      }
-
-      // Fill in tiles (no animation for restore)
-      for (let c = 0; c < this.wordLength; c++) {
-        const tile = this.board.querySelector(
-          `.wordle-tile[data-row="${rowIdx}"][data-col="${c}"]`
-        );
-        if (tile) {
-          tile.textContent = guess[c];
-          tile.classList.add('filled', states[c]);
-          this.updateKeyboardKey(guess[c], states[c]);
-        }
-      }
+      this.fillRowWithGuess(guess, rowIdx);
     });
 
     this.currentRow = data.guesses.length;
