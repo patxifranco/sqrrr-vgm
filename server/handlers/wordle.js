@@ -7,6 +7,9 @@
  * - Prevents duplicate completions per 24 hours
  */
 
+const fs = require('fs');
+const path = require('path');
+
 // Per-user transaction locks to prevent race conditions
 const userLocks = new Map();
 
@@ -100,9 +103,43 @@ const WORDS = [
 // Filter to only valid 5 and 6 letter words
 const WORDS_CLEAN = WORDS.filter(w => w.length === 5 || w.length === 6);
 
-// Extended valid guesses - comprehensive English and Spanish word lists
-const VALID_GUESSES = new Set([
-  ...WORDS_CLEAN,
+// Extended valid guesses - load from txt files + legacy fallback
+const VALID_GUESSES = new Set([...WORDS_CLEAN]);
+
+// Load words from txt files at startup
+function loadDictionaryFiles() {
+  const wordsDir = path.join(__dirname, '..', '..', 'public', 'js', 'games', 'wordle');
+
+  try {
+    // Load 5-letter words
+    const file5 = path.join(wordsDir, 'words_es_en_5_ascii_combined.txt');
+    if (fs.existsSync(file5)) {
+      const content = fs.readFileSync(file5, 'utf8');
+      const words = content.split('\n').map(w => w.trim().toUpperCase()).filter(w => w.length === 5);
+      words.forEach(w => VALID_GUESSES.add(w));
+      console.log(`[WORDLE] Loaded ${words.length} 5-letter words from txt file`);
+    }
+
+    // Load 6-letter words
+    const file6 = path.join(wordsDir, 'words_es_en_6_ascii_combined.txt');
+    if (fs.existsSync(file6)) {
+      const content = fs.readFileSync(file6, 'utf8');
+      const words = content.split('\n').map(w => w.trim().toUpperCase()).filter(w => w.length === 6);
+      words.forEach(w => VALID_GUESSES.add(w));
+      console.log(`[WORDLE] Loaded ${words.length} 6-letter words from txt file`);
+    }
+
+    console.log(`[WORDLE] Total valid guesses: ${VALID_GUESSES.size}`);
+  } catch (err) {
+    console.error('[WORDLE] Error loading dictionary files:', err.message);
+  }
+}
+
+// Load dictionary at module load time
+loadDictionaryFiles();
+
+// Legacy fallback words (kept for redundancy)
+const LEGACY_WORDS = [
   // ===== 5-LETTER ENGLISH WORDS =====
   'ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT',
   'AFTER', 'AGAIN', 'AGENT', 'AGREE', 'AHEAD', 'ALARM', 'ALBUM', 'ALERT',
@@ -739,7 +776,10 @@ const VALID_GUESSES = new Set([
   'VERDES', 'VERSAR', 'VERSOS', 'VIAJAR', 'VIAJES', 'VICTOR', 'VIDEOS',
   'VIENEN', 'VIENTO', 'VIOLET', 'VIRGEN',
   'VIRTUD', 'VISITA', 'VISTAS', 'VISUAL', 'VUELTAS', 'ZONAS'
-]);
+];
+
+// Add legacy words to VALID_GUESSES as fallback
+LEGACY_WORDS.forEach(w => VALID_GUESSES.add(w));
 
 function getSpainDate() {
   // Always use Madrid timezone for consistent daily reset at midnight Spain time
