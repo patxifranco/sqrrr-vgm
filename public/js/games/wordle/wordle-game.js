@@ -95,9 +95,43 @@ const WORDS = [
 // Filter to only valid 5 and 6 letter words
 const WORDS_CLEAN = WORDS.filter(w => w.length === 5 || w.length === 6);
 
-// Extended valid guesses - comprehensive English and Spanish word lists
-const VALID_GUESSES = new Set([
-  ...WORDS_CLEAN,
+// Extended valid guesses - starts with WORDS_CLEAN, will be populated from txt files
+const VALID_GUESSES = new Set([...WORDS_CLEAN]);
+
+// Flag to track if dictionary is loaded
+let dictionaryLoaded = false;
+
+// Function to load valid words from txt files
+async function loadDictionary() {
+  if (dictionaryLoaded) return;
+
+  try {
+    const [response5, response6] = await Promise.all([
+      fetch('/js/games/wordle/words_es_en_5_ascii_combined.txt'),
+      fetch('/js/games/wordle/words_es_en_6_ascii_combined.txt')
+    ]);
+
+    if (response5.ok) {
+      const text5 = await response5.text();
+      const words5 = text5.split('\n').map(w => w.trim().toUpperCase()).filter(w => w.length === 5);
+      words5.forEach(w => VALID_GUESSES.add(w));
+    }
+
+    if (response6.ok) {
+      const text6 = await response6.text();
+      const words6 = text6.split('\n').map(w => w.trim().toUpperCase()).filter(w => w.length === 6);
+      words6.forEach(w => VALID_GUESSES.add(w));
+    }
+
+    dictionaryLoaded = true;
+    console.log(`Dictionary loaded: ${VALID_GUESSES.size} valid words`);
+  } catch (error) {
+    console.error('Failed to load dictionary:', error);
+  }
+}
+
+// Legacy hardcoded words kept as fallback (subset for offline/quick start)
+const LEGACY_GUESSES = new Set([
   // ===== 5-LETTER ENGLISH WORDS =====
   'ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT',
   'AFTER', 'AGAIN', 'AGENT', 'AGREE', 'AHEAD', 'ALARM', 'ALBUM', 'ALERT',
@@ -657,6 +691,9 @@ const VALID_GUESSES = new Set([
   'VUELTAS', 'VUELVEY', 'YACHTY', 'ZONASY'
 ]);
 
+// Add legacy guesses to VALID_GUESSES as fallback
+LEGACY_GUESSES.forEach(w => VALID_GUESSES.add(w));
+
 const MAX_ATTEMPTS = 6;
 const STATS_KEY = 'sqrrrdle_stats';
 
@@ -686,10 +723,13 @@ export class WordleGame {
     this.todayKey = this.getTodayKey();
   }
 
-  init() {
+  async init() {
     this.board = document.getElementById('wordle-board');
     this.keyboard = document.getElementById('wordle-keyboard');
     this.messageEl = document.getElementById('wordle-message');
+
+    // Load dictionary from txt files (async, game works with fallback while loading)
+    loadDictionary();
 
     this.targetWord = this.getDailyWord();
     this.wordLength = this.targetWord.length; // Set word length dynamically
