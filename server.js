@@ -812,6 +812,44 @@ async function ensureUsersExist() {
   }
 }
 
+// One-time exploit penalty for Kelmi (Feb 2026)
+async function applyExploitPenalties() {
+  try {
+    const kelmi = await User.findOne({ username: { $regex: /^kelmi$/i } });
+    if (!kelmi) return;
+
+    // Check if this specific penalty was already applied (using a unique flag)
+    if (kelmi.exploitPenalty2026Applied) {
+      console.log('[PENALTY] Kelmi exploit penalty (Feb 2026) already applied, skipping.');
+      return;
+    }
+
+    const currentCoins = kelmi.coins ?? 0;
+    const currentDebt = kelmi.debt ?? 0;
+
+    // Only apply if he has significant coins
+    if (currentCoins <= 1000) {
+      console.log(`[PENALTY] Kelmi has only ${currentCoins} coins, no penalty needed.`);
+      return;
+    }
+
+    const penaltyAmount = currentCoins; // Take everything
+
+    console.log(`[PENALTY] Applying Kelmi exploit penalty:`);
+    console.log(`  Before: ${currentCoins.toLocaleString()} coins, ${currentDebt.toLocaleString()} debt`);
+
+    kelmi.coins = 0;
+    kelmi.debt = currentDebt + penaltyAmount;
+    kelmi.exploitPenalty2026Applied = true;
+    await kelmi.save();
+
+    console.log(`  After: ${kelmi.coins} coins, ${kelmi.debt.toLocaleString()} debt`);
+    console.log(`  Deducted: ${penaltyAmount.toLocaleString()} $qr - ISRAEL HA COBRADO`);
+  } catch (err) {
+    console.error('[PENALTY] Error applying Kelmi penalty:', err.message);
+  }
+}
+
 // Load users from JSON files for in-memory mode
 function createInMemoryUsers() {
   const usersFile = path.join(__dirname, 'users.json');
@@ -928,6 +966,9 @@ async function initializeAndStart() {
 
       // Ensure required users exist
       await ensureUsersExist();
+
+      // Apply one-time exploit penalties
+      await applyExploitPenalties();
 
       // Load data from MongoDB into memory
       await loadUsers();
