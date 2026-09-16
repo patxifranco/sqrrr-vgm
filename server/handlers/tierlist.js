@@ -319,7 +319,7 @@ async function loadSavedIndex() {
   try { if (dbReady()) savedIndex = (await TierList.find({}, 'title mode host createdAt tiers').sort({ createdAt: -1 }).limit(30).lean()).map(indexOf); }
   catch (e) { warn('TIERLIST', 'could not load saved tierlists', e.message); }
 }
-setTimeout(loadSavedIndex, 3000); // give mongoose time to connect at startup
+if (dbReady()) loadSavedIndex(); else mongoose.connection.once('connected', loadSavedIndex);
 async function saveTierList(doc) {
   let saved = doc;
   if (dbReady()) saved = (await TierList.create(doc)).toObject();

@@ -1050,10 +1050,7 @@ function gracefulShutdown(signal) {
 
     // Close MongoDB connection if connected
     if (!useInMemory && mongoose.connection.readyState === 1) {
-      mongoose.connection.close(false, () => {
-        console.log('MongoDB connection closed');
-        process.exit(0);
-      });
+      mongoose.connection.close(false).then(() => { console.log('MongoDB connection closed'); process.exit(0); }).catch(() => process.exit(0));
     } else {
       process.exit(0);
     }
