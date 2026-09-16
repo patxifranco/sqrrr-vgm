@@ -30,14 +30,20 @@ const lobby = {
   currentId: null,
   playback: { playing: false, position: 0, at: 0 },
   tiers: emptyTiers(), // tier -> [songId]
+  trashed: [],         // songIds the host discarded
   votes: {}            // songId -> { username: tier }
 };
 
 function reset() {
   Object.assign(lobby, {
     host: null, album: null, songs: [], currentId: null,
-    playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), votes: {}
+    playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {}
   });
+}
+const isPlaced = id => TIERS.some(t => lobby.tiers[t].includes(id));
+function unplace(id) {
+  for (const t of TIERS) lobby.tiers[t] = lobby.tiers[t].filter(x => x !== id);
+  lobby.trashed = lobby.trashed.filter(x => x !== id);
 }
 
 // ==================== KHINSIDER SCRAPER ====================
@@ -107,8 +113,9 @@ const playbackMsg = () => ({
 });
 const publicState = () => ({
   players: playerList(), host: hostName(), album: lobby.album, songs: lobby.songs,
-  currentId: lobby.currentId, playback: lobby.playback, tiers: lobby.tiers, votes: lobby.votes, serverNow: Date.now()
+  currentId: lobby.currentId, playback: lobby.playback, tiers: lobby.tiers, trashed: lobby.trashed, votes: lobby.votes, serverNow: Date.now()
 });
+const tiersMsg = placed => ({ tiers: lobby.tiers, trashed: lobby.trashed, placed });
 
 // ==================== SOCKET HANDLERS ====================
 function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
@@ -156,6 +163,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       lobby.currentId = null;
       lobby.playback = { playing: false, position: 0, at: Date.now() };
       lobby.tiers = emptyTiers();
+      lobby.trashed = [];
       lobby.votes = {};
       io.to(ROOM).emit('tlState', publicState());
       log('TIERLIST', `album loaded: ${album.title} (${album.songs.length} songs)`);
@@ -183,7 +191,35 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   socket.on('tlCursor', (pos) => {
     const p = lobby.players[socket.id];
     if (!p || !pos) return;
-    socket.to(ROOM).volatile.emit('tlCursor', { username: p.username, x: +pos.x || 0, y: +pos.y || 0 });
+    const d = pos.drag;
+    const drag = d && lobby.songs[d.id] ? { id: +d.id, gx: +d.gx || 0, gy: +d.gy || 0, rot: +d.rot || 0 } : null;
+    socket.to(ROOM).volatile.emit('tlCursor', { username: p.username, x: +pos.x || 0, y: +pos.y || 0, drag });
+  });
+
+  // Anyone votes the current song into a tier (until the host places it)
+  socket.on('tlVote', ({ songId, tier } = {}) => {
+    const p = lobby.players[socket.id];
+    if (!p || songId !== lobby.currentId || !TIERS.includes(tier) || isPlaced(songId)) return;
+    (lobby.votes[songId] = lobby.votes[songId] || {})[p.username] = tier;
+    io.to(ROOM).emit('tlVotes', { songId, votes: lobby.votes[songId] });
+  });
+
+  // Host places a song in a tier (verdict), or moves an already placed one
+  socket.on('tlVerdict', ({ songId, tier, index } = {}) => {
+    if (!isHost() || !lobby.songs[songId] || !TIERS.includes(tier)) return;
+    unplace(songId);
+    const list = lobby.tiers[tier];
+    const at = Number.isInteger(index) ? Math.max(0, Math.min(index, list.length)) : list.length;
+    list.splice(at, 0, songId);
+    io.to(ROOM).emit('tlTiers', tiersMsg(songId));
+    log('TIERLIST', `${lobby.songs[songId].name} -> ${tier}`);
+  });
+
+  socket.on('tlTrash', ({ songId } = {}) => {
+    if (!isHost() || !lobby.songs[songId]) return;
+    unplace(songId);
+    lobby.trashed.push(songId);
+    io.to(ROOM).emit('tlTiers', tiersMsg(null));
   });
 
   return { handleDisconnect: leave };
