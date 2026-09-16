@@ -2,10 +2,13 @@
  * SQRRR Tierlist - collab tier list over khinsider soundtracks.
  * ponytail: one global lobby; key by room code if two groups ever need to play at once.
  */
+const { Readable } = require('stream');
 const { log, warn } = require('../utils');
 
 const KH = 'https://downloads.khinsider.com';
 const FETCH_OPTS = { headers: { 'User-Agent': 'Mozilla/5.0 (sqrrr.com tierlist)' } };
+// khinsider gates /search behind a login; a logged-in browser cookie in KHINSIDER_COOKIE re-enables it
+if (process.env.KHINSIDER_COOKIE) FETCH_OPTS.headers.cookie = process.env.KHINSIDER_COOKIE;
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const COLORS = {
   REASON: '#a01830',
@@ -58,19 +61,32 @@ async function getHtml(url) {
 const stripTags = s => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 const unescapeHtml = s => s.replace(/&amp;/g, '&').replace(/&#0?39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
+const SLUG_RE = /^[A-Za-z0-9._-]+$/;
+
 async function searchAlbums(q) {
   const key = q.toLowerCase();
   if (cache.search.has(key)) return cache.search.get(key);
   const html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`);
+  const gated = !html.includes('albumIcon') && /Please Log In/i.test(html);
   const results = [];
-  for (const row of html.split('<tr>').slice(1)) {
+  for (const row of gated ? [] : html.split('<tr>').slice(1)) {
     const m = row.match(/class="albumIcon"><a href="\/game-soundtracks\/album\/([^"]+)">(?:<img src="([^"]+)">)?[\s\S]*?<td>\s*<a href="[^"]+">([^<]+)<\/a>\s*<\/td>\s*<td>([\s\S]*?)<\/td>\s*<td>([^<]*)<\/td>\s*<td>([^<]*)<\/td>/);
     if (!m) continue;
     results.push({ slug: m[1], thumb: m[2] || null, title: unescapeHtml(m[3]), platform: stripTags(m[4]), type: m[5].trim(), year: m[6].trim() });
     if (results.length >= 40) break;
   }
-  cache.search.set(key, results);
-  return results;
+  if (!results.length) { // maybe the query is the album slug itself (album pages are public even when search is gated)
+    const slug = key.trim().replace(/\s+/g, '-');
+    if (SLUG_RE.test(slug)) {
+      try {
+        const a = await loadAlbum(slug);
+        if (a.songs.length) results.push({ slug, thumb: a.covers[0] || null, title: a.title, platform: '', type: `${a.songs.length} pistas`, year: '' });
+      } catch (e) { /* not an album */ }
+    }
+  }
+  const out = { results, gated };
+  if (!gated) cache.search.set(key, out);
+  return out;
 }
 
 async function loadAlbum(slug) {
@@ -117,6 +133,44 @@ const publicState = () => ({
 });
 const tiersMsg = placed => ({ tiers: lobby.tiers, trashed: lobby.trashed, placed });
 
+function leaveSocket(io, socket) {
+  const p = lobby.players[socket.id];
+  if (!p) return;
+  delete lobby.players[socket.id];
+  socket.leave(ROOM);
+  socket.to(ROOM).emit('tlCursor', { username: p.username, gone: true });
+  if (lobby.host === socket.id) lobby.host = Object.keys(lobby.players)[0] || null;
+  if (!lobby.host) reset(); else io.to(ROOM).emit('tlPlayers', { players: playerList(), host: hostName() });
+  log('TIERLIST', `${p.username} left`);
+}
+// used by the page-close beacon (POST /tierlist/leave with the socket id)
+function leaveById(io, id) {
+  const s = io.sockets.sockets.get(id);
+  if (s) leaveSocket(io, s);
+}
+
+// Same-origin audio proxy with Range passthrough, so the client's Web Audio analyser can read the stream
+async function audioProxy(req, res) {
+  const u = String(req.query.u || '');
+  if (!/^https:\/\/[a-z0-9.-]+\.vgmtreasurechest\.com\/[^?#]+\.mp3$/i.test(u)) return res.status(400).end();
+  try {
+    const headers = { 'User-Agent': FETCH_OPTS.headers['User-Agent'] };
+    if (req.headers.range) headers.range = req.headers.range;
+    const r = await fetch(u, { headers });
+    res.status(r.status);
+    for (const h of ['content-type', 'content-length', 'content-range', 'accept-ranges']) { const v = r.headers.get(h); if (v) res.setHeader(h, v); }
+    res.setHeader('cache-control', 'public, max-age=86400');
+    if (!r.body) return res.end();
+    const body = Readable.fromWeb(r.body);
+    req.on('close', () => body.destroy());
+    body.on('error', () => res.end());
+    body.pipe(res);
+  } catch (e) {
+    warn('TIERLIST', 'audio proxy failed', e.message);
+    if (!res.headersSent) res.status(502).end();
+  }
+}
+
 // ==================== SOCKET HANDLERS ====================
 function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   const isHost = () => socket.id === lobby.host;
@@ -135,26 +189,25 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', `${username} joined (${playerList().length} players)`);
   });
 
-  function leave() {
-    const p = lobby.players[socket.id];
-    if (!p) return;
-    delete lobby.players[socket.id];
-    socket.leave(ROOM);
-    socket.to(ROOM).emit('tlCursor', { username: p.username, gone: true });
-    if (lobby.host === socket.id) lobby.host = Object.keys(lobby.players)[0] || null;
-    if (!lobby.host) reset(); else broadcastPlayers();
-    log('TIERLIST', `${p.username} left`);
-  }
+  const leave = () => leaveSocket(io, socket);
   socket.on('tlLeave', leave);
+
+  // Host cancels: back to the album search for everyone, everything cleared
+  socket.on('tlReset', () => {
+    if (!isHost()) return;
+    Object.assign(lobby, { album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {} });
+    io.to(ROOM).emit('tlState', publicState());
+    log('TIERLIST', 'reset by host');
+  });
 
   socket.on('tlSearch', async ({ q } = {}) => {
     if (!isHost() || !q || !q.trim()) return;
-    try { socket.emit('tlSearchResults', { q, results: await searchAlbums(q.trim()) }); }
+    try { socket.emit('tlSearchResults', { q, ...await searchAlbums(q.trim()) }); }
     catch (e) { fail('khinsider no responde', e); }
   });
 
   socket.on('tlLoadAlbum', async ({ slug } = {}) => {
-    if (!isHost() || !slug) return;
+    if (!isHost() || !slug || !SLUG_RE.test(slug)) return;
     try {
       const album = await loadAlbum(slug);
       if (!album.songs.length) return fail('Ese album no tiene canciones');
@@ -231,7 +284,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   return { handleDisconnect: leave };
 }
 
-module.exports = { setupHandlers, searchAlbums, loadAlbum, resolveMp3 };
+module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3 };
 
 // Self-check: node server/handlers/tierlist.js
 if (require.main === module) {

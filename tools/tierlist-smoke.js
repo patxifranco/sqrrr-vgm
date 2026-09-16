@@ -31,7 +31,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
   b.emit('tlSearch', { q: 'minecraft' }); await silence(b, 'tlSearchResults');           // non-host ignored
   a.emit('tlSearch', { q: 'minecraft' }); const res = await once(a, 'tlSearchResults');
-  assert(res.results.some(r => r.slug === 'minecraft'));
+  assert(res.results.some(r => r.slug === 'minecraft'), 'search or slug fallback failed (gated=' + res.gated + ')');
 
   a.emit('tlLoadAlbum', { slug: 'minecraft' });
   const [, s2] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
@@ -40,6 +40,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlSelect', { songId: 1 });
   const [, p2] = await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
   assert.equal(p2.currentId, 1); assert(/vgmtreasurechest\.com\/.+\.mp3$/.test(p2.mp3)); assert(p2.playback.playing);
+
+  const px = await fetch(URL + '/tierlist/audio?u=' + encodeURIComponent(p2.mp3), { headers: { range: 'bytes=0-99' } });
+  assert.equal(px.status, 206); assert.equal(px.headers.get('content-type'), 'audio/mpeg'); assert.equal((await px.arrayBuffer()).byteLength, 100);
+  assert.equal((await fetch(URL + '/tierlist/audio?u=https://evil.example/x.mp3')).status, 400);
 
   a.emit('tlPlayback', { playing: false, position: 42.5 }); const p3 = await once(b, 'tlPlayback');
   assert(!p3.playback.playing); assert.equal(p3.playback.position, 42.5);
@@ -82,10 +86,19 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   cc.emit('tlJoin'); const [s3] = await Promise.all([once(cc, 'tlState'), once(b, 'tlPlayers')]);
   assert.equal(s3.currentId, 1); assert.deepEqual(s3.tiers.S, [1]); assert.deepEqual(s3.trashed, [5]); assert.deepEqual(s3.votes[1], { Mugi: 'B', REASON: 'A' });
 
+  // closing the tab: the beacon endpoint removes the player right away
+  const [plc] = await Promise.all([once(b, 'tlPlayers'), fetch(URL + '/tierlist/leave', { method: 'POST', body: cc.id, headers: { 'content-type': 'text/plain' } })]);
+  assert(!plc.players.some(p => p.username === 'Jesus')); assert.equal(plc.players.length, 2);
+
+  // Cancelar: non-host ignored, host clears everything for everyone
+  b.emit('tlReset'); await silence(b, 'tlState');
+  a.emit('tlReset'); const [, sr] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+  assert.equal(sr.album, null); assert.equal(sr.songs.length, 0); assert.equal(sr.currentId, null); assert.equal(sr.host, 'REASON');
+
   // host leaves -> next player hosts; everyone leaves -> lobby resets
   a.emit('tlLeave'); const pl = await once(b, 'tlPlayers');
   assert.equal(pl.host, 'Mugi');
-  b.emit('tlLeave'); cc.emit('tlLeave'); await wait(150);
+  b.emit('tlLeave'); await wait(150);
   a.emit('tlJoin'); const s4 = await once(a, 'tlState');
   assert.equal(s4.album, null); assert.equal(s4.host, 'REASON');
 

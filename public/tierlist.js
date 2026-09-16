@@ -15,14 +15,18 @@ let cursorDirty = false;
 let seekDragging = false;
 let drag = null;         // local card drag (see startDrag)
 let suppressClick = false;
+let hintTimer = null;
+let actx = null, analyser = null, freq = null; // Web Audio graph for the soundwave
 
 const isHost = () => !!tl.me && tl.host === tl.me.username;
 const fmt = s => `${String(Math.floor((s || 0) / 60)).padStart(2, '0')}:${String(Math.floor((s || 0) % 60)).padStart(2, '0')}`;
 const cursorUrl = u => `tierlist/cursors/${encodeURIComponent(u)}.png`;
+const proxied = mp3 => new URL(`/tierlist/audio?u=${encodeURIComponent(mp3)}`, location.href).href;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rankedIds = () => new Set(Object.values(tl.tiers).flat());
 const isPlaced = id => rankedIds().has(id);
+const tierOf = id => TIERS.find(t => (tl.tiers[t] || []).includes(id)) || null;
 const isActive = () => $('tierlist-screen').classList.contains('active');
 const colorOf = u => tl.colors[u] || '#9aa0a6';
 
@@ -35,12 +39,12 @@ function show(id) {
 function renderPlayers() {
   for (const p of tl.players) tl.colors[p.username] = p.color;
   $('tl-players').innerHTML = tl.players.map(p =>
-    `<span class="tl-chip${p.username === tl.host ? ' host' : ''}" style="--c:${p.color}"><img src="${esc(p.profilePicture)}" alt="">${esc(p.username)}</span>`
+    `<span class="tl-avatar${p.username === tl.host ? ' host' : ''}" style="--c:${p.color}" title="${esc(p.username)}${p.username === tl.host ? ' (host)' : ''}"><img src="${esc(p.profilePicture)}" alt="${esc(p.username)}"></span>`
   ).join('');
   $('tl-stage').classList.toggle('is-host', isHost());
   const input = $('tl-search-input');
   input.disabled = !isHost();
-  input.placeholder = isHost() ? 'Buscar en khinsider (ej: minecraft)…' : `Esperando a que ${tl.host || 'el host'} elija un album…`;
+  input.placeholder = isHost() ? 'Buscar en khinsider (ej: minecraft)' : `Esperando a que ${tl.host || 'el host'} elija un album`;
   for (const u of Object.keys(cursors)) {
     if (!tl.players.some(p => p.username === u)) removeCursor(u);
   }
@@ -56,28 +60,51 @@ function renderBoard() {
   $('tl-search').hidden = hasAlbum;
   $('tl-board').hidden = !hasAlbum;
   $('tl-album-title').textContent = hasAlbum ? tl.album.title : '';
-  if (!hasAlbum) return;
+  if (!hasAlbum) { $('tl-search-results').innerHTML = ''; return; }
   for (const t of TIERS) $(`tl-drop-${t}`).innerHTML = (tl.tiers[t] || []).map(id => cardHtml(tl.songs[id])).join('');
-  const ranked = rankedIds();
-  $('tl-tray').innerHTML = tl.songs.filter(s => !ranked.has(s.id) && !tl.trashed.includes(s.id)).map(cardHtml).join('');
+  $('tl-tray').innerHTML = tl.songs.map(cardHtml).join(''); // the full track list: upcoming greyed, playing with wave, placed with tier badge
   renderCurrent();
   renderVotes();
 }
 
+// track list states: upcoming / current (soundwave) / placed (tier badge) / trashed
+function renderTrayStates() {
+  const ranked = rankedIds();
+  document.querySelectorAll('#tl-tray .tl-card').forEach(c => {
+    const id = +c.dataset.id;
+    const placed = ranked.has(id), trashed = tl.trashed.includes(id), current = id === tl.currentId;
+    c.classList.toggle('current', current);
+    c.classList.toggle('placed', placed);
+    c.classList.toggle('trashed', trashed);
+    c.classList.toggle('upcoming', !current && !placed && !trashed);
+    const tier = placed ? tierOf(id) : null;
+    let badge = c.querySelector('.tl-tier-badge');
+    if (tier) {
+      if (!badge) { badge = document.createElement('span'); badge.className = 'tl-tier-badge'; c.appendChild(badge); }
+      badge.textContent = tier;
+      badge.style.setProperty('--tc', TIER_COLORS[tier]);
+    } else if (badge) badge.remove();
+    let wave = c.querySelector('.tl-wave');
+    if (current && !wave) { wave = document.createElement('span'); wave.className = 'tl-wave'; wave.innerHTML = '<i></i><i></i><i></i><i></i>'; c.appendChild(wave); }
+    else if (!current && wave) wave.remove();
+  });
+}
+
 function renderCurrent() {
-  document.querySelectorAll('.tl-card:not(.tl-vote)').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.currentId));
+  document.querySelectorAll('.tl-drop .tl-card:not(.tl-vote)').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.currentId));
+  renderTrayStates();
   const s = tl.songs[tl.currentId];
-  $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una cancion' : 'Esperando al host…') : '');
+  $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una cancion' : 'Esperando al host') : '');
+  $('tl-info').textContent = s ? `Pista ${tl.songs.indexOf(s) + 1} de ${tl.songs.length} · ${audio.duration ? fmt(audio.duration) : s.duration}` : (tl.album ? `${tl.songs.length} pistas` : '');
   $('tl-play').disabled = !isHost() || !s;
   $('tl-next').disabled = !isHost() || !tl.album;
   $('tl-seek').disabled = !isHost() || !s;
   $('tl-verdict-btn').disabled = !s || isPlaced(s.id);
-  $('tl-play').textContent = tl.playback && tl.playback.playing ? '❚❚' : '▶';
+  $('tl-play').classList.toggle('playing', !!(tl.playback && tl.playback.playing));
 }
 
 const token = u => `<span class="tl-token" style="--c:${colorOf(u)}" title="${esc(u)}">${esc(u[0].toUpperCase())}</span>`;
 const votesFor = (id, tier) => Object.entries(tl.votes[id] || {}).filter(([, t]) => t === tier).map(([u]) => u);
-
 const voteCardHtml = (u, s) => `<div class="tl-card tl-vote" data-id="${s.id}" data-user="${esc(u)}" style="--c:${colorOf(u)};background-image:url('${esc(s.cover || '')}')"><span class="tl-vote-badge">${esc(u[0].toUpperCase())}</span></div>`;
 
 function renderVotes() {
@@ -88,18 +115,13 @@ function renderVotes() {
   if (!$('tl-verdict').hidden) renderVerdict();
 }
 
-function openVerdict() {
-  if (tl.currentId === null || isPlaced(tl.currentId)) return;
-  renderVerdict();
-  $('tl-verdict').classList.toggle('readonly', !isHost());
-  $('tl-verdict-hint').textContent = isHost() ? 'Elige donde va' : `Esperando el veredicto de ${tl.host}…`;
-  $('tl-verdict').hidden = false;
-}
-
-function renderResults({ results }) {
+function renderResults({ results, gated }) {
+  const empty = gated
+    ? 'khinsider pide login para buscar. Pega la URL del album (downloads.khinsider.com/game-soundtracks/album/...) o escribe su nombre exacto, ej: minecraft'
+    : 'Nada por aqui';
   $('tl-search-results').innerHTML = results.length ? results.map(r =>
-    `<div class="tl-result" data-slug="${esc(r.slug)}"><img src="${esc(r.thumb || '')}" alt=""><div><div>${esc(r.title)}</div><small>${esc(r.platform)} · ${esc(r.type)} · ${esc(r.year)}</small></div></div>`
-  ).join('') : '<div class="tl-empty">Nada por aqui</div>';
+    `<div class="tl-result" data-slug="${esc(r.slug)}" title="${esc(r.title)} · ${esc(r.platform)}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta">${esc(r.type)} · ${esc(r.year)}</div></div>`
+  ).join('') : `<div class="tl-empty">${empty}</div>`;
 }
 
 function renderVerdict() {
@@ -112,6 +134,14 @@ function renderVerdict() {
   ).join('');
 }
 
+function openVerdict() {
+  if (tl.currentId === null || isPlaced(tl.currentId)) return;
+  renderVerdict();
+  $('tl-verdict').classList.toggle('readonly', !isHost());
+  $('tl-verdict-hint').textContent = isHost() ? 'Elige donde va' : `Esperando el veredicto de ${tl.host}`;
+  $('tl-verdict').hidden = false;
+}
+
 // ==================== PLAYBACK SYNC ====================
 function expectedTime() {
   const pb = tl.playback;
@@ -119,15 +149,33 @@ function expectedTime() {
   return pb.position + (pb.playing ? (Date.now() + tl.offset - pb.at) / 1000 : 0);
 }
 
+// Audio goes through the site's proxy so the analyser can read it (the mp3 host sends no CORS headers)
+function ensureAudioGraph() {
+  if (actx || !window.AudioContext) return;
+  try {
+    actx = new AudioContext();
+    const node = actx.createMediaElementSource(audio);
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 64;
+    analyser.smoothingTimeConstant = 0.75;
+    node.connect(analyser);
+    analyser.connect(actx.destination);
+    freq = new Uint8Array(analyser.frequencyBinCount);
+  } catch (e) { actx = null; analyser = null; }
+}
+
 function applyPlayback({ currentId, mp3, playback, serverNow }) {
   tl.offset = serverNow - Date.now();
   if (currentId !== tl.currentId) $('tl-verdict').hidden = true;
   tl.currentId = currentId;
   tl.playback = playback;
-  if (mp3 && audio.src !== mp3) audio.src = mp3;
+  if (mp3 && audio.src !== proxied(mp3)) audio.src = proxied(mp3);
   const t = expectedTime();
   if (Math.abs(audio.currentTime - t) > 0.4) audio.currentTime = t;
-  if (playback.playing) audio.play().catch(() => {}); else audio.pause();
+  if (playback.playing) {
+    if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+    audio.play().catch(() => {});
+  } else audio.pause();
   renderCurrent();
   renderVotes();
 }
@@ -140,9 +188,11 @@ setInterval(() => {
 
 audio.addEventListener('timeupdate', () => {
   $('tl-clock').textContent = fmt(audio.currentTime);
-  $('tl-dur').textContent = fmt(audio.duration);
-  if (!seekDragging) $('tl-seek').value = audio.duration ? Math.round(audio.currentTime / audio.duration * 1000) : 0;
+  const pct = audio.duration ? audio.currentTime / audio.duration * 100 : 0;
+  $('tl-seek').style.setProperty('--p', `${pct}%`);
+  if (!seekDragging) $('tl-seek').value = Math.round(pct * 10);
 });
+audio.addEventListener('durationchange', renderCurrent);
 audio.addEventListener('ended', () => {
   if (!isHost()) return;
   socket.emit('tlPlayback', { playing: false, position: audio.duration || 0 });
@@ -152,6 +202,8 @@ audio.addEventListener('ended', () => {
 // ==================== CURSORS ====================
 // The native cursor is hidden on the stage (see CSS); everyone, including you, is a Wii hand overlay.
 // Hands tilt with horizontal speed and settle back; cards being dragged swing like a pendulum from the grab point.
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.965, TILT_EASE = 0.18; // ponytail: cursor feel knobs
+
 function getCursor(key) {
   if (cursors[key]) return cursors[key];
   const username = key === ME ? tl.me.username : key;
@@ -176,7 +228,7 @@ function getCursor(key) {
 }
 
 function pointCursor(c, x, y, now) {
-  if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * 12, -28, 28); // px/ms -> degrees
+  if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * TILT_GAIN, -TILT_MAX, TILT_MAX); // px/ms -> degrees
   c.lastX = x; c.lastT = now;
   c.tx = x; c.ty = y;
   if (c.key === ME) { c.x = x; c.y = y; }
@@ -226,7 +278,7 @@ setInterval(() => {
 }, 40);
 
 // ==================== CARD DRAG (vote / host move) ====================
-// ponytail: pendulum with a moving pivot; g, DAMP and AMAX are the feel knobs.
+// ponytail: pendulum with a moving pivot; G, DAMP and AMAX are the feel knobs.
 const G = 3000, DAMP = 5, AMAX = 3000;
 
 function startDrag(e, card, mode) {
@@ -273,7 +325,7 @@ $('tl-board').addEventListener('pointerdown', e => {
   else if (inTray) mode = id === tl.currentId && !isPlaced(id) ? 'vote' : null;
   else mode = isHost() ? 'move' : null;
   if (!mode) {
-    if (inTray && tl.currentId !== null) hint(card, 'Solo se vota la que suena', 1200);
+    if (inTray && tl.currentId !== null && !isPlaced(id)) hint(card, 'Solo se vota la que suena', 1200);
     return;
   }
   e.preventDefault();
@@ -315,12 +367,33 @@ window.addEventListener('pointerup', e => {
 });
 
 // ==================== ANIMATION LOOP ====================
+function stepWave(now) {
+  const wave = document.querySelector('#tl-tray .tl-card.current .tl-wave');
+  if (!wave) return;
+  const playing = tl.playback && tl.playback.playing && !audio.paused;
+  let levels;
+  if (playing && analyser) {
+    analyser.getByteFrequencyData(freq);
+    const n = freq.length;
+    levels = [0, 1, 2, 3].map(i => {
+      const a = Math.floor(i * n / 4), b = Math.floor((i + 1) * n / 4);
+      let s = 0;
+      for (let k = a; k < b; k++) s += freq[k];
+      return clamp(0.12 + (s / ((b - a) * 255)) * (1 + i * 0.5), 0.12, 1);
+    });
+  } else if (playing) { // no analyser: gentle fake pulse
+    const t = now / 1000;
+    levels = [0, 1, 2, 3].map(i => 0.3 + 0.3 * (1 + Math.sin(t * 5 + i * 1.7)) / 2);
+  } else levels = [0.12, 0.12, 0.12, 0.12];
+  levels.forEach((l, i) => wave.style.setProperty(`--l${i}`, l.toFixed(2)));
+}
+
 function tick(now) {
   if (isActive()) {
     for (const c of Object.getOwnPropertySymbols(cursors).concat(Object.keys(cursors)).map(k => cursors[k])) {
       if (c.key !== ME) { c.x += (c.tx - c.x) * 0.4; c.y += (c.ty - c.y) * 0.4; }
-      c.tilt += (c.tiltTarget - c.tilt) * 0.2;
-      c.tiltTarget *= 0.94; // ponytail: tilt decay per frame; lower = snappier return
+      c.tilt += (c.tiltTarget - c.tilt) * TILT_EASE;
+      c.tiltTarget *= TILT_DECAY;
       c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
       if (c.ghost) {
         c.ghost.rot += (c.ghost.rotTarget - c.ghost.rot) * 0.5;
@@ -328,6 +401,7 @@ function tick(now) {
       }
     }
     if (drag) stepDrag(now);
+    stepWave(now);
   }
   requestAnimationFrame(tick);
 }
@@ -337,12 +411,16 @@ requestAnimationFrame(tick);
 socket.on('tlState', s => {
   Object.assign(tl, { players: s.players, host: s.host, album: s.album, songs: s.songs, tiers: s.tiers, trashed: s.trashed || [], votes: s.votes });
   tl.offset = s.serverNow - Date.now();
+  $('tl-verdict').hidden = true;
   renderPlayers();
   renderBoard();
   if (s.currentId !== null && s.songs[s.currentId] && s.songs[s.currentId].mp3) {
     applyPlayback({ currentId: s.currentId, mp3: s.songs[s.currentId].mp3, playback: s.playback, serverNow: s.serverNow });
   } else {
     tl.currentId = null; tl.playback = s.playback; audio.pause(); audio.removeAttribute('src');
+    $('tl-clock').textContent = '00:00';
+    $('tl-seek').style.setProperty('--p', '0%');
+    $('tl-seek').value = 0;
     renderCurrent();
     renderVotes();
   }
@@ -371,26 +449,40 @@ socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
 });
 
 // ==================== CONTROLS ====================
-$('tierlist-btn').addEventListener('click', () => {
-  tl.me = window.currentUser;
-  if (!tl.me) return;
-  socket.emit('tlJoin');
-  show('tierlist-screen');
-});
-$('tl-back-btn').addEventListener('click', () => {
+function leaveScreen() {
   socket.emit('tlLeave');
   audio.pause();
   audio.removeAttribute('src');
   clearCursors();
   $('tl-verdict').hidden = true;
   show('hub-screen');
+}
+$('tierlist-btn').addEventListener('click', () => {
+  tl.me = window.currentUser;
+  if (!tl.me) return;
+  ensureAudioGraph(); // inside the click so the AudioContext is allowed to start
+  socket.emit('tlJoin');
+  show('tierlist-screen');
 });
-$('tl-search-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.target.value.trim()) {
-    $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando…</div>';
-    socket.emit('tlSearch', { q: e.target.value.trim() });
-  }
+$('tl-back-btn').addEventListener('click', leaveScreen);
+// leave the lobby the moment the tab closes or navigates away
+window.addEventListener('pagehide', () => {
+  if (!isActive()) return;
+  try { socket.emit('tlLeave'); navigator.sendBeacon('/tierlist/leave', socket.id); } catch {}
 });
+$('tl-cancel-btn').addEventListener('click', () => {
+  if (isHost() && confirm('Cancelar la tierlist y volver a buscar? Se borra todo para todos.')) socket.emit('tlReset');
+});
+function search() {
+  const q = $('tl-search-input').value.trim();
+  if (!q || !isHost()) return;
+  const url = q.match(/khinsider\.com\/game-soundtracks\/album\/([A-Za-z0-9._-]+)/); // pasted album URL: load it directly
+  if (url) return socket.emit('tlLoadAlbum', { slug: url[1] });
+  $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>';
+  socket.emit('tlSearch', { q });
+}
+$('tl-search-input').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+$('tl-search-go').addEventListener('click', search);
 $('tl-search-results').addEventListener('click', e => {
   const r = e.target.closest('.tl-result');
   if (r && isHost()) socket.emit('tlLoadAlbum', { slug: r.dataset.slug });
@@ -400,17 +492,17 @@ $('tl-board').addEventListener('click', e => {
   const c = e.target.closest('.tl-card:not(.tl-vote)');
   if (c && isHost() && +c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
 });
-// song-name bubble (plus vote breakdown) above the hovered card
+// bubble above the hovered card: song name, vote breakdown, or whose vote it is
 $('tl-board').addEventListener('mouseover', e => {
   const c = e.target.closest('.tl-card');
   if (!c || drag) return;
   const id = +c.dataset.id;
   if (c.classList.contains('tl-vote')) return hint(c, `Voto de ${c.dataset.user}`);
   const parts = TIERS.map(t => [t, votesFor(id, t).length]).filter(([, n]) => n).map(([t, n]) => `${t} ${n}`);
-  hint(c, c.dataset.name + (parts.length ? `  ·  ${parts.join(' · ')}` : ''));
+  const tier = tierOf(id);
+  hint(c, c.dataset.name + (tier ? `  ·  ${tier}` : '') + (parts.length ? `  ·  votos: ${parts.join(', ')}` : ''));
 });
 $('tl-board').addEventListener('mouseout', e => { if (e.target.closest('.tl-card')) $('tl-bubble').hidden = true; });
-let hintTimer = null;
 function hint(card, text, ms = 0) {
   const r = card.getBoundingClientRect();
   const b = $('tl-bubble');
@@ -443,8 +535,13 @@ $('tl-seek').addEventListener('change', e => {
   seekDragging = false;
   socket.emit('tlPlayback', { playing: !audio.paused, position: e.target.value / 1000 * (audio.duration || 0) });
 });
+function setVolume(v) {
+  audio.volume = v / 100;
+  $('tl-volume').value = v;
+  $('tl-volume').style.setProperty('--p', `${v}%`);
+}
 $('tl-volume').addEventListener('input', e => {
-  audio.volume = e.target.value / 100;
+  setVolume(+e.target.value);
   try { localStorage.setItem('tlVolume', e.target.value); } catch {}
 });
-try { const v = localStorage.getItem('tlVolume'); if (v !== null) { $('tl-volume').value = v; audio.volume = v / 100; } } catch {}
+try { const v = localStorage.getItem('tlVolume'); setVolume(v !== null ? +v : 80); } catch { setVolume(80); }

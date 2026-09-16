@@ -445,6 +445,13 @@ app.get('/audio-stream/:token', (req, res) => {
   }
 });
 
+// Tierlist: same-origin audio proxy (lets the soundwave analyser read the stream) and leave-on-close beacon
+app.get('/tierlist/audio', tierlistHandler.audioProxy);
+app.post('/tierlist/leave', express.text({ type: '*/*' }), (req, res) => {
+  tierlistHandler.leaveById(io, String(req.body || '').trim());
+  res.status(204).end();
+});
+
 // Block direct access to audio files (prevent cheating)
 app.use('/audio', (req, res, next) => {
   // Only block mp3 files, allow other assets if any

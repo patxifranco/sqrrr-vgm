@@ -1766,12 +1766,15 @@
   <div id="tierlist-screen" class="screen-container">
     <div id="tl-stage" class="tl-stage">
       <div class="tl-top">
-        <button id="tl-back-btn" class="tl-back">Volver</button>
         <div id="tl-players" class="tl-players"></div>
         <div id="tl-album-title" class="tl-album-title"></div>
       </div>
       <div id="tl-search" class="tl-search">
-        <input id="tl-search-input" type="search" autocomplete="off" placeholder="Buscar en khinsider…">
+        <div class="tl-search-box">
+          <svg class="tl-ico" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M15 15l5 5"/></svg>
+          <input id="tl-search-input" type="search" autocomplete="off" placeholder="Buscar en khinsider">
+          <button id="tl-search-go" title="Buscar">&#x23CE;</button>
+        </div>
         <div id="tl-search-results" class="tl-results"></div>
       </div>
       <div id="tl-board" class="tl-board" hidden>
@@ -1784,16 +1787,27 @@
         <div id="tl-tray" class="tl-tray"></div>
       </div>
       <div class="tl-bottom">
-        <button id="tl-play" class="tl-btn" disabled>&#x25B6;</button>
-        <button id="tl-next" class="tl-btn" disabled>&#x23ED;</button>
-        <button id="tl-verdict-btn" class="tl-btn tl-btn-wide" disabled>Veredicto</button>
-        <div id="tl-trash" class="tl-trash host-only" title="Arrastra aqui una cancion para descartarla">&#x1F5D1;</div>
-        <div id="tl-clock" class="tl-lcd">00:00</div>
-        <input id="tl-seek" class="tl-seek" type="range" min="0" max="1000" value="0" disabled>
-        <div id="tl-dur" class="tl-lcd tl-lcd-small">00:00</div>
-        <div id="tl-now" class="tl-now"></div>
-        <span>&#x1F50A;</span>
-        <input id="tl-volume" class="tl-volume" type="range" min="0" max="100" value="80">
+        <div id="tl-clock" class="tl-clock">00:00</div>
+        <div class="tl-bar">
+          <div class="tl-bar-side">
+            <button id="tl-back-btn" class="tl-round" title="Volver al menu"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/></svg></button>
+            <button id="tl-cancel-btn" class="tl-round host-only" title="Cancelar: borra todo y vuelve a buscar"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg></button>
+          </div>
+          <div class="tl-bar-center">
+            <div class="tl-tab-wrap"><div class="tl-tab">
+              <button id="tl-play" class="tl-tab-btn" title="Play / pausa" disabled><svg class="tl-ico fill ico-play" viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z"/></svg><svg class="tl-ico fill ico-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+              <button id="tl-next" class="tl-tab-btn" title="Siguiente" disabled><svg class="tl-ico fill" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8z"/><rect x="17" y="4" width="3" height="16"/></svg></button>
+              <div id="tl-trash" class="tl-tab-btn tl-trash host-only" title="Arrastra aqui una cancion para descartarla"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></div>
+              <label class="tl-tab-btn tl-vol" title="Volumen (solo tu)"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg><input id="tl-volume" class="tl-volume" type="range" min="0" max="100" value="80"></label>
+            </div></div>
+            <input id="tl-seek" class="tl-seek" type="range" min="0" max="1000" value="0" disabled>
+            <div id="tl-now" class="tl-now"></div>
+            <div id="tl-info" class="tl-info"></div>
+          </div>
+          <div class="tl-bar-side right">
+            <button id="tl-verdict-btn" class="tl-round tl-round-big" disabled>Veredicto</button>
+          </div>
+        </div>
       </div>
       <div id="tl-cursors" class="tl-cursors"></div>
       <div id="tl-bubble" class="tl-bubble" hidden></div>
