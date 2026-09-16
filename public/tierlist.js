@@ -578,6 +578,7 @@ window.addEventListener('keydown', e => {
   if (!isActive() || typing || drag || e.ctrlKey || e.altKey || e.metaKey) return;
   const t = document.activeElement;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  if (e.key === 'Escape' && !$('tl-preview').hidden) { $('tl-preview').hidden = true; return; }
   if (e.key === 'Enter') { e.preventDefault(); startChat(); return; }
   if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
   const tier = TIERS[Number(e.key) - 1];
@@ -606,6 +607,7 @@ socket.on('tlState', s => {
   tl.offset = s.serverNow - Date.now();
   if (tl.mode) tl.view = null;
   $('tl-verdict').hidden = true;
+  $('tl-preview').hidden = true;
   renderPlayers();
   renderBoard();
   if (s.currentId !== null && s.songs[s.currentId] && s.songs[s.currentId].mp3) {
@@ -623,7 +625,7 @@ socket.on('tlPlayers', ({ players, host }) => {
 socket.on('tlSearchResults', renderResults);
 socket.on('tlSearching', () => { if (!isHost()) $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>'; });
 socket.on('tlTyping', ({ q }) => { if (!isHost()) $('tl-search-input').value = q; });
-socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select', { volume: 0.35 }); applyPlayback(d); });
+socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select', { volume: 0.2 }); applyPlayback(d); });
 socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) renderVotes(); });
 socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
@@ -705,10 +707,27 @@ $('tl-search-results').addEventListener('click', e => {
   const r = e.target.closest('.tl-result');
   if (r && isHost()) load(r.dataset.source, r.dataset.id);
 });
+function showPreview(id) {
+  const s = songs()[id];
+  if (!s || !s.cover) return;
+  const img = $('tl-preview').querySelector('img');
+  img.style.width = '';
+  img.onload = () => {
+    const k = Math.min(900 / img.naturalWidth, 800 / img.naturalHeight);
+    img.style.width = Math.round(img.naturalWidth * k) + 'px';
+  };
+  img.src = s.cover;
+  $('tl-preview-name').textContent = s.name;
+  $('tl-preview').hidden = false;
+}
+$('tl-preview').addEventListener('click', () => { $('tl-preview').hidden = true; });
 $('tl-board').addEventListener('click', e => {
   if (suppressClick) { suppressClick = false; return; }
   const c = e.target.closest('.tl-card:not(.tl-vote)');
-  if (!c || tl.view) return;
+  if (!c) return;
+  const general = (tl.view ? tl.view.mode : tl.mode) === 'general';
+  if (general) showPreview(+c.dataset.id);
+  if (tl.view || (general && !isHost())) return;
   if (!isHost()) return socket.emit('tlPing', { songId: +c.dataset.id });
   if (c.classList.contains('trashed')) return socket.emit('tlRestore', { songId: +c.dataset.id });
   if (+c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
