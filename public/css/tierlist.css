@@ -46,7 +46,6 @@
 .tl-pick-box:hover:not(:disabled) { border-color: var(--glow); transform: translateY(-3px); }
 .tl-pick-box:hover:not(:disabled) .tl-ico { color: var(--glow); }
 .tl-pick-box:disabled { opacity: .55; }
-.tl-pick-hint { color: var(--grey); font-size: 14px; }
 .tl-saved { width: min(1100px, 92%); margin-top: 28px; }
 .tl-saved-title { color: var(--grey); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
 .tl-saved-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }

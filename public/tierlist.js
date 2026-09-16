@@ -68,7 +68,6 @@ function renderPlayers() {
   input.disabled = !isHost();
   input.placeholder = isHost() ? (PLACEHOLDER[tl.mode] || '') : `Esperando a que ${tl.host || 'el host'} elija algo`;
   document.querySelectorAll('.tl-pick-box').forEach(b => { b.disabled = !isHost(); });
-  $('tl-pick-hint').textContent = isHost() ? 'Elige qué vamos a puntuar' : `${tl.host || 'El host'} elige el modo`;
   for (const u of Object.keys(cursors)) {
     if (!tl.players.some(p => p.username === u)) removeCursor(u);
   }
