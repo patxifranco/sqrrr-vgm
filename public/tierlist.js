@@ -90,7 +90,9 @@ function renderBoard() {
   stage.classList.toggle('mode-none', !viewing && !tl.mode);
   stage.classList.toggle('has-list', !viewing && !!tl.album);
   $('tl-pick').hidden = viewing || !!tl.mode;
+  const searchWasHidden = $('tl-search').hidden;
   $('tl-search').hidden = viewing || !tl.mode || !!tl.album;
+  if (searchWasHidden && !$('tl-search').hidden && isHost()) $('tl-search-input').focus();
   $('tl-board').hidden = !hasList;
   $('tl-view-back').hidden = !viewing;
   $('tl-album-title').textContent = viewing ? `${tl.view.title} · ${tl.view.host} · ${fmtDate(tl.view.createdAt)}` : (tl.album ? tl.album.title : '');
@@ -248,7 +250,8 @@ function sfx(name, { rate = 1, volume = 0.7 } = {}) {
     src.start();
   });
 }
-const wobble = () => 0.85 + Math.random() * 0.3;
+const wobble = () => 0.7 + Math.random() * 0.6;
+const thud = name => sfx(name, { rate: wobble(), volume: 0.25 });
 const pingSoundAt = {};
 
 function stopAudio() {
@@ -365,7 +368,6 @@ function setRemoteGhost(c, d) {
     if (c.ghost) c.ghost.el.remove();
     c.ghost = { id: d.id, el: ghostEl(tl.songs[d.id]), gx: d.gx, gy: d.gy, rot: d.rot, rotTarget: d.rot };
     c.ghost.el.style.transformOrigin = `${d.gx}px ${d.gy}px`;
-    sfx('pickup', { rate: wobble() });
   }
   c.ghost.gx = d.gx; c.ghost.gy = d.gy; c.ghost.rotTarget = d.rot;
 }
@@ -399,7 +401,7 @@ function startDrag(e, card, mode) {
     px: p.x, py: p.y, prevPx: p.x, vx: 0, startX: p.x, startY: p.y, moved: false, lastT: performance.now(), el: ghostEl(tl.songs[id]) };
   drag.el.style.transformOrigin = `${gx}px ${gy}px`;
   card.classList.add('dragging');
-  sfx('pickup', { rate: wobble() });
+  thud('pickup');
 }
 
 function stepDrag(now) {
@@ -434,10 +436,7 @@ $('tl-board').addEventListener('pointerdown', e => {
   if (isVote) mode = card.dataset.user === tl.me.username ? 'vote' : null;
   else if (inTray) mode = id === tl.currentId && !isPlaced(id) ? 'vote' : null;
   else mode = isHost() ? 'move' : null;
-  if (!mode) {
-    if (inTray && isHost() && tl.currentId !== null && !isPlaced(id)) hint(card, 'Solo se vota la que suena', 1200);
-    return;
-  }
+  if (!mode) return;
   e.preventDefault();
   startDrag(e, card, mode);
 });
@@ -467,6 +466,7 @@ window.addEventListener('pointerup', e => {
   const { row, trash } = dropTarget(e.clientX, e.clientY);
   if (row) {
     const tier = row.dataset.tier;
+    thud('drop');
     if (d.mode === 'vote') socket.emit('tlVote', { songId: d.id, tier });
     else {
       const index = [...row.querySelectorAll('.tl-drop .tl-card:not(.tl-vote)')].filter(c => { const r = c.getBoundingClientRect(); return +c.dataset.id !== d.id && r.left + r.width / 2 < e.clientX; }).length;
@@ -582,6 +582,7 @@ window.addEventListener('keydown', e => {
   if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
   const tier = TIERS[Number(e.key) - 1];
   if (tier) {
+    thud('drop');
     if (isHost() && !$('tl-verdict').hidden) socket.emit('tlVerdict', { songId: tl.currentId, tier });
     else socket.emit('tlVote', { songId: tl.currentId, tier });
   } else if (e.key === 'v' || e.key === 'V') $('tl-verdict-btn').click();
@@ -623,14 +624,13 @@ socket.on('tlSearchResults', renderResults);
 socket.on('tlSearching', () => { if (!isHost()) $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>'; });
 socket.on('tlTyping', ({ q }) => { if (!isHost()) $('tl-search-input').value = q; });
 socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select', { volume: 0.35 }); applyPlayback(d); });
-socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) { renderVotes(); sfx('drop', { rate: wobble() }); } });
+socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) renderVotes(); });
 socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
   renderBoard();
   if (placed !== null && placed !== undefined) {
     const card = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${placed}"]`);
     if (card) card.classList.add('pop');
-    sfx('drop', { rate: wobble() });
     if (placed === tl.currentId) $('tl-verdict').hidden = true;
   }
 });
@@ -751,6 +751,7 @@ $('tl-verdict-btn').addEventListener('click', () => { if (isHost()) socket.emit(
 $('tl-verdict-rows').addEventListener('click', e => {
   const r = e.target.closest('.tl-verdict-row');
   if (!r || !isHost()) return;
+  thud('drop');
   socket.emit('tlVerdict', { songId: tl.currentId, tier: r.dataset.tier });
 });
 $('tl-seek').addEventListener('pointerdown', () => { seekDragging = true; });
