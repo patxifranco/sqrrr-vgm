@@ -62,7 +62,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(s2.songs.length, 54); assert(s2.songs[0].cover); assert.deepEqual(s2.trashed, []);
 
   a.emit('tlSelect', { songId: 1 });
-  const [, p2] = await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+  const [ld, , p2] = await Promise.all([once(b, 'tlLoading'), once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+  assert.deepEqual(ld, { on: true });                                          // everyone sees CARGANDO while the url resolves
   assert.equal(p2.currentId, 1); assert(/vgmtreasurechest\.com\/.+\.mp3$/.test(p2.mp3)); assert(p2.playback.playing);
 
   const px = await fetch(URL + '/tierlist/audio?u=' + encodeURIComponent(p2.mp3), { headers: { range: 'bytes=0-99' } });
@@ -110,13 +111,12 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlTrash', { songId: 5 }); const [t3] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   assert.deepEqual(t3.tiers.S, [1]); assert.deepEqual(t3.trashed, [5]); assert.equal(t3.placed, null);
 
-  console.log(" - YouTube: append one video to the list, play it through the proxy");
+  console.log(" - YouTube: load one video by url, play it through the proxy");
   if (res.youtube) {
-    a.emit('tlLoad', { source: 'yturl', id: 'https://www.youtube.com/watch?v=aBkTkxKDduc', append: true });
+    a.emit('tlLoad', { source: 'yturl', id: 'https://www.youtube.com/watch?v=aBkTkxKDduc' });
     const [, sy] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
-    assert.equal(sy.songs.length, 55); assert.equal(sy.songs[54].source, 'yt'); assert.equal(sy.songs[54].num, 55); assert(sy.album.title.endsWith(' +'));
-    assert.deepEqual(sy.tiers.S, [1]);                                           // appending keeps the board
-    a.emit('tlSelect', { songId: 54 });
+    assert.equal(sy.songs.length, 1); assert.equal(sy.songs[0].source, 'yt'); assert.deepEqual(sy.tiers.S, []);
+    a.emit('tlSelect', { songId: 0 });
     const [, py] = await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
     assert(/googlevideo\.com\/videoplayback\?/.test(py.mp3), 'yt stream url: ' + py.mp3);
     const pr = await fetch(URL + '/tierlist/audio?u=' + encodeURIComponent(py.mp3), { headers: { range: 'bytes=0-99' } });

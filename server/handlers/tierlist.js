@@ -417,8 +417,9 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     io.to(ROOM).emit('tlSearchResults', { q, results: [...kh.results.map(r => ({ source: 'kh', ...r })), ...yt], gated: kh.gated, youtube: ytAvailable() });
   });
 
-  socket.on('tlLoad', async ({ source, id, append } = {}) => {
+  socket.on('tlLoad', async ({ source, id } = {}) => {
     if (!isHost() || typeof id !== 'string') return;
+    io.to(ROOM).emit('tlLoading', { on: true });
     try {
       let title, songs;
       if (source === 'kh') {
@@ -438,37 +439,30 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
         title = l.title;
         songs = l.entries.map((e, i) => ({ id: i, name: e.title, disc: 1, num: i + 1, duration: e.duration, ytId: e.id, cover: e.thumb, mp3: null, source: 'yt' }));
       } else return;
-      if (!songs.length) return fail('No hay canciones ahí');
-      if (append && lobby.album) {
-        const base = lobby.songs.length;
-        songs.forEach((s, i) => { s.id = base + i; s.num = base + i + 1; s.disc = 1; });
-        lobby.songs.push(...songs);
-        if (!lobby.album.title.endsWith(' +')) lobby.album.title += ' +';
-        log('TIERLIST', `added ${songs.length} songs from ${source}: ${title}`);
-      } else {
-        lobby.album = { slug: id, title, covers: [] };
-        lobby.songs = songs;
-        lobby.currentId = null;
-        lobby.playback = { playing: false, position: 0, at: Date.now() };
-        lobby.tiers = emptyTiers();
-        lobby.trashed = [];
-        lobby.votes = {};
-        log('TIERLIST', `loaded ${songs.length} songs from ${source}: ${title}`);
-      }
+      if (!songs.length) { io.to(ROOM).emit('tlLoading', { on: false }); return fail('No hay canciones ahí'); }
+      lobby.album = { slug: id, title, covers: [] };
+      lobby.songs = songs;
+      lobby.currentId = null;
+      lobby.playback = { playing: false, position: 0, at: Date.now() };
+      lobby.tiers = emptyTiers();
+      lobby.trashed = [];
+      lobby.votes = {};
+      log('TIERLIST', `loaded ${songs.length} songs from ${source}: ${title}`);
       io.to(ROOM).emit('tlState', publicState());
-    } catch (e) { fail('No se pudo cargar eso', e); }
+    } catch (e) { io.to(ROOM).emit('tlLoading', { on: false }); fail('No se pudo cargar eso', e); }
   });
 
   socket.on('tlSelect', async ({ songId } = {}) => {
     if (!isHost()) return;
     const song = lobby.songs[songId];
     if (!song) return;
+    if (song.source !== 'tm') io.to(ROOM).emit('tlLoading', { on: true }); // everyone waits while the stream url is resolved
     try {
       song.mp3 = song.source === 'tm' ? null : await resolveMp3(song);
       lobby.currentId = song.id;
       lobby.playback = { playing: song.source !== 'tm', position: 0, at: Date.now() };
       io.to(ROOM).emit('tlPlayback', playbackMsg());
-    } catch (e) { fail('No se pudo cargar la canción', e); }
+    } catch (e) { io.to(ROOM).emit('tlLoading', { on: false }); fail('No se pudo cargar la canción', e); }
   });
 
   socket.on('tlPlayback', ({ playing, position } = {}) => {

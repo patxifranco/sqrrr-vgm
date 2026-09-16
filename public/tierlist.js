@@ -7,7 +7,7 @@ const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const TIER_COLORS = { S: '#ff7f7f', A: '#ffbf7f', B: '#ffdf7f', C: '#ffff7f', D: '#bfff7f', F: '#7fff7f' };
 const ME = Symbol('me'); // key for your own cursor in the cursors map
 
-const tl = { me: null, mode: 'music', players: [], colors: {}, host: null, album: null, songs: [], tiers: {}, trashed: [], votes: {}, currentId: null, playback: null, offset: 0, searchOpen: false };
+const tl = { me: null, mode: 'music', players: [], colors: {}, host: null, album: null, songs: [], tiers: {}, trashed: [], votes: {}, currentId: null, playback: null, offset: 0 };
 const SRC_ICON = {
   kh: '<svg class="tl-ico" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
   yt: '<svg class="tl-ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>',
@@ -65,9 +65,7 @@ function cardHtml(s) {
 
 function renderBoard() {
   const hasAlbum = !!tl.album;
-  if (!hasAlbum) tl.searchOpen = false;
-  $('tl-search').hidden = hasAlbum && !tl.searchOpen;
-  $('tl-search').classList.toggle('overlay', hasAlbum);
+  $('tl-search').hidden = hasAlbum;
   $('tl-board').hidden = !hasAlbum;
   $('tl-album-title').textContent = hasAlbum ? tl.album.title : '';
   if (!hasAlbum) { $('tl-search-results').innerHTML = ''; return; }
@@ -108,7 +106,6 @@ function renderCurrent() {
   $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una canción' : 'Esperando al host') : '');
   $('tl-info').textContent = s ? `Pista ${tl.songs.indexOf(s) + 1} de ${tl.songs.length} · ${audio.duration ? fmt(audio.duration) : s.duration}` : (tl.album ? `${tl.songs.length} pistas` : '');
   $('tl-play').disabled = !isHost() || !s;
-  $('tl-add-btn').disabled = !tl.album;
   $('tl-next').disabled = !isHost() || !tl.album;
   $('tl-seek').disabled = !isHost() || !s;
   $('tl-verdict-btn').disabled = !s || isPlaced(s.id);
@@ -139,16 +136,13 @@ function renderResults({ results, gated, error }) {
   }).join('') : `<div class="tl-empty">${empty}</div>`;
 }
 
-function openSearch() {
-  tl.searchOpen = true;
-  $('tl-search').hidden = false;
-  $('tl-search-input').value = '';
-  $('tl-search-results').innerHTML = '';
-  $('tl-search-input').focus();
-}
-function closeSearch() {
-  tl.searchOpen = false;
-  if (tl.album) $('tl-search').hidden = true;
+// loading: dark overlay + every hand becomes a spinning ring in its color, until the song or list arrives
+let loadingTimer = null;
+function setLoading(on) {
+  $('tl-loading').hidden = !on;
+  $('tl-cursors').classList.toggle('loading', on);
+  clearTimeout(loadingTimer);
+  if (on) loadingTimer = setTimeout(() => setLoading(false), 25000); // never stuck if the answer got lost
 }
 
 function renderVerdict() {
@@ -248,6 +242,10 @@ function getCursor(key) {
   img.onerror = () => { img.onerror = null; img.src = 'tierlist/cursors/default.png'; }; // no PNG for this player: the default hand
   $('tl-cursors').appendChild(img);
   c.el = img;
+  c.spin = document.createElement('span');
+  c.spin.className = 'tl-spin';
+  c.spin.style.setProperty('--c', colorOf(username));
+  $('tl-cursors').appendChild(c.spin);
   cursors[key] = c;
   return c;
 }
@@ -263,6 +261,7 @@ function removeCursor(key) {
   const c = cursors[key];
   if (!c) return;
   c.el.remove();
+  c.spin.remove();
   if (c.ghost) c.ghost.el.remove();
   if (c.bubble) c.bubble.el.remove();
   delete cursors[key];
@@ -421,6 +420,7 @@ function tick(now) {
       c.tilt += (c.tiltTarget - c.tilt) * TILT_EASE;
       c.tiltTarget *= TILT_DECAY;
       c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
+      c.spin.style.transform = `translate(${c.x}px, ${c.y}px)`;
       if (c.bubble && !c.bubble.el.hidden) {
         if (now > c.bubble.until) c.bubble.el.hidden = true;
         else c.bubble.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg) translate(18px, 34px)`; // hangs off the hand, pivots on the fingertip
@@ -503,7 +503,9 @@ socket.on('tlChat', ({ username, text }) => {
 });
 
 // ==================== SOCKET ====================
+socket.on('tlLoading', ({ on }) => setLoading(!!on));
 socket.on('tlState', s => {
+  setLoading(false);
   Object.assign(tl, { mode: s.mode || 'music', players: s.players, host: s.host, album: s.album, songs: s.songs, tiers: s.tiers, trashed: s.trashed || [], votes: s.votes });
   tl.offset = s.serverNow - Date.now();
   $('tl-verdict').hidden = true;
@@ -524,7 +526,7 @@ socket.on('tlPlayers', ({ players, host }) => { tl.players = players; tl.host = 
 socket.on('tlSearchResults', renderResults);
 socket.on('tlSearching', () => { if (!isHost()) $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>'; });
 socket.on('tlTyping', ({ q }) => { if (!isHost()) $('tl-search-input').value = q; });
-socket.on('tlPlayback', applyPlayback);
+socket.on('tlPlayback', d => { setLoading(false); applyPlayback(d); });
 socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) renderVotes(); });
 socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
@@ -536,7 +538,7 @@ socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   }
 });
 socket.on('tlVerdictOpen', openVerdict);
-socket.on('tlError', ({ message }) => { $('tl-now').textContent = message; });
+socket.on('tlError', ({ message }) => { setLoading(false); $('tl-now').textContent = message; });
 socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
   if (!tl.me || username === tl.me.username) return;
   if (gone) return removeCursor(username);
@@ -548,6 +550,7 @@ socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
 // ==================== CONTROLS ====================
 function leaveScreen() {
   endChat(false);
+  setLoading(false);
   socket.emit('tlLeave');
   audio.pause();
   audio.removeAttribute('src');
@@ -571,10 +574,7 @@ window.addEventListener('pagehide', () => {
 $('tl-cancel-btn').addEventListener('click', () => {
   if (isHost()) socket.emit('tlReset');
 });
-function load(source, id) {
-  socket.emit('tlLoad', { source, id, append: !!tl.album });
-  closeSearch();
-}
+function load(source, id) { socket.emit('tlLoad', { source, id }); }
 function search() {
   const q = $('tl-search-input').value.trim();
   if (!q || !isHost()) return;
@@ -586,9 +586,6 @@ function search() {
   $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>';
   socket.emit('tlSearch', { q });
 }
-$('tl-add-btn').addEventListener('click', () => { if (isHost()) openSearch(); });
-$('tl-search-close').addEventListener('click', closeSearch);
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && isActive() && tl.searchOpen) closeSearch(); });
 $('tl-search-input').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
 let typingTimer = null;
 $('tl-search-input').addEventListener('input', e => { // mirror the host's typing to everyone

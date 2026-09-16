@@ -42,9 +42,6 @@
 .tl-search-box button { border: 0; background: transparent; color: var(--grey); padding: 4px; }
 .tl-search-box button:hover { color: #fff; }
 .tl-results { display: grid; grid-template-columns: repeat(auto-fit, 150px); gap: 14px; justify-content: center; width: 100%; }
-.tl-search.overlay { position: absolute; inset: 0; z-index: 65; background: rgba(22, 22, 22, .95); }
-.tl-search-box button.close { margin-left: 4px; }
-.tl-search:not(.overlay) .close { display: none; }
 .tl-result { position: relative; width: 150px; background: #141414; border: 1px solid #2b2b2b; padding: 6px; }
 .tl-result-src { position: absolute; left: 10px; top: 10px; width: 26px; height: 26px; border-radius: 4px; background: rgba(0, 0, 0, .75); color: #ddd; display: flex; align-items: center; justify-content: center; }
 .tl-result-src .tl-ico { width: 18px; height: 18px; }
@@ -182,6 +179,15 @@
 .tl-verdict-row em { margin-left: auto; font-style: normal; font-weight: 700; font-size: 18px; color: var(--glow); }
 .tl-verdict.readonly .tl-verdict-row { pointer-events: none; }
 .tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 8px; font-size: 13px; }
+
+/* loading: dark overlay with CARGANDO..., hands replaced by spinning rings in each player's color */
+.tl-loading { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, .62); display: flex; align-items: center; justify-content: center; }
+.tl-loading span { color: #ddd; font-size: 26px; font-weight: 700; letter-spacing: 4px; }
+.tl-spin { display: none; position: absolute; left: 0; top: 0; width: 28px; height: 28px; margin: -14px 0 0 -14px; will-change: transform; z-index: 3; }
+.tl-spin::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .18); border-top-color: var(--c); animation: tl-spin .8s linear infinite; }
+.tl-cursors.loading .tl-cursor { display: none; }
+.tl-cursors.loading .tl-spin { display: block; }
+@keyframes tl-spin { to { transform: rotate(360deg); } }
 
 /* cursor chat: dim layer under the cursors, bubble hanging off the hand */
 .tl-dim { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, .62); }

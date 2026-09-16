@@ -1778,7 +1778,6 @@
           <svg class="tl-ico" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M15 15l5 5"/></svg>
           <input id="tl-search-input" type="search" autocomplete="off" placeholder="Buscar en khinsider y YouTube, o pega una URL">
           <button id="tl-search-go" title="Buscar">&#x23CE;</button>
-          <button id="tl-search-close" class="close" title="Cerrar">&#x2715;</button>
         </div>
         <div id="tl-search-results" class="tl-results"></div>
       </div>
@@ -1801,7 +1800,6 @@
           <div class="tl-bar-center">
             <div class="tl-tab-wrap"><div class="tl-tab">
               <button id="tl-play" class="tl-tab-btn" title="Play / pausa" disabled><svg class="tl-ico fill ico-play" viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z"/></svg><svg class="tl-ico fill ico-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
-              <button id="tl-add-btn" class="tl-tab-btn host-only" title="Añadir canciones (khinsider o YouTube)" disabled><svg class="tl-ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
               <button id="tl-next" class="tl-tab-btn" title="Siguiente" disabled><svg class="tl-ico fill" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8z"/><rect x="17" y="4" width="3" height="16"/></svg></button>
               <div id="tl-trash" class="tl-tab-btn tl-trash host-only" title="Arrastra aquí una canción para descartarla, o pulsa para descartar la que suena"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></div>
               <label class="tl-tab-btn tl-vol" title="Volumen (solo tú)"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg><span class="tl-slider vol"><input id="tl-volume" class="tl-volume" type="range" min="0" max="100" value="80"></span></label>
@@ -1816,6 +1814,7 @@
         </div>
       </div>
       <div id="tl-dim" class="tl-dim" hidden></div>
+      <div id="tl-loading" class="tl-loading" hidden><span>CARGANDO...</span></div>
       <div id="tl-cursors" class="tl-cursors"></div>
       <div id="tl-bubble" class="tl-bubble" hidden></div>
       <div id="tl-verdict" class="tl-verdict" hidden>
