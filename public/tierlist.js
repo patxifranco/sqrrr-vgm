@@ -16,6 +16,7 @@ function fitStage() {
   $('tl-stage').style.transform = `translate(-50%, -50%) scale(${stageScale})`;
   const r = $('tl-stage').getBoundingClientRect();
   stageLeft = r.left; stageTop = r.top;
+  fitTray(); // the tray has no size while the screen is hidden
 }
 const toStage = (cx, cy) => ({ x: (cx - stageLeft) / stageScale, y: (cy - stageTop) / stageScale });
 window.addEventListener('resize', () => { if (isActive()) fitStage(); });
@@ -101,8 +102,22 @@ function renderBoard() {
   const list = songs(), tt = tiers();
   for (const t of TIERS) $(`tl-drop-${t}`).innerHTML = (tt[t] || []).map(id => cardHtml(list[id])).join('');
   $('tl-tray').innerHTML = viewing ? '' : list.map(cardHtml).join(''); // the full track list: upcoming greyed, playing with wave, placed with tier badge
+  fitTray();
   renderCurrent();
   renderVotes();
+}
+
+// ponytail: biggest square that fits every track in the tray with no scrollbar (stage px, so identical on every screen); below 36px it scrolls
+function fitTray() {
+  const tray = $('tl-tray'), n = tray.children.length;
+  if (!n || !tray.clientWidth) return;
+  const W = tray.clientWidth - 16, H = tray.clientHeight - 16, gap = 6; // 8px padding, 6px gap
+  let outer = 36;
+  for (let c = 100; c >= 36; c -= 2) {
+    const cols = Math.floor((W + gap) / (c + gap));
+    if (cols && Math.ceil(n / cols) * (c + gap) - gap <= H) { outer = c; break; }
+  }
+  tray.style.setProperty('--cs', `${outer}px`); // border-box, so this is the outer size
 }
 
 // track list states: upcoming / current (soundwave) / placed (tier badge) / trashed
@@ -183,7 +198,7 @@ function renderVerdict() {
   const max = Math.max(...Object.values(counts));
   $('tl-verdict-title').textContent = `${tl.songs[id].num}. ${tl.songs[id].name}`;
   $('tl-verdict-rows').innerHTML = TIERS.map((t, i) =>
-    `<button class="tl-verdict-col${counts[t] && counts[t] === max ? ' top' : ''}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><b>${t}</b><em>${counts[t]}</em><span class="tl-verdict-tokens">${votesFor(id, t).map(token).join('')}</span><kbd>${i + 1}</kbd></button>`
+    `<button class="tl-verdict-row${counts[t] && counts[t] === max ? ' top' : ''}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><span class="tl-label">${t}</span><span class="tl-verdict-cards">${votesFor(id, t).map(u => voteCardHtml(u, tl.songs[id])).join('')}</span><em>${counts[t] || ''}</em><kbd>${i + 1}</kbd></button>`
   ).join('');
 }
 
@@ -731,7 +746,7 @@ $('tl-next').addEventListener('click', () => {
 });
 $('tl-verdict-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlVerdictOpen'); else openVerdict(); });
 $('tl-verdict-rows').addEventListener('click', e => {
-  const r = e.target.closest('.tl-verdict-col');
+  const r = e.target.closest('.tl-verdict-row');
   if (!r || !isHost()) return;
   socket.emit('tlVerdict', { songId: tl.currentId, tier: r.dataset.tier });
 });

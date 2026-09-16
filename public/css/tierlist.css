@@ -94,12 +94,12 @@
 .tl-row { display: flex; min-height: 104px; background: #111; border: 1px solid #2c2c2c; outline: 2px solid transparent; transition: outline-color .1s; }
 .tl-row.hot { outline-color: var(--glow); }
 .tl-label { width: 80px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #222; background: var(--tc); }
-.tl-drop { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; padding: 5px; }
-.tl-drop .tl-card:not(.tl-vote) { width: 90px; height: 90px; } /* fills the row */
+.tl-drop { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 2px; }
+.tl-drop .tl-card:not(.tl-vote) { width: 98px; height: 98px; } /* border-box: 98 + 2x2 padding + 2x1 row border = the 104px row */
 .tl-tray { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 8px; margin-top: 6px; background: #0d0d0d; border: 1px dashed #333; overflow-y: auto; flex: 1; min-height: 90px; } /* takes the rest of the board, no gap above the player */
-.tl-tray .tl-card { width: 50px; height: 50px; } /* ~30 per row */
+.tl-tray .tl-card { width: var(--cs, 50px); height: var(--cs, 50px); } /* --cs from fitTray(): as big as fits with no scrollbar */
 .tl-tray .tl-card-num { left: 2px; bottom: 2px; padding: 0 4px; font-size: 10px; }
-.tl-tray .tl-wave { padding: 10px 11px; gap: 2px; }
+.tl-tray .tl-wave { padding: 20% 22%; gap: 2px; }
 
 .tl-card {
   position: relative; width: 72px; height: 72px; flex: none; background-size: cover; background-position: center; background-color: #333;
@@ -113,7 +113,7 @@
 /* track list states */
 .tl-tray .tl-card.upcoming { filter: grayscale(.85) brightness(.5); }
 .tl-tray .tl-card.trashed { filter: grayscale(1) brightness(.3); }
-.tl-tray .tl-card.trashed::after { content: '✕'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #ff5a5a; font-size: 20px; font-weight: 700; }
+.tl-tray .tl-card.trashed::after { content: '✕'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #ff5a5a; font-size: calc(var(--cs, 50px) * .4); font-weight: 700; }
 .tl-tier-badge {
   position: absolute; right: -6px; top: -6px; width: 24px; height: 24px; border-radius: 5px; background: var(--tc); color: #222; font-weight: 700; font-size: 14px;
   display: flex; align-items: center; justify-content: center; border: 2px solid #111; z-index: 2;
@@ -130,7 +130,7 @@
 .tl-ping { position: absolute; inset: -4px; border-radius: 10px; border: 3px solid var(--c); pointer-events: none; animation: tl-ping 1.6s ease-out forwards; }
 @keyframes tl-ping { 0% { transform: scale(.8); opacity: 1; } 60% { transform: scale(1.6); opacity: .6; } 100% { transform: scale(2.1); opacity: 0; } }
 /* a player's vote: mini copy of the current card in their color, sitting in the tier they chose */
-.tl-vote { width: 60px; height: 60px; align-self: center; border: 2px solid var(--c); box-shadow: 0 0 8px var(--c); animation: tl-pop .3s cubic-bezier(.2, 1.4, .4, 1); }
+.tl-vote { width: 64px; height: 64px; align-self: center; border: 2px solid var(--c); box-shadow: 0 0 8px var(--c); animation: tl-pop .3s cubic-bezier(.2, 1.4, .4, 1); }
 .tl-vote-badge {
   position: absolute; right: -7px; bottom: -7px; width: 18px; height: 18px; border-radius: 50%; background: var(--c); color: #fff;
   font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #111; text-shadow: 0 1px 1px #000;
@@ -149,7 +149,7 @@
 /* hover chat bubble (one floating element, escapes the tray's scroll clipping) */
 .tl-bubble {
   position: absolute; transform: translate(-50%, -100%); pointer-events: none; z-index: 60; white-space: nowrap;
-  background: #fff; color: #111; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px #000;
+  background: #fff; color: #111; padding: 7px 14px; border-radius: 14px; font-size: 17px; font-weight: 600; box-shadow: 0 2px 6px #000;
 }
 .tl-bubble::after { content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; }
 
@@ -210,22 +210,21 @@
 
 /* veredicto panel */
 .tl-verdict { position: absolute; inset: -2000px; z-index: 70; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; }
-.tl-verdict-box { background: #161616; border: 1px solid var(--glow); padding: 24px 28px 18px; width: 1560px; }
-.tl-verdict-title { color: var(--glow); font-size: 26px; font-weight: 600; margin-bottom: 20px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#tl-verdict-rows { display: flex; gap: 16px; }
-.tl-verdict-col {
-  position: relative; flex: 1 1 0; height: 400px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 12px;
-  background: #0f0f0f; border: 2px solid #2e2e2e; color: #ddd; transition: border-color .1s, background .1s, transform .12s;
+/* same look as the board: tier rows with the votes sitting in them, the host clicks (or presses 1-6 on) the row */
+.tl-verdict-box { background: #161616; border: 1px solid var(--glow); padding: 18px 20px 14px; width: 1400px; }
+.tl-verdict-title { color: var(--glow); font-size: 24px; font-weight: 600; margin-bottom: 14px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tl-verdict-rows { display: flex; flex-direction: column; gap: 4px; }
+.tl-verdict-row {
+  display: flex; align-items: stretch; height: 84px; padding: 0 14px 0 0; background: #111; border: 1px solid #2c2c2c; outline: 2px solid transparent;
+  color: #ddd; text-align: left; transition: outline-color .1s, background .1s;
 }
-.tl-verdict:not(.readonly) .tl-verdict-col:hover { border-color: #fff; background: #151515; transform: translateY(-6px); }
-.tl-verdict-col.top { border-color: var(--glow); box-shadow: 0 0 18px rgba(0, 229, 255, .25); }
-.tl-verdict-col b { width: 140px; height: 140px; flex: none; border-radius: 10px; background: var(--tc); color: #222; display: flex; align-items: center; justify-content: center; font-size: 80px; }
-.tl-verdict-col em { font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--glow); }
-.tl-verdict-col kbd { position: absolute; left: 10px; top: 8px; font: 600 13px 'Segoe UI', sans-serif; color: var(--grey); border: 1px solid #3a3a3a; border-radius: 4px; padding: 1px 6px; }
-.tl-verdict-tokens { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.tl-verdict-tokens .tl-token { width: 36px; height: 36px; font-size: 17px; }
-.tl-verdict.readonly .tl-verdict-col { pointer-events: none; }
-.tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 16px; font-size: 15px; }
+.tl-verdict:not(.readonly) .tl-verdict-row:hover { outline-color: #fff; background: #151515; }
+.tl-verdict-row.top { outline-color: var(--glow); }
+.tl-verdict-cards { flex: 1; display: flex; align-items: center; gap: 6px; padding: 0 8px; overflow: hidden; }
+.tl-verdict-row em { align-self: center; font-style: normal; font-weight: 700; font-size: 30px; min-width: 44px; text-align: right; color: var(--glow); }
+.tl-verdict-row kbd { align-self: center; margin-left: 12px; font: 600 13px 'Segoe UI', sans-serif; color: var(--grey); border: 1px solid #3a3a3a; border-radius: 4px; padding: 1px 7px; }
+.tl-verdict.readonly .tl-verdict-row { pointer-events: none; }
+.tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 12px; font-size: 14px; }
 
 /* loading: dark overlay with CARGANDO..., hands replaced by spinning rings in each player's color */
 .tl-loading { position: absolute; inset: -2000px; z-index: 85; background: rgba(0, 0, 0, .62); display: flex; align-items: center; justify-content: center; }
@@ -241,8 +240,8 @@
 .tl-chat-input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
 .tl-chat-bubble {
   position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 5; will-change: transform;
-  max-width: 260px; padding: 6px 12px; background: #fff; color: #111; border-radius: 14px; border-top-left-radius: 3px;
-  font-size: 13px; font-weight: 600; line-height: 1.3; white-space: pre-wrap; word-break: break-word; box-shadow: 0 3px 10px #000;
+  max-width: 340px; padding: 8px 14px; background: #fff; color: #111; border-radius: 16px; border-top-left-radius: 3px;
+  font-size: 18px; font-weight: 600; line-height: 1.3; white-space: pre-wrap; word-break: break-word; box-shadow: 0 3px 10px #000;
 }
 .tl-chat-bubble::before { content: ''; position: absolute; left: -9px; top: 0; width: 10px; height: 10px; background: #fff; clip-path: polygon(100% 0, 100% 100%, 0 0); }
 .tl-chat-bubble.typing { min-width: 14px; min-height: 1.3em; }
