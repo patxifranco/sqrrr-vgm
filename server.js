@@ -22,6 +22,7 @@ const fishingHandler = require('./server/handlers/fishing');
 const minigolfHandler = require('./server/handlers/minigolf');
 const cardsHandler = require('./server/handlers/cards');
 const wordleHandler = require('./server/handlers/wordle');
+const tierlistHandler = require('./server/handlers/tierlist');
 const authHandler = require('./server/handlers/auth');
 const profileHandler = require('./server/handlers/profile');
 const leaderboardsHandler = require('./server/handlers/leaderboards');
@@ -677,6 +678,10 @@ io.on('connection', (socket) => {
     saveUser: saveUser,
     getLoggedInUsername: authHelpers.getLoggedInUsername
   });
+  const tierlistCleanup = tierlistHandler.setupHandlers(io, socket, {
+    getUser: (username) => users[username],
+    getLoggedInUsername: authHelpers.getLoggedInUsername
+  });
   wordleHandler.setupHandlers(io, socket, {
     getUser: (username) => users[username],
     saveUser: saveUser,
@@ -774,6 +779,9 @@ io.on('connection', (socket) => {
 
     // Clean up minigolf game
     minigolfCleanup.handleDisconnect();
+
+    // Clean up tierlist lobby
+    tierlistCleanup.handleDisconnect();
   });
 });
 

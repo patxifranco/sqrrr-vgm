@@ -1,0 +1,94 @@
+/* ==================== SQRRR TIERLIST ==================== */
+/* Dark striped stage with cyan glow, inspired by a Wii loader theme. */
+
+#tierlist-screen { background: #1a1a1a; }
+.tl-stage {
+  position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column;
+  color: #ddd; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; overflow: hidden;
+  background: repeating-linear-gradient(0deg, #1c1c1c 0 2px, #252525 2px 4px);
+  --glow: #35b4ff;
+}
+.tl-stage [hidden] { display: none !important; }
+
+/* top bar */
+.tl-top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; min-height: 52px; }
+.tl-back {
+  padding: 6px 16px; border-radius: 999px; border: 2px solid var(--glow); background: #111; color: var(--glow);
+  font-weight: 600; cursor: pointer; box-shadow: 0 0 8px rgba(53, 180, 255, .4);
+}
+.tl-back:hover { box-shadow: 0 0 16px var(--glow); }
+.tl-players { display: flex; flex-wrap: wrap; gap: 8px; }
+.tl-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px;
+  border: 2px solid var(--c); background: #111; color: var(--c); font-weight: 600; font-size: 13px; box-shadow: 0 0 8px var(--c);
+}
+.tl-chip img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+.tl-chip.host::after { content: '★'; }
+.tl-album-title { margin-left: auto; color: var(--glow); font-size: 15px; text-shadow: 0 0 6px rgba(53, 180, 255, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+
+/* album search */
+.tl-search { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 16px; gap: 16px; overflow: auto; }
+.tl-search input {
+  width: min(640px, 90%); padding: 12px 18px; font-size: 18px; border-radius: 999px; border: 2px solid var(--glow);
+  background: #0d0d0d; color: #eee; outline: none; box-shadow: 0 0 12px rgba(53, 180, 255, .4);
+}
+.tl-search input:disabled { border-color: #444; box-shadow: none; color: #888; }
+.tl-results { width: min(760px, 95%); display: flex; flex-direction: column; gap: 6px; }
+.tl-result { display: flex; align-items: center; gap: 12px; padding: 6px 10px; background: #111; border: 1px solid #2c2c2c; border-radius: 8px; cursor: pointer; }
+.tl-result:hover { border-color: var(--glow); box-shadow: 0 0 10px rgba(53, 180, 255, .4); }
+.tl-result img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: #222; }
+.tl-result small { color: #888; }
+.tl-empty { color: #666; padding: 20px; }
+
+/* board */
+.tl-board { flex: 1; display: flex; flex-direction: column; padding: 0 16px; gap: 4px; min-height: 0; }
+.tl-row { display: flex; min-height: 84px; background: #111; border: 1px solid #2c2c2c; }
+.tl-label { width: 80px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #222; background: var(--tc); }
+.tl-drop { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 6px; }
+.tl-tray { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; margin-top: 6px; background: #0d0d0d; border: 1px dashed #333; overflow-y: auto; min-height: 90px; max-height: 26vh; }
+
+.tl-card {
+  position: relative; width: 72px; height: 72px; flex: none; background-size: cover; background-position: center; background-color: #333;
+  border-radius: 6px; border: 2px solid #444; box-shadow: 0 2px 6px #000; cursor: pointer; transition: transform .12s, box-shadow .12s;
+}
+.tl-card:hover { transform: translateY(-2px); }
+.tl-card.current { border-color: var(--glow); box-shadow: 0 0 14px var(--glow); }
+.tl-card-num { position: absolute; left: 3px; bottom: 3px; padding: 0 5px; font-size: 11px; font-weight: 700; background: rgba(0, 0, 0, .7); border-radius: 4px; color: #fff; }
+/* hover chat bubble with the song name (one floating element, escapes the tray's scroll clipping) */
+.tl-bubble {
+  position: fixed; transform: translate(-50%, -100%); pointer-events: none; z-index: 60; white-space: nowrap;
+  background: #fff; color: #111; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px #000;
+}
+.tl-bubble::after { content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; }
+
+/* bottom bar */
+.tl-bottom {
+  display: flex; align-items: center; gap: 14px; padding: 14px 24px; background: #151515;
+  border-top: 3px solid var(--glow); box-shadow: 0 -6px 20px rgba(53, 180, 255, .25);
+}
+.tl-btn {
+  width: 56px; height: 56px; flex: none; border-radius: 50%; border: 3px solid var(--glow); color: #ddd; font-size: 20px; cursor: pointer;
+  background: radial-gradient(circle at 30% 30%, #555, #222); box-shadow: 0 0 12px rgba(53, 180, 255, .6), inset 0 0 8px #000;
+}
+.tl-btn:hover:not(:disabled) { box-shadow: 0 0 20px var(--glow), inset 0 0 8px #000; }
+.tl-btn:disabled { opacity: .35; box-shadow: none; cursor: default; }
+.tl-lcd { font-family: 'Courier New', monospace; font-size: 30px; color: #ccc; letter-spacing: 3px; text-shadow: 0 0 6px rgba(255, 255, 255, .4); min-width: 100px; text-align: center; }
+.tl-lcd-small { font-size: 18px; min-width: 70px; color: #888; }
+/* sliders: beat the global input[type="range"] { width: 100% } rule */
+.tl-bottom input[type="range"].tl-seek { flex: 2; width: auto; cursor: pointer; }
+.tl-bottom input[type="range"].tl-seek:disabled { cursor: default; opacity: .4; }
+.tl-bottom input[type="range"].tl-volume { flex: none; width: 120px; cursor: pointer; }
+.tl-bottom input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: #333; border: 1px solid #2a5f80; }
+.tl-bottom input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #9fdcff, var(--glow)); border: 2px solid #0d0d0d; box-shadow: 0 0 8px var(--glow);
+}
+.tl-now { flex: 1; min-width: 120px; text-align: center; color: var(--glow); font-size: 18px; text-shadow: 0 0 6px rgba(53, 180, 255, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* remote cursors */
+.tl-cursors { position: absolute; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+.tl-cursor { position: absolute; left: 0; top: 0; height: 64px; margin: -2px 0 0 -12px; transition: transform 45ms linear; will-change: transform; filter: drop-shadow(0 2px 3px #000); }
+.tl-cursor-fallback {
+  width: 32px; height: 32px; border-radius: 50%; margin: -16px 0 0 -16px; background: var(--c); color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; border: 2px solid #fff;
+}

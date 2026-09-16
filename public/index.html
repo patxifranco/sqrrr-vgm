@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/cards.css">
   <link rel="stylesheet" href="css/wordle.css">
+  <link rel="stylesheet" href="css/tierlist.css">
   <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
@@ -173,6 +174,13 @@
                 <span class="activity-text">
                   <strong>SQRRRDLE</strong><br>
                   <small>Palabras de frikitones</small>
+                </span>
+              </button>
+              <button id="tierlist-btn" class="hub-activity-btn">
+                <span class="activity-icon">&#x1F3C6;</span>
+                <span class="activity-text">
+                  <strong>SQRRR Tierlist</strong><br>
+                  <small>Rankings de frikitones</small>
                 </span>
               </button>
             </div>
@@ -1754,6 +1762,43 @@
     </div>
   </div>
 
+  <!-- TIERLIST SCREEN -->
+  <div id="tierlist-screen" class="screen-container">
+    <div id="tl-stage" class="tl-stage">
+      <div class="tl-top">
+        <button id="tl-back-btn" class="tl-back">Volver</button>
+        <div id="tl-players" class="tl-players"></div>
+        <div id="tl-album-title" class="tl-album-title"></div>
+      </div>
+      <div id="tl-search" class="tl-search">
+        <input id="tl-search-input" type="search" autocomplete="off" placeholder="Buscar en khinsider…">
+        <div id="tl-search-results" class="tl-results"></div>
+      </div>
+      <div id="tl-board" class="tl-board" hidden>
+        <div class="tl-row" style="--tc:#ff7f7f"><div class="tl-label">S</div><div class="tl-drop" id="tl-drop-S"></div></div>
+        <div class="tl-row" style="--tc:#ffbf7f"><div class="tl-label">A</div><div class="tl-drop" id="tl-drop-A"></div></div>
+        <div class="tl-row" style="--tc:#ffdf7f"><div class="tl-label">B</div><div class="tl-drop" id="tl-drop-B"></div></div>
+        <div class="tl-row" style="--tc:#ffff7f"><div class="tl-label">C</div><div class="tl-drop" id="tl-drop-C"></div></div>
+        <div class="tl-row" style="--tc:#bfff7f"><div class="tl-label">D</div><div class="tl-drop" id="tl-drop-D"></div></div>
+        <div class="tl-row" style="--tc:#7fff7f"><div class="tl-label">F</div><div class="tl-drop" id="tl-drop-F"></div></div>
+        <div id="tl-tray" class="tl-tray"></div>
+      </div>
+      <div class="tl-bottom">
+        <button id="tl-play" class="tl-btn" disabled>&#x25B6;</button>
+        <button id="tl-next" class="tl-btn" disabled>&#x23ED;</button>
+        <div id="tl-clock" class="tl-lcd">00:00</div>
+        <input id="tl-seek" class="tl-seek" type="range" min="0" max="1000" value="0" disabled>
+        <div id="tl-dur" class="tl-lcd tl-lcd-small">00:00</div>
+        <div id="tl-now" class="tl-now"></div>
+        <span>&#x1F50A;</span>
+        <input id="tl-volume" class="tl-volume" type="range" min="0" max="100" value="80">
+      </div>
+      <div id="tl-cursors" class="tl-cursors"></div>
+      <div id="tl-bubble" class="tl-bubble" hidden></div>
+    </div>
+    <audio id="tl-audio" preload="auto"></audio>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/core/theme-manager.js"></script>
   <script type="module" src="game.js"></script>
@@ -1767,5 +1812,6 @@
   <script type="module" src="cards.js"></script>
   <script type="module" src="minigolf.js"></script>
   <script type="module" src="wordle.js"></script>
+  <script type="module" src="tierlist.js"></script>
 </body>
 </html>
