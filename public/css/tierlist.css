@@ -200,10 +200,11 @@
 .tl-stage, .tl-stage * { cursor: none !important; }
 .tl-cursors { position: absolute; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; } /* above the veredicto panel */
 .tl-cursor {
-  position: absolute; left: 0; top: 0; height: var(--tl-cursor-h, 44px); margin: -1px 0 0 -9px; /* fingertip is the hotspot */
-  transform-origin: 9px 1px; will-change: transform; filter: drop-shadow(0 2px 3px #000); z-index: 3;
+  --h: 38px; /* other players' hands; yours is a bit bigger */
+  position: absolute; left: 0; top: 0; height: var(--h); margin: -1px 0 0 calc(var(--h) * -0.205); /* fingertip is the hotspot */
+  transform-origin: calc(var(--h) * 0.205) 1px; will-change: transform; filter: drop-shadow(0 2px 3px #000); z-index: 3;
 }
-.tl-cursor.me { z-index: 4; }
+.tl-cursor.me { --h: 44px; z-index: 4; }
 .tl-cursor-fallback {
   width: 28px; height: 28px; border-radius: 50%; margin: -14px 0 0 -14px; transform-origin: 14px 14px; background: var(--c); color: #fff;
   font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;

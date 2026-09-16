@@ -432,7 +432,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   let lastChat = 0;
   socket.on('tlChat', ({ text } = {}) => {
     const p = lobby.players[socket.id];
-    const t = String(text || '').trim().slice(0, 120);
+    const t = String(text || '').trim().slice(0, 60);
     if (!p || !t || Date.now() - lastChat < 300) return;
     lastChat = Date.now();
     io.to(ROOM).emit('tlChat', { username: p.username, text: t });

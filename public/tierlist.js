@@ -440,7 +440,7 @@ requestAnimationFrame(tick);
 // ==================== CURSOR CHAT ====================
 // Enter: a bubble opens on your hand and everything else dims. Enter sends it to everyone, Escape (or clicking away) cancels.
 const chatInput = document.createElement('input');
-chatInput.type = 'text'; chatInput.maxLength = 120; chatInput.autocomplete = 'off'; chatInput.className = 'tl-chat-input';
+chatInput.type = 'text'; chatInput.maxLength = 60; chatInput.autocomplete = 'off'; chatInput.className = 'tl-chat-input';
 $('tl-stage').appendChild(chatInput);
 let typing = false;
 
@@ -499,7 +499,7 @@ socket.on('tlChat', ({ username, text }) => {
   b.el.classList.remove('typing');
   b.el.textContent = text;
   b.el.hidden = false;
-  b.until = performance.now() + Math.min(12000, 3500 + text.length * 70);
+  b.until = performance.now() + 3000;
 });
 
 // ==================== SOCKET ====================
