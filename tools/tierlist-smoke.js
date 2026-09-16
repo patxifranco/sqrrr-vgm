@@ -81,6 +81,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlCursor', { x: 0.5, y: 0.25, drag: { id: 1, gx: 10, gy: 20, rot: -12.5 } }); const c = await once(b, 'tlCursor');
   assert.equal(c.username, 'REASON'); assert.equal(c.x, 0.5); assert.deepEqual(c.drag, { id: 1, gx: 10, gy: 20, rot: -12.5 });
 
+  console.log(" - ping: everyone sees who pinged which song");
+  b.emit('tlPing', { songId: 3 }); const [pi] = await Promise.all([once(a, 'tlPing'), once(b, 'tlPing')]);
+  assert.deepEqual(pi, { username: 'Mugi', songId: 3 });
+  b.emit('tlPing', { songId: 999 }); await silence(a, 'tlPing');
+
   console.log(" - cursor chat: trimmed, capped, empty ignored");
   b.emit('tlChat', { text: '   hola   ' }); const [ch] = await Promise.all([once(a, 'tlChat'), once(b, 'tlChat')]);
   assert.deepEqual(ch, { username: 'Mugi', text: 'hola' });
@@ -158,6 +163,15 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   console.log(" - closing the tab: the beacon endpoint removes the player right away");
   const [plc] = await Promise.all([once(b, 'tlPlayers'), fetch(URL + '/tierlist/leave', { method: 'POST', body: cc.id, headers: { 'content-type': 'text/plain' } })]);
   assert(!plc.players.some(p => p.username === 'Jesus')); assert.equal(plc.players.length, 2);
+
+  console.log(" - Terminar: saved list appears on the first screen and can be opened");
+  b.emit('tlFinish'); await silence(b, 'tlState');
+  a.emit('tlFinish'); const [, sf] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+  assert.equal(sf.mode, null); assert.equal(sf.album, null); assert(sf.saved.length >= 1, 'no saved list');
+  assert.equal(sf.saved[0].host, 'REASON'); assert(sf.saved[0].title.startsWith('Minecraft')); assert.equal(sf.saved[0].count, 1);
+  b.emit('tlSavedGet', { id: sf.saved[0].id }); const sv = await once(b, 'tlSaved');
+  assert.equal(sv.list.title, sf.saved[0].title); assert.deepEqual(sv.list.tiers.S, [1]); assert.equal(sv.list.songs[1].name, 'Door'); assert.deepEqual(sv.list.votes[1], { Mugi: 'B', REASON: 'A' });
+  a.emit('tlMode', { mode: 'music' }); await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
 
   console.log(" - Cancelar: non-host ignored, host clears everything for everyone");
   b.emit('tlReset'); await silence(b, 'tlState');

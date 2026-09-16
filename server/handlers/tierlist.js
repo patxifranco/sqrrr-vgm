@@ -6,6 +6,7 @@ const { Readable } = require('stream');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 const { log, warn } = require('../utils');
 
 const KH = 'https://downloads.khinsider.com';
@@ -303,6 +304,34 @@ async function tmTemplate(slug) {
   return { title, images: arr.slice(1).map((f, i) => ({ name: nameOf(String(f)) || `#${i + 1}`, cover: imgUrl(String(f)) })) };
 }
 
+// ==================== SAVED TIERLISTS ====================
+// Finished lists are kept in MongoDB (in memory when there is no database, e.g. local dev) and listed on the first screen.
+const TierList = mongoose.models.TierList || mongoose.model('TierList', new mongoose.Schema({
+  title: String, mode: String, host: String, players: [String], createdAt: { type: Date, default: Date.now },
+  songs: [{ name: String, cover: String, source: String, num: Number }],
+  tiers: mongoose.Schema.Types.Mixed, votes: mongoose.Schema.Types.Mixed
+}));
+const dbReady = () => mongoose.connection.readyState === 1;
+const savedMem = [];      // fallback store
+let savedIndex = [];      // newest first: { id, title, mode, host, createdAt, count }
+const indexOf = d => ({ id: String(d._id || d.id), title: d.title, mode: d.mode, host: d.host, createdAt: d.createdAt, count: TIERS.reduce((n, t) => n + ((d.tiers || {})[t] || []).length, 0) });
+async function loadSavedIndex() {
+  try { if (dbReady()) savedIndex = (await TierList.find({}, 'title mode host createdAt tiers').sort({ createdAt: -1 }).limit(30).lean()).map(indexOf); }
+  catch (e) { warn('TIERLIST', 'could not load saved tierlists', e.message); }
+}
+setTimeout(loadSavedIndex, 3000); // give mongoose time to connect at startup
+async function saveTierList(doc) {
+  let saved = doc;
+  if (dbReady()) saved = (await TierList.create(doc)).toObject();
+  else { saved = { ...doc, id: String(Date.now()) }; savedMem.unshift(saved); }
+  savedIndex = [indexOf(saved), ...savedIndex].slice(0, 30);
+  return saved;
+}
+async function getTierList(id) {
+  if (dbReady()) { const d = await TierList.findById(id).lean(); return d && { ...d, id: String(d._id), _id: undefined }; }
+  return savedMem.find(s => s.id === id) || null;
+}
+
 // ==================== STATE ====================
 const playerList = () => Object.values(lobby.players);
 const hostName = () => (lobby.players[lobby.host] || {}).username || null;
@@ -314,7 +343,7 @@ const playbackMsg = () => ({
 });
 const publicState = () => ({
   mode: lobby.mode, players: playerList(), host: hostName(), album: lobby.album, songs: lobby.songs,
-  currentId: lobby.currentId, playback: lobby.playback, tiers: lobby.tiers, trashed: lobby.trashed, votes: lobby.votes, serverNow: Date.now()
+  currentId: lobby.currentId, playback: lobby.playback, tiers: lobby.tiers, trashed: lobby.trashed, votes: lobby.votes, saved: savedIndex, serverNow: Date.now()
 });
 const tiersMsg = placed => ({ tiers: lobby.tiers, trashed: lobby.trashed, placed });
 
@@ -362,7 +391,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   const broadcastPlayers = () => io.to(ROOM).emit('tlPlayers', { players: playerList(), host: hostName() });
   const fail = (message, e) => { warn('TIERLIST', message, e && e.message); socket.emit('tlError', { message }); };
 
-  socket.on('tlJoin', () => {
+  socket.on('tlJoin', async () => {
     const username = getLoggedInUsername();
     if (!username) return socket.emit('tlError', { message: 'Debes iniciar sesión primero' });
     const user = getUser(username) || {};
@@ -372,6 +401,8 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     lobby.players[socket.id] = { username, color: COLORS[username] || DEFAULT_COLOR, profilePicture: user.profilePicture || 'profiles/default.svg' };
     if (!lobby.host) lobby.host = socket.id;
     socket.join(ROOM);
+    const cur = lobby.songs[lobby.currentId];
+    if (cur && cur.source === 'yt') { try { cur.mp3 = await ytStreamUrl(cur.ytId); } catch (e) { /* keep the old url */ } } // stream urls expire after hours
     socket.emit('tlState', publicState());
     broadcastPlayers();
     log('TIERLIST', `${username} joined (${playerList().length} players)`);
@@ -477,6 +508,40 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     const d = pos.drag;
     const drag = d && lobby.songs[d.id] ? { id: +d.id, gx: +d.gx || 0, gy: +d.gy || 0, rot: +d.rot || 0 } : null;
     socket.to(ROOM).volatile.emit('tlCursor', { username: p.username, x: +pos.x || 0, y: +pos.y || 0, drag });
+  });
+
+  // Ping: "play this one!" - everyone sees a ring in the pinger's color around that card
+  let lastPing = 0;
+  socket.on('tlPing', ({ songId } = {}) => {
+    const p = lobby.players[socket.id];
+    if (!p || !lobby.songs[songId] || Date.now() - lastPing < 250) return;
+    lastPing = Date.now();
+    io.to(ROOM).emit('tlPing', { username: p.username, songId });
+  });
+
+  // Host finishes: the list is saved and everyone returns to the first screen
+  socket.on('tlFinish', async () => {
+    if (!isHost() || !lobby.album) return;
+    const placed = TIERS.reduce((n, t) => n + lobby.tiers[t].length, 0);
+    if (!placed) return fail('Coloca al menos una en algún tier');
+    try {
+      await saveTierList({
+        title: lobby.album.title, mode: lobby.mode, host: hostName(), players: playerList().map(p => p.username), createdAt: new Date(),
+        songs: lobby.songs.map(s => ({ name: s.name, cover: s.cover, source: s.source, num: s.num })),
+        tiers: lobby.tiers, votes: lobby.votes
+      });
+      log('TIERLIST', `saved: ${lobby.album.title} (${placed} placed)`);
+      Object.assign(lobby, { mode: null, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: Date.now() }, tiers: emptyTiers(), trashed: [], votes: {} });
+      io.to(ROOM).emit('tlState', publicState());
+    } catch (e) { fail('No se pudo guardar', e); }
+  });
+
+  socket.on('tlSavedGet', async ({ id } = {}) => {
+    if (typeof id !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(id)) return;
+    try {
+      const list = await getTierList(id);
+      if (list) socket.emit('tlSaved', { list: { id: list.id, title: list.title, mode: list.mode, host: list.host, createdAt: list.createdAt, songs: list.songs.map((s, i) => ({ ...s, id: i, disc: 1 })), tiers: list.tiers, votes: list.votes || {} } });
+    } catch (e) { fail('No se pudo abrir', e); }
   });
 
   // Cursor chat: short text shown in a bubble on the sender's hand

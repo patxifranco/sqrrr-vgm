@@ -2,8 +2,11 @@
 /* Matte dark stage, thin cyan lines, grey icon strip in a trapezoid tab: the look of a Wii USB loader menu. */
 
 #tierlist-screen { background: #1a1a1a; }
+#tierlist-screen { overflow: hidden; }
+/* fixed 1920x1080 canvas scaled to fit the window (transform set by the client): identical layout for everyone */
 .tl-stage {
-  position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column;
+  position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column;
   color: #d6d6d6; user-select: none; overflow: hidden;
   background: repeating-linear-gradient(0deg, #1c1c1c 0 2px, #252525 2px 4px);
   --glow: #35b4ff; --grey: #9a9a9a;
@@ -44,12 +47,28 @@
 .tl-pick-box:hover:not(:disabled) .tl-ico { color: var(--glow); }
 .tl-pick-box:disabled { opacity: .55; }
 .tl-pick-hint { color: var(--grey); font-size: 14px; }
+.tl-saved { width: min(1100px, 92%); margin-top: 28px; }
+.tl-saved-title { color: var(--grey); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.tl-saved-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.tl-saved-item { flex: none; width: 210px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; background: #141414; border: 1px solid #333; color: #ddd; text-align: left; }
+.tl-saved-item:hover { border-color: var(--glow); }
+.tl-saved-src { color: var(--grey); }
+.tl-saved-src .tl-ico { width: 16px; height: 16px; }
+.tl-saved-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.tl-saved-item small { color: var(--grey); font-size: 11px; }
+/* viewing a saved list: rows only, no tray, bare bar */
+.viewing .tl-tray, .viewing .tl-clock, .viewing .tl-bar-center, .viewing .tl-bar-side.right { display: none; }
+.viewing .tl-bottom { padding-top: 0; }
+.viewing .tl-card { cursor: default; }
+.tl-view-back { border: 0; background: transparent; color: var(--grey); padding: 4px; }
+.tl-view-back:hover { color: #fff; }
 .tl-search-back { border: 0; background: transparent; color: var(--grey); padding: 4px; margin-right: 2px; }
 .tl-search-back:hover { color: #fff; }
 /* no mode yet: bare bar with only the back button; reset only makes sense once a list is loaded */
 .mode-none .tl-bottom { padding-top: 0; }
 .mode-none .tl-clock, .mode-none .tl-bar-center, .mode-none .tl-bar-side.right { display: none; }
-.tl-stage:not(.has-list) #tl-cancel-btn { display: none !important; }
+.tl-stage:not(.has-list) #tl-cancel-btn, .tl-stage:not(.has-list) #tl-finish-btn { display: none !important; }
+#tl-finish-btn:not(:disabled) { border-color: #7fff7f; color: #fff; }
 .tl-search-box { display: flex; align-items: center; gap: 10px; width: min(560px, 90%); border-bottom: 2px solid var(--glow); padding: 4px 6px; color: var(--grey); }
 .tl-search-box input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #eee; font-size: 20px; padding: 6px 0; }
 .tl-search-box input:disabled { color: #777; }
@@ -104,6 +123,10 @@
 .tl-wave i:nth-child(2) { transform: scaleY(var(--l1, .12)); }
 .tl-wave i:nth-child(3) { transform: scaleY(var(--l2, .12)); }
 .tl-wave i:nth-child(4) { transform: scaleY(var(--l3, .12)); }
+/* ping ring bursting around a card in the pinger's color */
+.tl-card.pinged { border-color: var(--c, #fff); z-index: 3; }
+.tl-ping { position: absolute; inset: -4px; border-radius: 10px; border: 3px solid var(--c); pointer-events: none; animation: tl-ping 1.6s ease-out forwards; }
+@keyframes tl-ping { 0% { transform: scale(.8); opacity: 1; } 60% { transform: scale(1.6); opacity: .6; } 100% { transform: scale(2.1); opacity: 0; } }
 /* a player's vote: mini copy of the current card in their color, sitting in the tier they chose */
 .tl-vote { width: 44px; height: 44px; align-self: center; border: 2px solid var(--c); box-shadow: 0 0 8px var(--c); animation: tl-pop .3s cubic-bezier(.2, 1.4, .4, 1); }
 .tl-vote-badge {
@@ -123,7 +146,7 @@
 
 /* hover chat bubble (one floating element, escapes the tray's scroll clipping) */
 .tl-bubble {
-  position: fixed; transform: translate(-50%, -100%); pointer-events: none; z-index: 60; white-space: nowrap;
+  position: absolute; transform: translate(-50%, -100%); pointer-events: none; z-index: 60; white-space: nowrap;
   background: #fff; color: #111; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px #000;
 }
 .tl-bubble::after { content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; }
