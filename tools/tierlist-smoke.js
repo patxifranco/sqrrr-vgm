@@ -31,9 +31,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
   b.emit('tlSearch', { q: 'minecraft' }); await silence(b, 'tlSearchResults');           // non-host ignored
   a.emit('tlSearch', { q: 'minecraft' }); const res = await once(a, 'tlSearchResults');
-  assert(res.results.some(r => r.slug === 'minecraft'), 'search or slug fallback failed (gated=' + res.gated + ')');
+  assert(res.results.some(r => r.source === 'kh' && r.slug === 'minecraft'), 'search or slug fallback failed (gated=' + res.gated + ')');
+  if (res.youtube) assert(res.results.some(r => r.source === 'yt' && /^[A-Za-z0-9_-]{11}$/.test(r.id)), 'no youtube results');
+  else console.log('  (yt-dlp not installed locally: skipping YouTube checks)');
 
-  a.emit('tlLoadAlbum', { slug: 'minecraft' });
+  a.emit('tlLoad', { source: 'kh', id: 'minecraft' });
   const [, s2] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
   assert.equal(s2.songs.length, 54); assert(s2.songs[0].cover); assert.deepEqual(s2.trashed, []);
 
@@ -80,6 +82,20 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   // trash
   a.emit('tlTrash', { songId: 5 }); const [t3] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   assert.deepEqual(t3.tiers.S, [1]); assert.deepEqual(t3.trashed, [5]); assert.equal(t3.placed, null);
+
+  // YouTube: append one video to the list, play it through the proxy
+  if (res.youtube) {
+    a.emit('tlLoad', { source: 'yt', id: 'aBkTkxKDduc', append: true });
+    const [, sy] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+    assert.equal(sy.songs.length, 55); assert.equal(sy.songs[54].source, 'yt'); assert.equal(sy.songs[54].num, 55); assert(sy.album.title.endsWith(' +'));
+    assert.deepEqual(sy.tiers.S, [1]);                                           // appending keeps the board
+    a.emit('tlSelect', { songId: 54 });
+    const [, py] = await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+    assert(/googlevideo\.com\/videoplayback\?/.test(py.mp3), 'yt stream url: ' + py.mp3);
+    const pr = await fetch(URL + '/tierlist/audio?u=' + encodeURIComponent(py.mp3), { headers: { range: 'bytes=0-99' } });
+    assert.equal(pr.status, 206); assert(/audio\//.test(pr.headers.get('content-type')), pr.headers.get('content-type'));
+    await pr.arrayBuffer();
+  }
 
   // trashing the playing song stops playback; restore brings it back to the list
   a.emit('tlSelect', { songId: 2 }); await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);

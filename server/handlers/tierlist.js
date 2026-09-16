@@ -3,6 +3,9 @@
  * ponytail: one global lobby; key by room code if two groups ever need to play at once.
  */
 const { Readable } = require('stream');
+const { execFile } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const { log, warn } = require('../utils');
 
 const KH = 'https://downloads.khinsider.com';
@@ -134,13 +137,62 @@ async function loadAlbum(slug) {
   return album;
 }
 
+const mp3Cache = new Map(); // khinsider track page -> direct mp3 url
 async function resolveMp3(song) {
-  if (song.mp3) return song.mp3;
+  if (song.source === 'yt') return ytStreamUrl(song.ytId);
+  if (mp3Cache.has(song.page)) return mp3Cache.get(song.page);
   const html = await getHtml(KH + song.page);
   const m = html.match(/https:\/\/[a-z0-9.-]+\.vgmtreasurechest\.com\/[^"']+\.mp3/i);
   if (!m) throw new Error(`mp3 link not found for ${song.page}`);
-  song.mp3 = m[0];
-  return song.mp3;
+  mp3Cache.set(song.page, m[0]);
+  return m[0];
+}
+
+// ==================== YOUTUBE (yt-dlp, audio only, streamed through the proxy) ====================
+// ponytail: the yt-dlp binary lives in bin/ (deploy.bat installs and updates it); no cookies until YouTube asks for them.
+const YTDLP = process.env.YTDLP_PATH || path.join(__dirname, '..', '..', 'bin', process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+const ytAvailable = () => fs.existsSync(YTDLP);
+const YT_ID = /^[A-Za-z0-9_-]{11}$/;
+const YT_URL = /^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\/\S+$/;
+const ytThumb = id => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+const fmtDur = s => s ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '';
+const ytEntry = e => ({ source: 'yt', id: e.id, title: e.title || e.id, duration: fmtDur(e.duration), thumb: ytThumb(e.id), channel: e.channel || e.uploader || '' });
+
+function ytdlp(args, timeout = 45000) {
+  return new Promise((resolve, reject) => {
+    execFile(YTDLP, [...args, '--no-warnings', '--no-cache-dir', '--quiet'], { timeout, maxBuffer: 32e6 }, (err, stdout, stderr) => {
+      if (err) return reject(new Error((stderr || err.message).trim().split('\n').pop()));
+      resolve(stdout);
+    });
+  });
+}
+
+async function ytSearch(q) {
+  if (!ytAvailable()) return [];
+  const key = 'yt:' + q.toLowerCase();
+  if (cache.search.has(key)) return cache.search.get(key);
+  const j = JSON.parse(await ytdlp([`ytsearch12:${q}`, '--flat-playlist', '-J']));
+  const out = (j.entries || []).filter(e => e && e.id && YT_ID.test(e.id)).map(ytEntry);
+  cache.search.set(key, out);
+  return out;
+}
+
+// a video or playlist url -> { title, entries }
+async function ytList(url) {
+  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J']));
+  const entries = j._type === 'playlist' ? (j.entries || []) : [j];
+  return { title: j.title || 'YouTube', entries: entries.filter(e => e && e.id && YT_ID.test(e.id)).map(ytEntry) };
+}
+
+const ytStreams = new Map(); // video id -> { url, expires }
+async function ytStreamUrl(id) {
+  const c = ytStreams.get(id);
+  if (c && c.expires > Date.now()) return c.url;
+  const url = (await ytdlp(['-f', 'bestaudio[ext=m4a]/bestaudio', '-g', `https://www.youtube.com/watch?v=${id}`])).trim().split('\n')[0];
+  if (!/^https:\/\//.test(url)) throw new Error('no stream url');
+  const exp = Number((url.match(/[?&]expire=(\d+)/) || [])[1]) * 1000;
+  ytStreams.set(id, { url, expires: (exp || Date.now() + 3600e3) - 600e3 });
+  return url;
 }
 
 // ==================== STATE ====================
@@ -177,7 +229,7 @@ function leaveById(io, id) {
 // Same-origin audio proxy with Range passthrough, so the client's Web Audio analyser can read the stream
 async function audioProxy(req, res) {
   const u = String(req.query.u || '');
-  if (!/^https:\/\/[a-z0-9.-]+\.vgmtreasurechest\.com\/[^?#]+\.mp3$/i.test(u)) return res.status(400).end();
+  if (!/^https:\/\/[a-z0-9.-]+\.vgmtreasurechest\.com\/[^?#]+\.mp3$/i.test(u) && !/^https:\/\/[a-z0-9.-]+\.googlevideo\.com\/videoplayback\?/i.test(u)) return res.status(400).end();
   try {
     const headers = { 'User-Agent': FETCH_OPTS.headers['User-Agent'] };
     if (req.headers.range) headers.range = req.headers.range;
@@ -206,6 +258,9 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     const username = getLoggedInUsername();
     if (!username) return socket.emit('tlError', { message: 'Debes iniciar sesión primero' });
     const user = getUser(username) || {};
+    for (const [sid, p] of Object.entries(lobby.players)) { // same account logged in elsewhere (kicked): drop its stale seat
+      if (p.username === username && sid !== socket.id) { const old = io.sockets.sockets.get(sid); if (old) leaveSocket(io, old); else delete lobby.players[sid]; }
+    }
     lobby.players[socket.id] = { username, color: COLORS[username] || DEFAULT_COLOR, profilePicture: user.profilePicture || 'profiles/default.svg' };
     if (!lobby.host) lobby.host = socket.id;
     socket.join(ROOM);
@@ -227,25 +282,48 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
 
   socket.on('tlSearch', async ({ q } = {}) => {
     if (!isHost() || !q || !q.trim()) return;
-    try { socket.emit('tlSearchResults', { q, ...await searchAlbums(q.trim()) }); }
-    catch (e) { fail('khinsider no responde', e); }
+    const [kh, yt] = await Promise.all([
+      searchAlbums(q.trim()).catch(e => { warn('TIERLIST', 'khinsider search failed', e.message); return { results: [], gated: false }; }),
+      ytSearch(q.trim()).catch(e => { warn('TIERLIST', 'youtube search failed', e.message); return []; })
+    ]);
+    socket.emit('tlSearchResults', { q, results: [...kh.results.map(r => ({ source: 'kh', ...r })), ...yt], gated: kh.gated, youtube: ytAvailable() });
   });
 
-  socket.on('tlLoadAlbum', async ({ slug } = {}) => {
-    if (!isHost() || !slug || !SLUG_RE.test(slug)) return;
+  socket.on('tlLoad', async ({ source, id, append } = {}) => {
+    if (!isHost() || typeof id !== 'string') return;
     try {
-      const album = await loadAlbum(slug);
-      if (!album.songs.length) return fail('Ese álbum no tiene canciones');
-      lobby.album = { slug, title: album.title, covers: album.covers };
-      lobby.songs = album.songs;
-      lobby.currentId = null;
-      lobby.playback = { playing: false, position: 0, at: Date.now() };
-      lobby.tiers = emptyTiers();
-      lobby.trashed = [];
-      lobby.votes = {};
+      let title, songs;
+      if (source === 'kh') {
+        if (!SLUG_RE.test(id)) return;
+        const a = await loadAlbum(id);
+        title = a.title;
+        songs = a.songs.map(s => ({ ...s, source: 'kh' }));
+      } else if (source === 'yt' || source === 'yturl') {
+        if (source === 'yt' ? !YT_ID.test(id) : !YT_URL.test(id)) return;
+        if (!ytAvailable()) return fail('YouTube no está disponible en el servidor');
+        const l = await ytList(source === 'yt' ? `https://www.youtube.com/watch?v=${id}` : id);
+        title = l.title;
+        songs = l.entries.map((e, i) => ({ id: i, name: e.title, disc: 1, num: i + 1, duration: e.duration, ytId: e.id, cover: e.thumb, mp3: null, source: 'yt' }));
+      } else return;
+      if (!songs.length) return fail('No hay canciones ahí');
+      if (append && lobby.album) {
+        const base = lobby.songs.length;
+        songs.forEach((s, i) => { s.id = base + i; s.num = base + i + 1; s.disc = 1; });
+        lobby.songs.push(...songs);
+        if (!lobby.album.title.endsWith(' +')) lobby.album.title += ' +';
+        log('TIERLIST', `added ${songs.length} songs from ${source}: ${title}`);
+      } else {
+        lobby.album = { slug: id, title, covers: [] };
+        lobby.songs = songs;
+        lobby.currentId = null;
+        lobby.playback = { playing: false, position: 0, at: Date.now() };
+        lobby.tiers = emptyTiers();
+        lobby.trashed = [];
+        lobby.votes = {};
+        log('TIERLIST', `loaded ${songs.length} songs from ${source}: ${title}`);
+      }
       io.to(ROOM).emit('tlState', publicState());
-      log('TIERLIST', `album loaded: ${album.title} (${album.songs.length} songs)`);
-    } catch (e) { fail('No se pudo cargar el álbum', e); }
+    } catch (e) { fail('No se pudo cargar eso', e); }
   });
 
   socket.on('tlSelect', async ({ songId } = {}) => {
@@ -253,7 +331,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     const song = lobby.songs[songId];
     if (!song) return;
     try {
-      await resolveMp3(song);
+      song.mp3 = await resolveMp3(song);
       lobby.currentId = song.id;
       lobby.playback = { playing: true, position: 0, at: Date.now() };
       io.to(ROOM).emit('tlPlayback', playbackMsg());
@@ -320,7 +398,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   return { handleDisconnect: leave };
 }
 
-module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3 };
+module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl };
 
 // Self-check: node server/handlers/tierlist.js
 if (require.main === module) {

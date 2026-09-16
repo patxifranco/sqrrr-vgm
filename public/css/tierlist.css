@@ -33,10 +33,17 @@
 .tl-search-box { display: flex; align-items: center; gap: 10px; width: min(560px, 90%); border-bottom: 2px solid var(--glow); padding: 4px 6px; color: var(--grey); }
 .tl-search-box input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #eee; font-size: 20px; padding: 6px 0; }
 .tl-search-box input:disabled { color: #777; }
+.tl-search-box input::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
 .tl-search-box button { border: 0; background: transparent; color: var(--grey); padding: 4px; }
 .tl-search-box button:hover { color: #fff; }
 .tl-results { display: grid; grid-template-columns: repeat(auto-fit, 150px); gap: 14px; justify-content: center; width: 100%; }
-.tl-result { width: 150px; background: #141414; border: 1px solid #2b2b2b; padding: 6px; }
+.tl-search.overlay { position: absolute; inset: 0; z-index: 65; background: rgba(22, 22, 22, .95); }
+.tl-search-box button.close { margin-left: 4px; }
+.tl-search:not(.overlay) .close { display: none; }
+.tl-result { position: relative; width: 150px; background: #141414; border: 1px solid #2b2b2b; padding: 6px; }
+.tl-result-src { position: absolute; left: 10px; top: 10px; width: 26px; height: 26px; border-radius: 4px; background: rgba(0, 0, 0, .75); color: #ddd; display: flex; align-items: center; justify-content: center; }
+.tl-result-src .tl-ico { width: 18px; height: 18px; }
+.tl-result-src.yt { color: #ff4e45; }
 .tl-result:hover { border-color: var(--glow); }
 .tl-result-cover { width: 100%; aspect-ratio: 1; background: #222 center / cover no-repeat; }
 .tl-result-title { font-size: 13px; color: #ddd; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -134,12 +141,21 @@
 .tl-round-big { width: 92px; height: 92px; font-size: 14px; font-weight: 700; letter-spacing: .5px; }
 /* sliders: beat the global input[type="range"] rules from the XP theme */
 .tl-stage input[type="range"] { -webkit-appearance: none; appearance: none; height: 16px; background: transparent; margin: 0; }
-/* thumb box is 16px (12 + 2px border); it travels 8px..calc(100% - 8px), so the fill edge follows the same path (--f = 0..1) */
-.tl-stage input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--glow) calc(8px + (100% - 16px) * var(--f, 0)), #3a3a3a 0); border: 0; }
-.tl-stage input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: #e8e8e8; border: 2px solid var(--glow); box-shadow: none; }
-.tl-stage input[type="range"]:disabled::-webkit-slider-thumb { opacity: 0; }
-.tl-stage input[type="range"].tl-seek { width: 100%; margin-top: 10px; }
-.tl-stage input[type="range"].tl-volume { width: 84px; }
+/* sliders: the native thumb is invisible (but still draggable, 16px wide); the knob is drawn by the wrapper at the same
+   position formula as the fill, so both always sit on the line. --f (0..1) is set on the wrapper by the client. */
+.tl-slider { position: relative; display: block; height: 16px; }
+.tl-slider.seek { width: 100%; margin-top: 10px; }
+.tl-slider.vol { width: 84px; }
+.tl-slider input[type="range"] { display: block; width: 100%; height: 16px; margin: 0; }
+.tl-slider::after {
+  content: ''; position: absolute; top: 50%; left: calc(8px + (100% - 16px) * var(--f, 0)); width: 12px; height: 12px; margin: -8px 0 0 -8px;
+  border-radius: 50%; background: #e8e8e8; border: 2px solid var(--glow); pointer-events: none;
+}
+.tl-stage input[type="range"]::-webkit-slider-runnable-track {
+  height: 16px; border: 0; border-radius: 0; box-shadow: none;
+  background: linear-gradient(to right, var(--glow) calc(8px + (100% - 16px) * var(--f, 0)), #3a3a3a 0) center / 100% 4px no-repeat;
+}
+.tl-stage input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: 0; border: 0; background: transparent; box-shadow: none; opacity: 0; }
 
 /* veredicto panel */
 .tl-verdict { position: absolute; inset: 0; z-index: 70; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; }

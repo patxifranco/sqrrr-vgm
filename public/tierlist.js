@@ -7,7 +7,11 @@ const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const TIER_COLORS = { S: '#ff7f7f', A: '#ffbf7f', B: '#ffdf7f', C: '#ffff7f', D: '#bfff7f', F: '#7fff7f' };
 const ME = Symbol('me'); // key for your own cursor in the cursors map
 
-const tl = { me: null, players: [], colors: {}, host: null, album: null, songs: [], tiers: {}, trashed: [], votes: {}, currentId: null, playback: null, offset: 0 };
+const tl = { me: null, players: [], colors: {}, host: null, album: null, songs: [], tiers: {}, trashed: [], votes: {}, currentId: null, playback: null, offset: 0, searchOpen: false };
+const SRC_ICON = {
+  kh: '<svg class="tl-ico" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  yt: '<svg class="tl-ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>'
+};
 const audio = $('tl-audio');
 const cursors = {}; // username | ME -> { key, el, x, y, tx, ty, tilt, tiltTarget, lastX, lastT, ghost }
 let lastPos = null;      // last own cursor position (normalized)
@@ -44,7 +48,7 @@ function renderPlayers() {
   $('tl-stage').classList.toggle('is-host', isHost());
   const input = $('tl-search-input');
   input.disabled = !isHost();
-  input.placeholder = isHost() ? 'Buscar en khinsider (ej: minecraft)' : `Esperando a que ${tl.host || 'el host'} elija un álbum`;
+  input.placeholder = isHost() ? 'Buscar en khinsider y YouTube, o pega una URL' : `Esperando a que ${tl.host || 'el host'} elija un álbum`;
   for (const u of Object.keys(cursors)) {
     if (!tl.players.some(p => p.username === u)) removeCursor(u);
   }
@@ -57,7 +61,9 @@ function cardHtml(s) {
 
 function renderBoard() {
   const hasAlbum = !!tl.album;
-  $('tl-search').hidden = hasAlbum;
+  if (!hasAlbum) tl.searchOpen = false;
+  $('tl-search').hidden = hasAlbum && !tl.searchOpen;
+  $('tl-search').classList.toggle('overlay', hasAlbum);
   $('tl-board').hidden = !hasAlbum;
   $('tl-album-title').textContent = hasAlbum ? tl.album.title : '';
   if (!hasAlbum) { $('tl-search-results').innerHTML = ''; return; }
@@ -97,6 +103,7 @@ function renderCurrent() {
   $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una canción' : 'Esperando al host') : '');
   $('tl-info').textContent = s ? `Pista ${tl.songs.indexOf(s) + 1} de ${tl.songs.length} · ${audio.duration ? fmt(audio.duration) : s.duration}` : (tl.album ? `${tl.songs.length} pistas` : '');
   $('tl-play').disabled = !isHost() || !s;
+  $('tl-add-btn').disabled = !tl.album;
   $('tl-next').disabled = !isHost() || !tl.album;
   $('tl-seek').disabled = !isHost() || !s;
   $('tl-verdict-btn').disabled = !s || isPlaced(s.id);
@@ -119,9 +126,23 @@ function renderResults({ results, gated }) {
   const empty = gated
     ? 'khinsider pide login para buscar. Pega la URL del álbum (downloads.khinsider.com/game-soundtracks/album/...) o escribe su nombre exacto, ej: minecraft'
     : 'Nada por aquí';
-  $('tl-search-results').innerHTML = results.length ? results.map(r =>
-    `<div class="tl-result" data-slug="${esc(r.slug)}" title="${esc(r.title)} · ${esc(r.platform)}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta">${esc(r.type)} · ${esc(r.year)}</div></div>`
-  ).join('') : `<div class="tl-empty">${empty}</div>`;
+  $('tl-search-results').innerHTML = results.length ? results.map(r => {
+    const id = r.source === 'yt' ? r.id : r.slug;
+    const meta = r.source === 'yt' ? [r.channel, r.duration] : [r.type, r.year];
+    return `<div class="tl-result" data-source="${r.source}" data-id="${esc(id)}" title="${esc(r.title)}${r.platform ? ' · ' + esc(r.platform) : ''}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><span class="tl-result-src ${r.source}" title="${r.source === 'yt' ? 'YouTube' : 'khinsider'}">${SRC_ICON[r.source]}</span><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta">${meta.filter(Boolean).map(esc).join(' · ')}</div></div>`;
+  }).join('') : `<div class="tl-empty">${empty}</div>`;
+}
+
+function openSearch() {
+  tl.searchOpen = true;
+  $('tl-search').hidden = false;
+  $('tl-search-input').value = '';
+  $('tl-search-results').innerHTML = '';
+  $('tl-search-input').focus();
+}
+function closeSearch() {
+  tl.searchOpen = false;
+  if (tl.album) $('tl-search').hidden = true;
 }
 
 function renderVerdict() {
@@ -171,7 +192,7 @@ function applyPlayback({ currentId, mp3, playback, serverNow }) {
   tl.playback = playback;
   if (currentId === null) {
     audio.pause(); audio.removeAttribute('src');
-    $('tl-clock').textContent = '00:00'; $('tl-seek').style.setProperty('--f', '0'); $('tl-seek').value = 0;
+    $('tl-clock').textContent = '00:00'; $('tl-seek').parentElement.style.setProperty('--f', '0'); $('tl-seek').value = 0;
     renderCurrent(); renderVotes();
     return;
   }
@@ -195,7 +216,7 @@ setInterval(() => {
 audio.addEventListener('timeupdate', () => {
   $('tl-clock').textContent = fmt(audio.currentTime);
   const f = audio.duration ? audio.currentTime / audio.duration : 0;
-  $('tl-seek').style.setProperty('--f', f.toFixed(4));
+  $('tl-seek').parentElement.style.setProperty('--f', f.toFixed(4));
   if (!seekDragging) $('tl-seek').value = Math.round(f * 1000);
 });
 audio.addEventListener('durationchange', renderCurrent);
@@ -425,7 +446,7 @@ socket.on('tlState', s => {
   } else {
     tl.currentId = null; tl.playback = s.playback; audio.pause(); audio.removeAttribute('src');
     $('tl-clock').textContent = '00:00';
-    $('tl-seek').style.setProperty('--f', '0');
+    $('tl-seek').parentElement.style.setProperty('--f', '0');
     $('tl-seek').value = 0;
     renderCurrent();
     renderVotes();
@@ -479,19 +500,27 @@ window.addEventListener('pagehide', () => {
 $('tl-cancel-btn').addEventListener('click', () => {
   if (isHost() && confirm('¿Resetear to\' toito? Se borra la tierlist para todos y se vuelve a buscar.')) socket.emit('tlReset');
 });
+function load(source, id) {
+  socket.emit('tlLoad', { source, id, append: !!tl.album });
+  closeSearch();
+}
 function search() {
   const q = $('tl-search-input').value.trim();
   if (!q || !isHost()) return;
-  const url = q.match(/khinsider\.com\/game-soundtracks\/album\/([A-Za-z0-9._-]+)/); // pasted album URL: load it directly
-  if (url) return socket.emit('tlLoadAlbum', { slug: url[1] });
+  const kh = q.match(/khinsider\.com\/game-soundtracks\/album\/([A-Za-z0-9._-]+)/); // pasted album URL: load it directly
+  if (kh) return load('kh', kh[1]);
+  if (/^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//.test(q)) return load('yturl', q); // pasted video or playlist
   $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>';
   socket.emit('tlSearch', { q });
 }
+$('tl-add-btn').addEventListener('click', () => { if (isHost()) openSearch(); });
+$('tl-search-close').addEventListener('click', closeSearch);
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && isActive() && tl.searchOpen) closeSearch(); });
 $('tl-search-input').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
 $('tl-search-go').addEventListener('click', search);
 $('tl-search-results').addEventListener('click', e => {
   const r = e.target.closest('.tl-result');
-  if (r && isHost()) socket.emit('tlLoadAlbum', { slug: r.dataset.slug });
+  if (r && isHost()) load(r.dataset.source, r.dataset.id);
 });
 $('tl-board').addEventListener('click', e => {
   if (suppressClick) { suppressClick = false; return; }
@@ -547,7 +576,7 @@ $('tl-seek').addEventListener('change', e => {
 function setVolume(v) {
   audio.volume = v / 100;
   $('tl-volume').value = v;
-  $('tl-volume').style.setProperty('--f', (v / 100).toFixed(3));
+  $('tl-volume').parentElement.style.setProperty('--f', (v / 100).toFixed(3));
 }
 $('tl-volume').addEventListener('input', e => {
   setVolume(+e.target.value);

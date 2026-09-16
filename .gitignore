@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# yt-dlp binary (deploy.bat installs it on the server)
+bin/
+
 # Environment variables - contains secrets
 .env
 .env.local
