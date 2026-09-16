@@ -53,7 +53,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   if (res.youtube) {
     const yt = res.results.filter(r => r.source === 'yt');
     assert(yt.length > 0, 'no youtube results');
-    assert(yt.every(r => r.id.length !== 11 && r.title), 'youtube results must be playlists, not videos: ' + JSON.stringify(yt.slice(0, 2)));
+    assert(yt.every(r => r.id.length !== 11 && r.title && r.count > 1), 'youtube results must be playlists with 2+ videos: ' + JSON.stringify(yt.slice(0, 2)));
   }
   else console.log('  (yt-dlp not installed locally: skipping YouTube checks)');
 

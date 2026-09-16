@@ -169,17 +169,37 @@ function ytdlp(args, timeout = 45000) {
   });
 }
 
-// playlists only (YouTube's "type: playlist" search filter); a tile loads the whole playlist
+// playlists only (YouTube's "type: playlist" search filter, query + "music" to keep gameplay out); a tile loads the whole playlist.
+// Single-video "playlists" (usually one long compilation) are dropped so every track can be rated on its own.
 const YT_PL_ID = /^[A-Za-z0-9_-]{10,80}$/;
+const plCounts = new Map(); // playlist id -> video count
+async function ytPlaylistCount(id) {
+  if (plCounts.has(id)) return plCounts.get(id);
+  let n = 0;
+  try {
+    const j = JSON.parse(await ytdlp([`https://www.youtube.com/playlist?list=${id}`, '--flat-playlist', '--playlist-items', '1', '-J'], 30000));
+    n = Number(j.playlist_count) || (j.entries || []).length;
+  } catch (e) { /* private or gone: keep 0 */ }
+  plCounts.set(id, n);
+  return n;
+}
+function mapLimit(items, limit, fn) { // run fn over items with at most `limit` in flight
+  let i = 0;
+  const out = new Array(items.length);
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } });
+  return Promise.all(workers).then(() => out);
+}
 async function ytSearch(q) {
   if (!ytAvailable()) return [];
   const key = 'yt:' + q.toLowerCase();
   if (cache.search.has(key)) return cache.search.get(key);
-  const j = JSON.parse(await ytdlp([`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAw%253D%253D`, '--flat-playlist', '-J', '--playlist-end', '12']));
-  const out = (j.entries || []).filter(e => e && e.id && YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({
+  const j = JSON.parse(await ytdlp([`https://www.youtube.com/results?search_query=${encodeURIComponent(q + ' music')}&sp=EgIQAw%253D%253D`, '--flat-playlist', '-J', '--playlist-end', '14']));
+  const cands = (j.entries || []).filter(e => e && e.id && YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({
     source: 'yt', id: e.id, title: e.title || e.id, channel: e.channel || e.uploader || '',
     thumb: ((e.thumbnails || []).slice(-1)[0] || {}).url || null
   }));
+  const counts = await mapLimit(cands, 6, c => ytPlaylistCount(c.id));
+  const out = cands.map((c, i) => ({ ...c, count: counts[i] })).filter(c => c.count > 1).slice(0, 12);
   cache.search.set(key, out);
   return out;
 }
