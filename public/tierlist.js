@@ -234,7 +234,7 @@ const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.988, TILT_EASE = 0.1; // pon
 function getCursor(key) {
   if (cursors[key]) return cursors[key];
   const username = key === ME ? tl.me.username : key;
-  const c = { key, el: null, x: 0, y: 0, tx: 0, ty: 0, tilt: 0, tiltTarget: 0, lastX: null, lastT: 0, ghost: null };
+  const c = { key, el: null, x: 0, y: 0, tx: 0, ty: 0, tilt: 0, tiltTarget: 0, lastX: null, lastT: 0, ghost: null, samples: [] };
   const img = document.createElement('img');
   img.className = key === ME ? 'tl-cursor me' : 'tl-cursor';
   img.alt = '';
@@ -250,11 +250,27 @@ function getCursor(key) {
   return c;
 }
 
+const NET_DELAY = 70; // ms: other players' hands are drawn this far behind the newest sample so motion can be interpolated smoothly
 function pointCursor(c, x, y, now) {
+  if (c.key !== ME) { // remote: buffer the sample, tick() interpolates through it
+    c.samples.push({ x, y, t: now });
+    if (c.samples.length > 60) c.samples.shift();
+    return;
+  }
   if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * TILT_GAIN, -TILT_MAX, TILT_MAX); // px/ms -> degrees
   c.lastX = x; c.lastT = now;
-  c.tx = x; c.ty = y;
-  if (c.key === ME) { c.x = x; c.y = y; }
+  c.x = x; c.y = y;
+}
+// position of a remote hand at render time: interpolate between the two samples around (now - NET_DELAY), hold at the newest
+function sampleAt(c, now) {
+  const s = c.samples, t = now - NET_DELAY;
+  if (!s.length) return null;
+  let a = null, b = null;
+  for (let k = s.length - 1; k >= 0; k--) { if (s[k].t <= t) { a = s[k]; b = s[k + 1] || null; break; } }
+  if (!a) return s[0];
+  if (!b) return a;
+  const f = (t - a.t) / Math.max(1, b.t - a.t);
+  return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
 }
 
 function removeCursor(key) {
@@ -300,7 +316,7 @@ setInterval(() => {
   if (!isActive() || !lastPos || !(cursorDirty || drag)) return;
   cursorDirty = false;
   socket.emit('tlCursor', { ...lastPos, drag: drag ? { id: drag.id, gx: drag.gx, gy: drag.gy, rot: drag.rot } : null });
-}, 40);
+}, 16);
 
 // ==================== CARD DRAG (vote / host move) ====================
 // ponytail: pendulum with a moving pivot; G, DAMP and AMAX are the feel knobs.
@@ -416,7 +432,14 @@ function stepWave(now) {
 function tick(now) {
   if (isActive()) {
     for (const c of Object.getOwnPropertySymbols(cursors).concat(Object.keys(cursors)).map(k => cursors[k])) {
-      if (c.key !== ME) { c.x += (c.tx - c.x) * 0.4; c.y += (c.ty - c.y) * 0.4; }
+      if (c.key !== ME) {
+        const p = sampleAt(c, now);
+        if (p) {
+          const dt = Math.max(1, now - (c.lastT || now - 16));
+          if (Math.abs(p.x - c.x) > 0.01) c.tiltTarget = clamp((p.x - c.x) / dt * TILT_GAIN, -TILT_MAX, TILT_MAX);
+          c.x = p.x; c.y = p.y; c.lastT = now;
+        }
+      }
       c.tilt += (c.tiltTarget - c.tilt) * TILT_EASE;
       c.tiltTarget *= TILT_DECAY;
       c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
