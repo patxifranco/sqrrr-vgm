@@ -183,8 +183,8 @@ function renderVerdict() {
   const counts = Object.fromEntries(TIERS.map(t => [t, votesFor(id, t).length]));
   const max = Math.max(...Object.values(counts));
   $('tl-verdict-title').textContent = `${tl.songs[id].num}. ${tl.songs[id].name}`;
-  $('tl-verdict-rows').innerHTML = TIERS.map(t =>
-    `<button class="tl-verdict-row${counts[t] && counts[t] === max ? ' top' : ''}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><b>${t}</b><span class="tl-verdict-tokens">${votesFor(id, t).map(token).join('')}</span><em>${counts[t]}</em></button>`
+  $('tl-verdict-rows').innerHTML = TIERS.map((t, i) =>
+    `<button class="tl-verdict-col${counts[t] && counts[t] === max ? ' top' : ''}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><b>${t}</b><em>${counts[t]}</em><span class="tl-verdict-tokens">${votesFor(id, t).map(token).join('')}</span><kbd>${i + 1}</kbd></button>`
   ).join('');
 }
 
@@ -192,7 +192,7 @@ function openVerdict() {
   if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
   renderVerdict();
   $('tl-verdict').classList.toggle('readonly', !isHost());
-  $('tl-verdict-hint').innerHTML = `<b style="color:${colorOf(tl.host)}">${esc(tl.host || 'El host')}</b> elige el resultado final`;
+  $('tl-verdict-hint').innerHTML = `<b style="color:${colorOf(tl.host)}">${esc(tl.host || 'El host')}</b> elige el resultado final${isHost() ? ' · teclas 1-6' : ''}`;
   $('tl-verdict').hidden = false;
 }
 
@@ -562,11 +562,16 @@ chatInput.addEventListener('keydown', e => {
 });
 chatInput.addEventListener('blur', () => { if (typing) endChat(false); });
 window.addEventListener('keydown', e => {
-  if (e.key !== 'Enter' || !isActive() || typing || drag) return;
+  if (!isActive() || typing || drag || e.ctrlKey || e.altKey || e.metaKey) return;
   const t = document.activeElement;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
-  e.preventDefault();
-  startChat();
+  if (e.key === 'Enter') { e.preventDefault(); startChat(); return; }
+  if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
+  const tier = TIERS[Number(e.key) - 1];
+  if (tier) { // 1-6 = S-F: the host's verdict while the panel is open, otherwise your vote
+    if (isHost() && !$('tl-verdict').hidden) socket.emit('tlVerdict', { songId: tl.currentId, tier });
+    else socket.emit('tlVote', { songId: tl.currentId, tier });
+  } else if (e.key === 'v' || e.key === 'V') $('tl-verdict-btn').click();
 });
 socket.on('tlChat', ({ username, text }) => {
   if (!tl.me) return;
@@ -727,12 +732,11 @@ $('tl-next').addEventListener('click', () => {
 });
 $('tl-verdict-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlVerdictOpen'); else openVerdict(); });
 $('tl-verdict-rows').addEventListener('click', e => {
-  const r = e.target.closest('.tl-verdict-row');
+  const r = e.target.closest('.tl-verdict-col');
   if (!r || !isHost()) return;
   socket.emit('tlVerdict', { songId: tl.currentId, tier: r.dataset.tier });
-  $('tl-verdict').hidden = true;
 });
-$('tl-verdict').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.hidden = true; });
+// no backdrop close: the panel stays until the host picks a tier (tlTiers hides it)
 $('tl-seek').addEventListener('pointerdown', () => { seekDragging = true; });
 $('tl-seek').addEventListener('input', e => { if (seekDragging) $('tl-clock').textContent = fmt(e.target.value / 1000 * (audio.duration || 0)); });
 $('tl-seek').addEventListener('change', e => {

@@ -207,19 +207,22 @@
 
 /* veredicto panel */
 .tl-verdict { position: absolute; inset: 0; z-index: 70; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; }
-.tl-verdict-box { background: #161616; border: 1px solid var(--glow); padding: 18px 22px; width: min(520px, 90vw); }
-.tl-verdict-title { color: var(--glow); font-size: 17px; font-weight: 600; margin-bottom: 12px; text-align: center; }
-.tl-verdict-row {
-  display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; margin: 4px 0; background: #0f0f0f;
-  border: 1px solid #2e2e2e; color: #ddd; text-align: left; transition: border-color .1s, background .1s;
+.tl-verdict-box { background: #161616; border: 1px solid var(--glow); padding: 24px 28px 18px; width: 1560px; }
+.tl-verdict-title { color: var(--glow); font-size: 26px; font-weight: 600; margin-bottom: 20px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tl-verdict-rows { display: flex; gap: 16px; }
+.tl-verdict-col {
+  position: relative; flex: 1 1 0; height: 400px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 12px;
+  background: #0f0f0f; border: 2px solid #2e2e2e; color: #ddd; transition: border-color .1s, background .1s, transform .12s;
 }
-.tl-verdict-row:hover { border-color: #fff; background: #151515; }
-.tl-verdict-row.top { border-color: var(--glow); }
-.tl-verdict-row b { width: 36px; height: 36px; flex: none; border-radius: 4px; background: var(--tc); color: #222; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.tl-verdict-tokens { display: flex; gap: 4px; flex-wrap: wrap; }
-.tl-verdict-row em { margin-left: auto; font-style: normal; font-weight: 700; font-size: 18px; color: var(--glow); }
-.tl-verdict.readonly .tl-verdict-row { pointer-events: none; }
-.tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 8px; font-size: 13px; }
+.tl-verdict:not(.readonly) .tl-verdict-col:hover { border-color: #fff; background: #151515; transform: translateY(-6px); }
+.tl-verdict-col.top { border-color: var(--glow); box-shadow: 0 0 18px rgba(0, 229, 255, .25); }
+.tl-verdict-col b { width: 140px; height: 140px; flex: none; border-radius: 10px; background: var(--tc); color: #222; display: flex; align-items: center; justify-content: center; font-size: 80px; }
+.tl-verdict-col em { font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--glow); }
+.tl-verdict-col kbd { position: absolute; left: 10px; top: 8px; font: 600 13px 'Segoe UI', sans-serif; color: var(--grey); border: 1px solid #3a3a3a; border-radius: 4px; padding: 1px 6px; }
+.tl-verdict-tokens { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.tl-verdict-tokens .tl-token { width: 36px; height: 36px; font-size: 17px; }
+.tl-verdict.readonly .tl-verdict-col { pointer-events: none; }
+.tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 16px; font-size: 15px; }
 
 /* loading: dark overlay with CARGANDO..., hands replaced by spinning rings in each player's color */
 .tl-loading { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, .62); display: flex; align-items: center; justify-content: center; }

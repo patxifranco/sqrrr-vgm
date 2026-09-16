@@ -244,7 +244,7 @@ async function ytSearch(q) {
 
 // a video or playlist url -> { title, entries }
 async function ytList(url) {
-  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J']));
+  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J', '--playlist-end', '50'])); // ponytail: 50 cards max, a 2000-video list is not a tier list
   const entries = j._type === 'playlist' ? (j.entries || []) : [j];
   return { title: j.title || 'YouTube', entries: entries.filter(e => e && e.id && YT_ID.test(e.id)).map(ytEntry) };
 }
