@@ -1,14 +1,13 @@
 /* ==================== SQRRR TIERLIST ==================== */
 /* Matte dark stage, thin cyan lines, grey icon strip in a trapezoid tab: the look of a Wii USB loader menu. */
 
-#tierlist-screen { background: #1a1a1a; }
+#tierlist-screen { background: repeating-linear-gradient(0deg, #1c1c1c 0 2px, #252525 2px 4px); } /* the stage is transparent: the stripes continue into the letterbox bars */
 #tierlist-screen { overflow: hidden; }
 /* fixed 1920x1080 canvas scaled to fit the window (transform set by the client): identical layout for everyone */
 .tl-stage {
   position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; transform: translate(-50%, -50%);
   display: flex; flex-direction: column;
-  color: #d6d6d6; user-select: none; overflow: hidden;
-  background: repeating-linear-gradient(0deg, #1c1c1c 0 2px, #252525 2px 4px);
+  color: #d6d6d6; user-select: none; overflow: visible; /* hands, ghosts and the bottom bar may spill into the letterbox */
   --glow: #35b4ff; --grey: #9a9a9a;
 }
 /* normal fonts everywhere: the XP theme puts a pixel font on buttons and inputs */
@@ -154,6 +153,7 @@
 .tl-bottom { position: relative; padding-top: 36px; flex: none; }
 .tl-clock { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 26px; color: #bdbdbd; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
 .tl-bar { position: relative; display: flex; align-items: flex-start; background: #161616; border-top: 2px solid var(--glow); min-height: 124px; padding: 0 28px 10px; }
+.tl-bar::before { content: ''; position: absolute; z-index: -1; top: -2px; bottom: -2000px; left: -3000px; right: -3000px; background: #161616; border-top: 2px solid var(--glow); } /* extends the bar across the whole window */
 .tl-bar-side { display: flex; align-items: center; gap: 16px; padding-top: 20px; flex: 1; }
 .tl-bar-side.right { justify-content: flex-end; }
 .tl-bar-center { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; width: min(680px, 48vw); }
@@ -205,7 +205,7 @@
 .tl-stage input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: 0; border: 0; background: transparent; box-shadow: none; opacity: 0; }
 
 /* veredicto panel */
-.tl-verdict { position: absolute; inset: 0; z-index: 70; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; }
+.tl-verdict { position: absolute; inset: -2000px; z-index: 70; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; }
 .tl-verdict-box { background: #161616; border: 1px solid var(--glow); padding: 24px 28px 18px; width: 1560px; }
 .tl-verdict-title { color: var(--glow); font-size: 26px; font-weight: 600; margin-bottom: 20px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #tl-verdict-rows { display: flex; gap: 16px; }
@@ -224,7 +224,7 @@
 .tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 16px; font-size: 15px; }
 
 /* loading: dark overlay with CARGANDO..., hands replaced by spinning rings in each player's color */
-.tl-loading { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, .62); display: flex; align-items: center; justify-content: center; }
+.tl-loading { position: absolute; inset: -2000px; z-index: 85; background: rgba(0, 0, 0, .62); display: flex; align-items: center; justify-content: center; }
 .tl-loading span { color: #ddd; font-size: 26px; font-weight: 700; letter-spacing: 4px; }
 .tl-spin { display: none; position: absolute; left: 0; top: 0; width: 28px; height: 28px; margin: -14px 0 0 -14px; will-change: transform; z-index: 3; }
 .tl-spin::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .18); border-top-color: var(--c); animation: tl-spin .8s linear infinite; }
@@ -233,7 +233,7 @@
 @keyframes tl-spin { to { transform: rotate(360deg); } }
 
 /* cursor chat: dim layer under the cursors, bubble hanging off the hand */
-.tl-dim { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, .62); }
+.tl-dim { position: absolute; inset: -2000px; z-index: 85; background: rgba(0, 0, 0, .62); }
 .tl-chat-input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
 .tl-chat-bubble {
   position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 5; will-change: transform;
@@ -247,7 +247,7 @@
 
 /* cursors: native cursor hidden everywhere on the stage, everyone is a Wii hand overlay (same size for you and the others) */
 .tl-stage, .tl-stage * { cursor: none !important; }
-.tl-cursors { position: absolute; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; } /* above the veredicto panel */
+.tl-cursors { position: absolute; inset: 0; pointer-events: none; z-index: 90; } /* above the veredicto panel */
 .tl-cursor {
   --h: 38px; /* other players' hands; yours is a bit bigger */
   position: absolute; left: 0; top: 0; height: var(--h); margin: -1px 0 0 calc(var(--h) * -0.205); /* fingertip is the hotspot */
