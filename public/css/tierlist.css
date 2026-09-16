@@ -134,11 +134,12 @@
 .tl-round-big { width: 92px; height: 92px; font-size: 14px; font-weight: 700; letter-spacing: .5px; }
 /* sliders: beat the global input[type="range"] rules from the XP theme */
 .tl-stage input[type="range"] { -webkit-appearance: none; appearance: none; height: 16px; background: transparent; margin: 0; }
-.tl-stage input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--glow) var(--p, 0%), #3a3a3a var(--p, 0%)); border: 0; }
-.tl-stage input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -4px; border-radius: 50%; background: #e8e8e8; border: 2px solid var(--glow); box-shadow: none; }
+/* thumb box is 16px (12 + 2px border); it travels 8px..calc(100% - 8px), so the fill edge follows the same path (--f = 0..1) */
+.tl-stage input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--glow) calc(8px + (100% - 16px) * var(--f, 0)), #3a3a3a 0); border: 0; }
+.tl-stage input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: #e8e8e8; border: 2px solid var(--glow); box-shadow: none; }
 .tl-stage input[type="range"]:disabled::-webkit-slider-thumb { opacity: 0; }
 .tl-stage input[type="range"].tl-seek { width: 100%; margin-top: 10px; }
-.tl-stage input[type="range"].tl-volume { width: 84px; --p: 80%; }
+.tl-stage input[type="range"].tl-volume { width: 84px; }
 
 /* veredicto panel */
 .tl-verdict { position: absolute; inset: 0; z-index: 70; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; }

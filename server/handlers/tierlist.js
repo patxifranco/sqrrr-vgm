@@ -204,7 +204,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
 
   socket.on('tlJoin', () => {
     const username = getLoggedInUsername();
-    if (!username) return socket.emit('tlError', { message: 'Debes iniciar sesion primero' });
+    if (!username) return socket.emit('tlError', { message: 'Debes iniciar sesión primero' });
     const user = getUser(username) || {};
     lobby.players[socket.id] = { username, color: COLORS[username] || DEFAULT_COLOR, profilePicture: user.profilePicture || 'profiles/default.svg' };
     if (!lobby.host) lobby.host = socket.id;
@@ -235,7 +235,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     if (!isHost() || !slug || !SLUG_RE.test(slug)) return;
     try {
       const album = await loadAlbum(slug);
-      if (!album.songs.length) return fail('Ese album no tiene canciones');
+      if (!album.songs.length) return fail('Ese álbum no tiene canciones');
       lobby.album = { slug, title: album.title, covers: album.covers };
       lobby.songs = album.songs;
       lobby.currentId = null;
@@ -245,7 +245,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       lobby.votes = {};
       io.to(ROOM).emit('tlState', publicState());
       log('TIERLIST', `album loaded: ${album.title} (${album.songs.length} songs)`);
-    } catch (e) { fail('No se pudo cargar el album', e); }
+    } catch (e) { fail('No se pudo cargar el álbum', e); }
   });
 
   socket.on('tlSelect', async ({ songId } = {}) => {
@@ -257,7 +257,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       lobby.currentId = song.id;
       lobby.playback = { playing: true, position: 0, at: Date.now() };
       io.to(ROOM).emit('tlPlayback', playbackMsg());
-    } catch (e) { fail('No se pudo cargar la cancion', e); }
+    } catch (e) { fail('No se pudo cargar la canción', e); }
   });
 
   socket.on('tlPlayback', ({ playing, position } = {}) => {
@@ -303,6 +303,17 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     if (!isHost() || !lobby.songs[songId]) return;
     unplace(songId);
     lobby.trashed.push(songId);
+    io.to(ROOM).emit('tlTiers', tiersMsg(null));
+    if (songId === lobby.currentId) { // trashing the song that is playing stops it
+      lobby.currentId = null;
+      lobby.playback = { playing: false, position: 0, at: Date.now() };
+      io.to(ROOM).emit('tlPlayback', playbackMsg());
+    }
+  });
+
+  socket.on('tlRestore', ({ songId } = {}) => {
+    if (!isHost() || !lobby.trashed.includes(songId)) return;
+    lobby.trashed = lobby.trashed.filter(x => x !== songId);
     io.to(ROOM).emit('tlTiers', tiersMsg(null));
   });
 

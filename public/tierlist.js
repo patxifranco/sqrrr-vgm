@@ -44,7 +44,7 @@ function renderPlayers() {
   $('tl-stage').classList.toggle('is-host', isHost());
   const input = $('tl-search-input');
   input.disabled = !isHost();
-  input.placeholder = isHost() ? 'Buscar en khinsider (ej: minecraft)' : `Esperando a que ${tl.host || 'el host'} elija un album`;
+  input.placeholder = isHost() ? 'Buscar en khinsider (ej: minecraft)' : `Esperando a que ${tl.host || 'el host'} elija un álbum`;
   for (const u of Object.keys(cursors)) {
     if (!tl.players.some(p => p.username === u)) removeCursor(u);
   }
@@ -94,7 +94,7 @@ function renderCurrent() {
   document.querySelectorAll('.tl-drop .tl-card:not(.tl-vote)').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.currentId));
   renderTrayStates();
   const s = tl.songs[tl.currentId];
-  $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una cancion' : 'Esperando al host') : '');
+  $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una canción' : 'Esperando al host') : '');
   $('tl-info').textContent = s ? `Pista ${tl.songs.indexOf(s) + 1} de ${tl.songs.length} · ${audio.duration ? fmt(audio.duration) : s.duration}` : (tl.album ? `${tl.songs.length} pistas` : '');
   $('tl-play').disabled = !isHost() || !s;
   $('tl-next').disabled = !isHost() || !tl.album;
@@ -117,8 +117,8 @@ function renderVotes() {
 
 function renderResults({ results, gated }) {
   const empty = gated
-    ? 'khinsider pide login para buscar. Pega la URL del album (downloads.khinsider.com/game-soundtracks/album/...) o escribe su nombre exacto, ej: minecraft'
-    : 'Nada por aqui';
+    ? 'khinsider pide login para buscar. Pega la URL del álbum (downloads.khinsider.com/game-soundtracks/album/...) o escribe su nombre exacto, ej: minecraft'
+    : 'Nada por aquí';
   $('tl-search-results').innerHTML = results.length ? results.map(r =>
     `<div class="tl-result" data-slug="${esc(r.slug)}" title="${esc(r.title)} · ${esc(r.platform)}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta">${esc(r.type)} · ${esc(r.year)}</div></div>`
   ).join('') : `<div class="tl-empty">${empty}</div>`;
@@ -138,7 +138,7 @@ function openVerdict() {
   if (tl.currentId === null || isPlaced(tl.currentId)) return;
   renderVerdict();
   $('tl-verdict').classList.toggle('readonly', !isHost());
-  $('tl-verdict-hint').textContent = isHost() ? 'Elige donde va' : `Esperando el veredicto de ${tl.host}`;
+  $('tl-verdict-hint').innerHTML = `<b style="color:${colorOf(tl.host)}">${esc(tl.host || 'El host')}</b> elige el resultado final`;
   $('tl-verdict').hidden = false;
 }
 
@@ -169,6 +169,12 @@ function applyPlayback({ currentId, mp3, playback, serverNow }) {
   if (currentId !== tl.currentId) $('tl-verdict').hidden = true;
   tl.currentId = currentId;
   tl.playback = playback;
+  if (currentId === null) {
+    audio.pause(); audio.removeAttribute('src');
+    $('tl-clock').textContent = '00:00'; $('tl-seek').style.setProperty('--f', '0'); $('tl-seek').value = 0;
+    renderCurrent(); renderVotes();
+    return;
+  }
   if (mp3 && audio.src !== proxied(mp3)) audio.src = proxied(mp3);
   const t = expectedTime();
   if (Math.abs(audio.currentTime - t) > 0.4) audio.currentTime = t;
@@ -188,9 +194,9 @@ setInterval(() => {
 
 audio.addEventListener('timeupdate', () => {
   $('tl-clock').textContent = fmt(audio.currentTime);
-  const pct = audio.duration ? audio.currentTime / audio.duration * 100 : 0;
-  $('tl-seek').style.setProperty('--p', `${pct}%`);
-  if (!seekDragging) $('tl-seek').value = Math.round(pct * 10);
+  const f = audio.duration ? audio.currentTime / audio.duration : 0;
+  $('tl-seek').style.setProperty('--f', f.toFixed(4));
+  if (!seekDragging) $('tl-seek').value = Math.round(f * 1000);
 });
 audio.addEventListener('durationchange', renderCurrent);
 audio.addEventListener('ended', () => {
@@ -202,7 +208,7 @@ audio.addEventListener('ended', () => {
 // ==================== CURSORS ====================
 // The native cursor is hidden on the stage (see CSS); everyone, including you, is a Wii hand overlay.
 // Hands tilt with horizontal speed and settle back; cards being dragged swing like a pendulum from the grab point.
-const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.965, TILT_EASE = 0.18; // ponytail: cursor feel knobs
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.988, TILT_EASE = 0.1; // ponytail: cursor feel knobs
 
 function getCursor(key) {
   if (cursors[key]) return cursors[key];
@@ -339,7 +345,7 @@ window.addEventListener('pointermove', e => {
   const { row, trash } = dropTarget(e.clientX, e.clientY);
   document.querySelectorAll('.tl-row.hot').forEach(r => r !== row && r.classList.remove('hot'));
   if (row) row.classList.add('hot');
-  $('tl-trash').classList.toggle('hot', !!trash && drag.mode === 'move');
+  $('tl-trash').classList.toggle('hot', !!trash && isHost());
 });
 
 window.addEventListener('pointerup', e => {
@@ -361,7 +367,7 @@ window.addEventListener('pointerup', e => {
       const index = [...row.querySelectorAll('.tl-drop .tl-card:not(.tl-vote)')].filter(c => +c.dataset.id !== d.id && c.getBoundingClientRect().left + c.offsetWidth / 2 < e.clientX).length;
       socket.emit('tlVerdict', { songId: d.id, tier, index });
     }
-  } else if (trash && d.mode === 'move') {
+  } else if (trash && isHost()) {
     socket.emit('tlTrash', { songId: d.id });
   }
 });
@@ -419,7 +425,7 @@ socket.on('tlState', s => {
   } else {
     tl.currentId = null; tl.playback = s.playback; audio.pause(); audio.removeAttribute('src');
     $('tl-clock').textContent = '00:00';
-    $('tl-seek').style.setProperty('--p', '0%');
+    $('tl-seek').style.setProperty('--f', '0');
     $('tl-seek').value = 0;
     renderCurrent();
     renderVotes();
@@ -471,7 +477,7 @@ window.addEventListener('pagehide', () => {
   try { socket.emit('tlLeave'); navigator.sendBeacon('/tierlist/leave', socket.id); } catch {}
 });
 $('tl-cancel-btn').addEventListener('click', () => {
-  if (isHost() && confirm('Cancelar la tierlist y volver a buscar? Se borra todo para todos.')) socket.emit('tlReset');
+  if (isHost() && confirm('¿Resetear to\' toito? Se borra la tierlist para todos y se vuelve a buscar.')) socket.emit('tlReset');
 });
 function search() {
   const q = $('tl-search-input').value.trim();
@@ -490,8 +496,11 @@ $('tl-search-results').addEventListener('click', e => {
 $('tl-board').addEventListener('click', e => {
   if (suppressClick) { suppressClick = false; return; }
   const c = e.target.closest('.tl-card:not(.tl-vote)');
-  if (c && isHost() && +c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
+  if (!c || !isHost()) return;
+  if (c.classList.contains('trashed')) return socket.emit('tlRestore', { songId: +c.dataset.id });
+  if (+c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
 });
+$('tl-trash').addEventListener('click', () => { if (isHost() && tl.currentId !== null) socket.emit('tlTrash', { songId: tl.currentId }); });
 // bubble above the hovered card: song name, vote breakdown, or whose vote it is
 $('tl-board').addEventListener('mouseover', e => {
   const c = e.target.closest('.tl-card');
@@ -538,7 +547,7 @@ $('tl-seek').addEventListener('change', e => {
 function setVolume(v) {
   audio.volume = v / 100;
   $('tl-volume').value = v;
-  $('tl-volume').style.setProperty('--p', `${v}%`);
+  $('tl-volume').style.setProperty('--f', (v / 100).toFixed(3));
 }
 $('tl-volume').addEventListener('input', e => {
   setVolume(+e.target.value);

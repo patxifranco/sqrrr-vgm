@@ -81,6 +81,16 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlTrash', { songId: 5 }); const [t3] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   assert.deepEqual(t3.tiers.S, [1]); assert.deepEqual(t3.trashed, [5]); assert.equal(t3.placed, null);
 
+  // trashing the playing song stops playback; restore brings it back to the list
+  a.emit('tlSelect', { songId: 2 }); await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+  a.emit('tlTrash', { songId: 2 });
+  const [t4, p4] = await Promise.all([once(b, 'tlTiers'), once(b, 'tlPlayback')]);
+  assert.deepEqual(t4.trashed, [5, 2]); assert.equal(p4.currentId, null); assert.equal(p4.mp3, null); assert(!p4.playback.playing);
+  b.emit('tlRestore', { songId: 2 }); await silence(b, 'tlTiers');
+  a.emit('tlRestore', { songId: 2 }); const [t5] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
+  assert.deepEqual(t5.trashed, [5]);
+  a.emit('tlSelect', { songId: 1 }); await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+
   // late joiner gets the full picture
   const cc = connect(); await once(cc, 'connect'); await login(cc, 'Jesus');
   cc.emit('tlJoin'); const [s3] = await Promise.all([once(cc, 'tlState'), once(b, 'tlPlayers')]);
