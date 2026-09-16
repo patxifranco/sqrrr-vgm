@@ -1,9 +1,7 @@
 const mongoose = require('mongoose');
 
-// MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/sqrrr';
 
-// User Schema (must match server.js)
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -21,7 +19,6 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Record Schema
 const recordSchema = new mongoose.Schema({
   songKey: { type: String, required: true, unique: true },
   player: { type: String, required: true },
@@ -38,7 +35,6 @@ async function resetDatabase() {
     await mongoose.connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Reset all user stats
     const userResult = await User.updateMany({}, {
       $set: {
         'stats.gamesPlayed': 0,
@@ -51,7 +47,6 @@ async function resetDatabase() {
     });
     console.log(`Reset stats for ${userResult.modifiedCount} users`);
 
-    // Delete all records
     const recordResult = await Record.deleteMany({});
     console.log(`Deleted ${recordResult.deletedCount} song records`);
 

@@ -1,34 +1,13 @@
-# Dependencies
 node_modules/
-
-# yt-dlp binary (deploy.bat installs it on the server)
 bin/
-
-# Environment variables - contains secrets
 .env
 .env.local
 .env.*.local
-
-# Logs
 logs/
 *.log
 npm-debug.log*
-
-# OS files
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
-
-# Windows artifacts
 nul
-
-# Claude working directory
-.claude/
-
-# User data (optional - remove if you want to track)
-# chatHistory.json
-# users.json
-# records.json

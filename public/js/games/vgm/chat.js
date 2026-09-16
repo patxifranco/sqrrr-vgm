@@ -1,17 +1,5 @@
-/**
- * VGM Chat Module - MSN-style chat functionality
- *
- * Handles:
- * - Message rendering with emoticons and custom fonts
- * - File transfer progress display
- * - Correct guess celebrations
- * - System messages
- */
-
 import { escapeHtml } from '../../core/index.js';
 
-// ==================== EMOTICONS ====================
-// Map emoticon codes to image files - matches HTML popup codes exactly
 const emoticonMap = {
   ':)': 'regular_smile.png',
   ':D': 'teeth_smile.png',
@@ -28,7 +16,6 @@ const emoticonMap = {
   '(A)': 'angel_smile.png',
   '(6)': 'devil_smile.png',
   ':*': 'kiss.png',
-  // Custom numbered emoticons
   '(47)': '47_47.png',
   '(48)': '48_48.png',
   '(49)': '49_49.png',
@@ -41,9 +28,6 @@ const emoticonMap = {
   '(77)': '77_77.png'
 };
 
-/**
- * Replace emoticon codes with images in text
- */
 function replaceEmoticons(text) {
   let result = text;
   for (const [code, file] of Object.entries(emoticonMap)) {
@@ -54,12 +38,7 @@ function replaceEmoticons(text) {
   return result;
 }
 
-/**
- * Create wave text with staggered animation for each letter
- * Emoticons are preserved as static images (not animated)
- */
 function createWaveText(text) {
-  // First, find all emoticon positions and replace with placeholders
   const emoticons = [];
   let processedText = text;
 
@@ -75,13 +54,11 @@ function createWaveText(text) {
     }
   }
 
-  // Now apply wave to text, preserving placeholders
   let result = '';
   let letterIndex = 0;
   let i = 0;
 
   while (i < processedText.length) {
-    // Check for emoticon placeholder
     if (processedText.slice(i).startsWith('\x00EMO')) {
       const endIndex = processedText.indexOf('\x00', i + 4);
       const emoIndex = parseInt(processedText.slice(i + 4, endIndex));
@@ -102,25 +79,19 @@ function createWaveText(text) {
   return result;
 }
 
-// ==================== CHAT MANAGER CLASS ====================
 const PROGRESS_SEGMENT_COUNT = 20;
 const MAX_MESSAGES = 100;
 
 class VGMChat {
   constructor() {
-    /** @type {HTMLElement|null} */
     this.container = null;
 
-    /** @type {Function|null} Socket emit function */
     this.emit = null;
 
-    /** @type {Function|null} Audio play function */
     this.playSound = null;
 
-    /** @type {Object|null} Current user info */
     this.currentUser = null;
 
-    /** @type {Object} User font settings */
     this.fontSettings = {
       size: 13,
       color: '#000000',
@@ -128,57 +99,34 @@ class VGMChat {
       effect: 'none'
     };
 
-    /** @type {NodeList|null} Current file transfer segments */
     this._progressSegments = null;
 
-    /** @type {HTMLElement|null} Current file name element */
     this._fileNameElement = null;
 
-    /** @type {string|null} Current correct game */
     this._correctGame = null;
 
-    /** @type {string|null} Current correct song */
     this._correctSong = null;
   }
 
-  /**
-   * Initialize the chat module
-   * @param {Object} options
-   * @param {HTMLElement} options.container - Chat messages container
-   * @param {Function} options.emit - Socket emit function
-   * @param {Function} [options.playSound] - Audio play function
-   */
   init({ container, emit, playSound }) {
     this.container = container;
     this.emit = emit;
     this.playSound = playSound;
   }
 
-  /**
-   * Set current user for message styling
-   */
   setCurrentUser(user) {
     this.currentUser = user;
   }
 
-  /**
-   * Update font settings
-   */
   setFontSettings(settings) {
     Object.assign(this.fontSettings, settings);
   }
 
-  /**
-   * Set correct answer for file name reveal
-   */
   setCorrectAnswer(game, song) {
     this._correctGame = game;
     this._correctSong = song;
   }
 
-  /**
-   * Add a simple message (legacy format)
-   */
   addMessage(message, className = '') {
     const p = document.createElement('p');
     p.className = className;
@@ -188,9 +136,6 @@ class VGMChat {
     this.container.scrollTop = this.container.scrollHeight;
   }
 
-  /**
-   * Add MSN-style chat message
-   */
   addMsnMessage(sender, message, isSystem = false, options = {}) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
@@ -204,7 +149,6 @@ class VGMChat {
     } else if (options.isRainbow) {
       div.innerHTML = `<span class="msg-sender">${escapeHtml(sender)} dice:</span><br><span class="msg-text rainbow-text">${processMessage(message)}</span>`;
     } else {
-      // Use sender's font settings if provided, otherwise use defaults
       const fs = options.senderFontSettings || { size: 13, color: '#000000', nameColor: '#0000ff', effect: 'none' };
       const style = `font-size: ${fs.size}px; color: ${fs.color};`;
       const nameStyle = `color: ${fs.nameColor};`;
@@ -222,9 +166,6 @@ class VGMChat {
     this.container.scrollTop = this.container.scrollHeight;
   }
 
-  /**
-   * Add "Empezar VGM" button
-   */
   addStartButton() {
     const div = document.createElement('div');
     div.className = 'chat-msg start-vgm-container';
@@ -241,9 +182,6 @@ class VGMChat {
     });
   }
 
-  /**
-   * Add file transfer progress display
-   */
   addFileTransfer(initialProgress = 0) {
     const randomSize = Math.floor(Math.random() * 500) + 100;
 
@@ -276,9 +214,6 @@ class VGMChat {
     this.container.scrollTop = this.container.scrollHeight;
   }
 
-  /**
-   * Update file transfer progress
-   */
   updateProgress(percent) {
     if (!this._progressSegments) return;
     const filledCount = Math.min(PROGRESS_SEGMENT_COUNT, Math.round((percent / 100) * PROGRESS_SEGMENT_COUNT));
@@ -287,9 +222,6 @@ class VGMChat {
     });
   }
 
-  /**
-   * Reveal file name after answer
-   */
   revealFileName() {
     if (this._fileNameElement && this._correctGame && this._correctSong) {
       const formatPart = (str) => str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -298,9 +230,6 @@ class VGMChat {
     }
   }
 
-  /**
-   * Add correct guess message with celebration
-   */
   addCorrectGuess(playerName, timeInSeconds, isGame, sonicType = null) {
     const message = `${playerName} ha adivinado ${isGame ? 'el juego' : 'la canción'} en ${timeInSeconds.toFixed(2)} segundos`;
 
@@ -318,9 +247,6 @@ class VGMChat {
     this.container.scrollTop = this.container.scrollHeight;
   }
 
-  /**
-   * Add sonic bonus message
-   */
   addSonicBonus(playerName, sonicType) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
@@ -333,9 +259,6 @@ class VGMChat {
     if (this.playSound) this.playSound('supersonic', { volume: 0.8 });
   }
 
-  /**
-   * Clear all messages
-   */
   clear() {
     if (this.container) {
       this.container.innerHTML = '';
@@ -346,10 +269,6 @@ class VGMChat {
     this._correctSong = null;
   }
 
-  /**
-   * Trim messages to keep only the last MAX_MESSAGES
-   * Removes oldest messages when limit is exceeded
-   */
   _trimMessages() {
     if (!this.container) return;
 
@@ -359,8 +278,6 @@ class VGMChat {
   }
 }
 
-// Singleton instance
 export const vgmChat = new VGMChat();
 
-// Also export utilities for direct use
 export { replaceEmoticons, createWaveText, emoticonMap };

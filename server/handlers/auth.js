@@ -1,48 +1,19 @@
-/**
- * Authentication Socket Handlers
- *
- * Handles user login, logout, and session management.
- * Extracted from server.js for modularity.
- */
-
 const bcrypt = require('bcryptjs');
 const { log, warn } = require('../utils');
 const { invalidateCache: invalidateLeaderboardCache } = require('./leaderboards');
 
-// ==================== STATE ====================
-
 let _io = null;
 
-// ==================== INITIALIZATION ====================
-
-/**
- * Initialize auth module with io reference
- * @param {Object} io - Socket.IO server instance
- */
 function init(io) {
   _io = io;
 }
 
-// ==================== HELPER FUNCTIONS ====================
-
-/**
- * Find user by username (case-insensitive)
- * @param {Object} users - Users object
- * @param {string} username - Username to find
- * @returns {string|null} - User key or null
- */
 function findUserByUsername(users, username) {
   return Object.keys(users).find(
     key => key.toLowerCase() === username.toLowerCase()
   );
 }
 
-/**
- * Check if user is logged in and is admin
- * @param {Object} users - Users object
- * @param {string} loggedInUsername - Currently logged in username
- * @returns {{ success: boolean, error?: string }}
- */
 function requireAdmin(users, loggedInUsername) {
   if (!loggedInUsername || !users[loggedInUsername]) {
     return { success: false, error: 'Not logged in' };
@@ -53,11 +24,6 @@ function requireAdmin(users, loggedInUsername) {
   return { success: true };
 }
 
-/**
- * Build login success response
- * @param {Object} user - User object
- * @returns {Object} - Login result payload
- */
 function buildLoginSuccess(user) {
   return {
     success: true,
@@ -69,30 +35,20 @@ function buildLoginSuccess(user) {
   };
 }
 
-/**
- * Check and apply exploit penalty for specific users
- * @param {Object} socket - Socket instance
- * @param {Object} user - User object
- * @param {string} username - Username key
- * @param {Function} saveUser - Save user function
- */
 function checkExploitPenalty(socket, user, username, saveUser) {
-  // Special one-time penalty for Kelmi (stacking exploit)
   if (username.toUpperCase() === 'KELMI' && !user.exploitPenaltyApplied) {
     const currentCoins = user.coins ?? 0;
-    const penaltyAmount = currentCoins - 1000; // Leave him with 1000
+    const penaltyAmount = currentCoins - 1000;
 
     if (penaltyAmount > 0) {
       user.coins = 1000;
       user.exploitPenaltyApplied = true;
       saveUser(username);
 
-      // Invalidate leaderboard cache
       invalidateLeaderboardCache();
 
       log('AUTH', `[PENALTY] ${username} penalized for stacking exploit: ${penaltyAmount} deducted, ${user.coins} remaining`);
 
-      // Send penalty notice immediately after login
       socket.emit('loanCollectionNotice', {
         loansCollected: 0,
         totalPrincipal: penaltyAmount,
@@ -108,15 +64,6 @@ function checkExploitPenalty(socket, user, username, saveUser) {
   }
 }
 
-// ==================== SOCKET HANDLERS ====================
-
-/**
- * Setup authentication socket handlers
- * @param {Object} io - Socket.IO server instance
- * @param {Object} socket - Socket instance
- * @param {Object} context - Context with users, loggedInUsers, saveUser, etc.
- * @returns {Object} - Object with cleanup and helper functions
- */
 function setupHandlers(io, socket, context) {
   const {
     users,
@@ -127,11 +74,9 @@ function setupHandlers(io, socket, context) {
     TypingLeaderboard
   } = context;
 
-  // Per-socket state
   let loggedInUsername = null;
   let playerName = null;
 
-  // Latency measurement for sync debugging
   socket.on('ping', (clientTime, callback) => {
     const serverTime = Date.now();
     const latency = serverTime - clientTime;
@@ -143,7 +88,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Get user list for dropdown
   socket.on('getUserList', () => {
     const userList = {};
     for (const [username, data] of Object.entries(users)) {
@@ -154,7 +98,6 @@ function setupHandlers(io, socket, context) {
     socket.emit('userList', userList);
   });
 
-  // Simple login (dropdown selection, no password)
   socket.on('loginSimple', ({ username }) => {
     const userKey = findUserByUsername(users, username);
 
@@ -165,7 +108,6 @@ function setupHandlers(io, socket, context) {
 
     const user = users[userKey];
 
-    // Check if already logged in elsewhere and kick
     const existingSocket = Object.entries(loggedInUsers).find(([sid, uname]) => uname === userKey);
     if (existingSocket) {
       const [oldSocketId] = existingSocket;
@@ -180,11 +122,9 @@ function setupHandlers(io, socket, context) {
     socket.emit('loginResult', buildLoginSuccess(user));
     log('AUTH', `${user.username} logged in (simple)`);
 
-    // Check for exploit penalty after login
     checkExploitPenalty(socket, user, userKey, saveUser);
   });
 
-  // Login with password
   socket.on('login', ({ username, password }) => {
     const userKey = findUserByUsername(users, username);
 
@@ -195,13 +135,11 @@ function setupHandlers(io, socket, context) {
 
     const user = users[userKey];
 
-    // Verify password
     if (!bcrypt.compareSync(password, user.password)) {
       socket.emit('loginResult', { success: false, error: 'Incorrect password' });
       return;
     }
 
-    // Check if already logged in elsewhere and kick
     const existingSocket = Object.entries(loggedInUsers).find(([sid, uname]) => uname === userKey);
     if (existingSocket) {
       const [oldSocketId] = existingSocket;
@@ -216,11 +154,9 @@ function setupHandlers(io, socket, context) {
     socket.emit('loginResult', buildLoginSuccess(user));
     log('AUTH', `${user.username} logged in`);
 
-    // Check for exploit penalty after login
     checkExploitPenalty(socket, user, userKey, saveUser);
   });
 
-  // Change password
   socket.on('changePassword', ({ currentPassword, newPassword }) => {
     if (!loggedInUsername || !users[loggedInUsername]) {
       socket.emit('passwordChangeResult', { success: false, error: 'Not logged in' });
@@ -229,13 +165,11 @@ function setupHandlers(io, socket, context) {
 
     const user = users[loggedInUsername];
 
-    // Verify current password
     if (!bcrypt.compareSync(currentPassword, user.password)) {
       socket.emit('passwordChangeResult', { success: false, error: 'Current password is incorrect' });
       return;
     }
 
-    // Hash and save new password
     user.password = bcrypt.hashSync(newPassword, 10);
     saveUser(loggedInUsername);
 
@@ -243,7 +177,6 @@ function setupHandlers(io, socket, context) {
     log('AUTH', `${user.username} changed their password`);
   });
 
-  // Admin: Reset user password
   socket.on('adminResetPassword', ({ targetUsername, newPassword }) => {
     const adminCheck = requireAdmin(users, loggedInUsername);
     if (!adminCheck.success) {
@@ -257,7 +190,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Hash and save new password
     users[targetKey].password = bcrypt.hashSync(newPassword, 10);
     saveUser(targetKey);
 
@@ -265,7 +197,6 @@ function setupHandlers(io, socket, context) {
     log('AUTH', `Admin ${loggedInUsername} reset password for ${targetKey}`);
   });
 
-  // Admin: Get user list
   socket.on('adminGetUsers', () => {
     const adminCheck = requireAdmin(users, loggedInUsername);
     if (!adminCheck.success) {
@@ -285,7 +216,6 @@ function setupHandlers(io, socket, context) {
     socket.emit('adminUserList', { success: true, users: userList });
   });
 
-  // Admin: Delete typing leaderboard entry
   socket.on('adminDeleteTypingRecord', async ({ targetUsername }) => {
     const adminCheck = requireAdmin(users, loggedInUsername);
     if (!adminCheck.success) {
@@ -294,12 +224,10 @@ function setupHandlers(io, socket, context) {
     }
 
     try {
-      // Remove from MongoDB (skip in memory mode)
       if (!useInMemory && TypingLeaderboard) {
         await TypingLeaderboard.deleteOne({ username: targetUsername });
       }
 
-      // Remove from memory
       delete typingLeaderboard[targetUsername];
 
       socket.emit('adminDeleteTypingResult', { success: true, username: targetUsername });
@@ -309,7 +237,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Get user coins
   socket.on('user:getCoins', () => {
     if (!loggedInUsername || !users[loggedInUsername]) {
       socket.emit('user:coins', { coins: 0 });
@@ -320,7 +247,6 @@ function setupHandlers(io, socket, context) {
     socket.emit('user:coins', { coins: user.coins ?? 1000 });
   });
 
-  // Logout
   socket.on('logout', () => {
     if (loggedInUsername) {
       log('AUTH', `${loggedInUsername} logged out`);
@@ -331,7 +257,6 @@ function setupHandlers(io, socket, context) {
     socket.emit('logoutResult', { success: true });
   });
 
-  // Return object with helpers for other handlers
   return {
     getLoggedInUsername: () => loggedInUsername,
     setLoggedInUsername: (username) => { loggedInUsername = username; },

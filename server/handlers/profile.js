@@ -1,36 +1,13 @@
-/**
- * Profile Socket Handlers
- *
- * Handles user profile viewing and stats.
- * Extracted from server.js for modularity.
- */
-
-// ==================== STATE ====================
 
 let _io = null;
 
-// ==================== INITIALIZATION ====================
-
-/**
- * Initialize profile module with io reference
- * @param {Object} io - Socket.IO server instance
- */
 function init(io) {
   _io = io;
 }
 
-// ==================== SOCKET HANDLERS ====================
-
-/**
- * Setup profile socket handlers
- * @param {Object} io - Socket.IO server instance
- * @param {Object} socket - Socket instance
- * @param {Object} context - Context with users, records, getLoggedInUsername, etc.
- */
 function setupHandlers(io, socket, context) {
   const { users, records, getLoggedInUsername, getMostGuessedGame } = context;
 
-  // Get own profile data
   socket.on('getProfile', () => {
     const loggedInUsername = getLoggedInUsername();
 
@@ -41,7 +18,6 @@ function setupHandlers(io, socket, context) {
 
     const user = users[loggedInUsername];
 
-    // Get list of all usernames for admin section
     const allUsers = Object.keys(users);
 
     socket.emit('profileData', {
@@ -62,7 +38,6 @@ function setupHandlers(io, socket, context) {
     });
   });
 
-  // Get another player's profile
   socket.on('getPlayerProfile', ({ username }) => {
     if (!username || !users[username]) {
       socket.emit('playerProfileData', { user: null });
@@ -71,7 +46,6 @@ function setupHandlers(io, socket, context) {
 
     const user = users[username];
 
-    // Count records held by this player
     let recordsHeld = 0;
     for (const record of Object.values(records)) {
       if (record.player === username) {

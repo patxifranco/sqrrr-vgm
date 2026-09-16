@@ -1,18 +1,9 @@
-/**
- * Gamba Popup
- *
- * Opens the gamba menu inside VGM, Typing, Drawing games.
- * Lets user choose between Slots or Stacking game.
- * Creates movable window with focus/unfocus opacity.
- */
-
 import { SlotMachine } from '../games/slots/slot-machine.js';
 import { BlockStackingGame } from '../games/stacking/block-stacking.js';
 import { leaderboardUI } from './leaderboard.js';
 import { cardAlbumUI } from './card-album.js';
 import { shopUI } from './shop.js';
 
-// Facto quotes for the slots header
 const FACTO_QUOTES = [
   'Facto: Al apostar puedes ganar hasta 2000% y solo perder el 100%',
   'Facto: el 90% de los jugadores deja de apostar justo antes de ganar',
@@ -29,7 +20,7 @@ export class SlotPopup {
     this.popup = null;
     this.isDragging = false;
     this.factoIndex = 0;
-    this.currentGame = null; // 'menu' | 'slots' | 'stacking'
+    this.currentGame = null;
   }
 
   toggle() {
@@ -43,33 +34,26 @@ export class SlotPopup {
   open() {
     if (this.isOpen) return;
 
-    // Create popup window
     this.popup = document.createElement('div');
     this.popup.className = 'slot-popup-window window';
 
     document.body.appendChild(this.popup);
 
-    // Position in center of screen
     this.popup.style.position = 'fixed';
     this.popup.style.top = '50%';
     this.popup.style.left = '50%';
     this.popup.style.transform = 'translate(-50%, -50%)';
     this.popup.style.zIndex = '10000';
 
-    // Initialize card album and shop
     cardAlbumUI.init(this.socket);
     shopUI.init(this.socket);
 
-    // Show gamba menu first
     this._showMenu();
 
-    // Setup drag functionality
     this.setupDrag();
 
-    // Setup focus tracking
     this.setupFocus();
 
-    // Start focused
     this.setFocused(true);
 
     this.isOpen = true;
@@ -105,10 +89,8 @@ export class SlotPopup {
       </div>
     `;
 
-    // Close button
     this.popup.querySelector('.slot-popup-x-close').addEventListener('click', () => this.close());
 
-    // Game selection buttons
     this.popup.querySelectorAll('.gamba-menu-option').forEach(btn => {
       btn.addEventListener('click', () => {
         const game = btn.dataset.game;
@@ -147,7 +129,6 @@ export class SlotPopup {
       </div>
     `;
 
-    // Initialize slot machine
     const container = this.popup.querySelector('.slot-popup-container');
     this.slotMachine = new SlotMachine({
       container,
@@ -157,11 +138,9 @@ export class SlotPopup {
       onAlbumClick: () => shopUI.open()
     });
 
-    // Back button
     this.popup.querySelector('.gamba-back-btn').addEventListener('click', () => this._showMenu());
     this.popup.querySelector('.slot-popup-x-close').addEventListener('click', () => this.close());
 
-    // Facto quote cycling
     const factoText = this.popup.querySelector('.slots-facto-text');
     const factoArrow = this.popup.querySelector('.slots-facto-arrow');
     if (factoText && factoArrow) {
@@ -195,7 +174,6 @@ export class SlotPopup {
       </div>
     `;
 
-    // Initialize stacking game
     const container = this.popup.querySelector('.stacking-popup-container');
     this.stackingGame = new BlockStackingGame({
       container,
@@ -204,7 +182,6 @@ export class SlotPopup {
     });
     this.stackingGame.init();
 
-    // Back button
     this.popup.querySelector('.gamba-back-btn').addEventListener('click', () => {
       this._destroyCurrentGame();
       this._showMenu();
@@ -259,24 +236,20 @@ export class SlotPopup {
         this.popup.classList.remove('focused');
       }
     }
-    // Tell the slot machine whether it should respond to keyboard
     if (this.slotMachine) {
       this.slotMachine.setKeyboardEnabled(focused);
     }
-    // Tell the stacking game whether it should respond to keyboard
     if (this.stackingGame) {
       this.stackingGame.setKeyboardEnabled?.(focused);
     }
   }
 
   setupFocus() {
-    // Focus when clicking on the popup
     const onPopupClick = (e) => {
       this.setFocused(true);
       e.stopPropagation();
     };
 
-    // Unfocus when clicking outside
     const onDocumentClick = (e) => {
       if (this.popup && !this.popup.contains(e.target)) {
         this.setFocused(false);
@@ -295,15 +268,12 @@ export class SlotPopup {
   setupDrag() {
     let startX, startY, startLeft, startTop;
 
-    // Use event delegation on popup - titlebar gets replaced when switching views
     const onMouseDown = (e) => {
-      // Only drag from titlebar (not buttons)
       const titlebar = e.target.closest('.slot-popup-titlebar');
       if (!titlebar || e.target.closest('.title-bar-controls')) return;
 
       this.isDragging = true;
 
-      // Remove transform so we can use left/top positioning
       const rect = this.popup.getBoundingClientRect();
       this.popup.style.transform = 'none';
       this.popup.style.left = rect.left + 'px';
@@ -337,7 +307,6 @@ export class SlotPopup {
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
 
-    // Store cleanup function
     this._dragCleanup = () => {
       this.popup?.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mousemove', onMouseMove);
@@ -350,23 +319,15 @@ export class SlotPopup {
   }
 }
 
-/**
- * Create a slot popup toggle button
- * @param {HTMLElement} container - Container to add button to
- * @param {Object} socket - Socket.IO instance
- * @param {Object} options - Options { position: 'right' | 'left' }
- * @returns {SlotPopup} The popup instance
- */
 export function createSlotPopupButton(container, socket, options = {}) {
   const popup = new SlotPopup(socket);
 
   const button = document.createElement('button');
   button.className = 'slot-popup-btn';
   button.title = 'SQRRR Gamba';
-  button.innerHTML = '\u{1F3B0}'; // Slot machine emoji
+  button.innerHTML = '\u{1F3B0}';
   button.addEventListener('click', () => popup.toggle());
 
-  // Position on the right by default (unless explicitly positioned differently)
   if (options.position !== 'left' && options.position !== 'right-no-margin') {
     button.style.marginLeft = 'auto';
   }

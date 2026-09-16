@@ -1,16 +1,7 @@
-/**
- * SQRRR Stacking Game
- *
- * Arcade stacker gambling game entry point.
- */
-
 import { BlockStackingGame } from './js/games/stacking/block-stacking.js';
 import { socketManager } from './js/core/socket-manager.js';
 
-// Stacking game instance
 let stackingGame = null;
-
-// ==================== SCREEN NAVIGATION ====================
 
 function showScreen(screenId) {
   document.querySelectorAll('.screen-container').forEach(screen => {
@@ -22,8 +13,6 @@ function showScreen(screenId) {
     targetScreen.classList.add('active');
   }
 }
-
-// ==================== STACKING GAME INITIALIZATION ====================
 
 function initStackingGame() {
   const socket = socketManager.socket;
@@ -39,17 +28,14 @@ function initStackingGame() {
     return;
   }
 
-  // Destroy existing instance if any
   if (stackingGame) {
     stackingGame.destroy();
   }
 
-  // Create new stacking game
   stackingGame = new BlockStackingGame({
     container,
     socket,
     onCoinsUpdate: (coins) => {
-      // Update any global coin displays if needed
       document.querySelectorAll('.global-coins-display').forEach(el => {
         el.textContent = coins;
       });
@@ -60,10 +46,7 @@ function initStackingGame() {
   showScreen('stacking-screen');
 }
 
-// ==================== EVENT LISTENERS ====================
-
 document.addEventListener('DOMContentLoaded', () => {
-  // Back to hub button
   const backBtn = document.getElementById('stacking-back-btn');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
@@ -76,6 +59,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Export for use by slots.js gamba menu
 window.initStackingGame = initStackingGame;
 window.showStackingScreen = showScreen;

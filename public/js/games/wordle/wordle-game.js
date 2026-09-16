@@ -1,17 +1,6 @@
-/**
- * SQRRRDLE Game
- * Daily word guessing game with gaming-themed words
- * Progress syncs across devices via server
- * Supports 5 and 6 letter words
- */
-
-// Word list - famous game characters, games, and gaming terms only
 const WORDS = [
-  // Friends (Custom) - 5 letters
   'GARSI', 'KINUS', 'MOMIN', 'JESUS', 'KELMI', 'ASIER',
 
-  // ===== 5-LETTER WORDS =====
-  // LOL Champions (5 letters)
   'TEEMO', 'VAYNE', 'RIVEN', 'BRAND', 'NASUS', 'YASUO', 'SENNA', 'KAYLE',
   'TALON', 'DIANA', 'LEONA', 'JANNA', 'ANNIE', 'FIORA', 'JAYCE', 'AKALI',
   'KARMA', 'ZIGGS', 'QUINN', 'BRAUM', 'SYLAS', 'YUUMI', 'GAREN', 'VIEGO',
@@ -19,89 +8,66 @@ const WORDS = [
   'CORKI', 'AMUMU', 'GALIO', 'IVERN', 'MILIO', 'NEEKO', 'NILAH', 'RAKAN',
   'XAYAH', 'NASUS', 'VEIGAR',
 
-  // Overwatch (5 letters)
   'GENJI', 'HANZO', 'MERCY', 'ZARYA', 'SIGMA', 'LUCIO', 'ORISA', 'MOIRA',
 
-  // Nintendo (5 letters)
   'MARIO', 'LUIGI', 'ZELDA', 'KIRBY', 'WARIO', 'PEACH', 'YOSHI', 'SAMUS',
   'GANON', 'KOOPA', 'DAISY', 'DIDDY', 'FALCO', 'SHULK', 'MARTH', 'ROBIN',
   'CHROM', 'LUCAS', 'EPONA', 'MIDNA', 'MIPHA', 'DARUK', 'SIDON',
 
-  // Pokemon (5 letters)
   'PICHU', 'EEVEE', 'DITTO', 'ZUBAT', 'RALTS', 'SHINX', 'LUXIO', 'ZORUA',
   'LUGIA', 'ENTEI', 'ABSOL', 'ARBOK', 'EKANS', 'ABRA',
 
-  // Sonic (5 letters)
   'SONIC', 'TAILS', 'ROUGE', 'BLAZE', 'METAL', 'KNUCKLES',
 
-  // Final Fantasy (5 letters)
   'CLOUD', 'TIDUS', 'AURON', 'AERIS', 'SQUALL',
 
-  // Street Fighter / Fighting Games (5 letters)
   'GUILE', 'CAMMY', 'SAGAT', 'BISON', 'AKUMA', 'IBUKI', 'KARIN',
   'SONYA', 'ERMAC', 'ASUKA', 'ALISA', 'BRYAN',
 
-  // Other Famous Game Characters (5 letters)
   'SNAKE', 'CRASH', 'SPYRO', 'DANTE', 'STEVE', 'JOKER', 'ELLIE',
   'CHIEF', 'QUIET', 'SOLID', 'LARA',
 
-  // Game Names (5 letters)
   'HADES', 'BRAWL', 'SMASH', 'LIMBO', 'FORZA', 'GEARS', 'FABLE',
   'OKAMI', 'STRAY', 'TUNIC', 'BRAID', 'ISAAC', 'AMONG',
 
-  // Gaming Terms (5 letters)
   'COMBO', 'SPAWN', 'BONUS', 'LEVEL', 'ARMOR', 'SKILL', 'LOBBY',
   'KILLS', 'SWORD', 'MAGIC', 'HEALS', 'MAINS', 'PATCH', 'RANKS', 'STATS',
   'BUILD', 'FLASH', 'GHOST', 'SMITE', 'BARON', 'DRAKE', 'NEXUS', 'GAMER',
   'TOWER', 'CARRY', 'CHAMP', 'ITEMS', 'RESET',
 
-  // ===== 6-LETTER WORDS =====
-  // LOL Champions (6 letters)
   'THRESH', 'VIKTOR', 'ANIVIA', 'ZILEAN', 'SINGED', 'RAMMUS', 'GRAVES',
   'IRELIA', 'EZREAL', 'SORAKA', 'DRAVEN', 'RENGAR', 'RUMBLE', 'KENNEN',
   'TWITCH', 'VEIGAR', 'XERATH', 'KASSADIN',
 
-  // Overwatch (6 letters)
   'TRACER', 'REAPER', 'SOMBRA', 'PHARAH', 'TORBJORN',
 
-  // Nintendo (6 letters)
   'BOWSER', 'FALCON', 'TINGLE', 'URBOSA', 'REVALI', 'OLIMAR', 'PIKMIN',
   'BYLETH', 'MYTHRA', 'RIDLEY',
 
-  // Pokemon (6 letters)
   'GENGAR', 'MEWTWO', 'ARCEUS', 'VULPIX', 'MUDKIP', 'GASTLY', 'MEOWTH',
   'LAPRAS', 'CELEBI', 'KYOGRE', 'DIALGA', 'PALKIA', 'WOBBUFFET',
 
-  // Final Fantasy / JRPG (6 letters)
   'NOCTIS', 'SEPHIROTH',
 
-  // Street Fighter / Fighting Games (6 letters)
   'BLANKA', 'BALROG', 'SAKURA', 'RASHID', 'JOHNNY', 'KITANA', 'BARAKA',
   'KAZUYA', 'RAIDEN',
 
-  // Other Famous Game Characters (6 letters)
   'KRATOS', 'NATHAN', 'TREVOR', 'ARTHUR', 'GERALT', 'OCELOT', 'LIQUID',
   'MASTER', 'CORTANA',
 
-  // Game Names (6 letters)
   'PORTAL', 'TETRIS', 'SKYRIM', 'DIABLO', 'SEKIRO', 'HITMAN', 'ROBLOX',
   'RAYMAN', 'TEKKEN', 'LEAGUE', 'YAKUZA', 'HOLLOW', 'ROCKET', 'INSIDE',
   'TARKOV', 'ANTHEM',
 
-  // Gaming Terms (6 letters)
   'DAMAGE', 'SHIELD', 'HEALTH', 'MINION', 'CREEPS', 'RANKED', 'JUNGLE',
 ];
 
-// Filter to only valid 5 and 6 letter words
 const WORDS_CLEAN = WORDS.filter(w => w.length === 5 || w.length === 6);
 
-// Extended valid guesses - starts with WORDS_CLEAN, will be populated from txt files
 const VALID_GUESSES = new Set([...WORDS_CLEAN]);
 
-// Flag to track if dictionary is loaded
 let dictionaryLoaded = false;
 
-// Function to load valid words from txt files
 async function loadDictionary() {
   if (dictionaryLoaded) return;
 
@@ -130,9 +96,7 @@ async function loadDictionary() {
   }
 }
 
-// Legacy hardcoded words kept as fallback (subset for offline/quick start)
 const LEGACY_GUESSES = new Set([
-  // ===== 5-LETTER ENGLISH WORDS =====
   'ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT',
   'AFTER', 'AGAIN', 'AGENT', 'AGREE', 'AHEAD', 'ALARM', 'ALBUM', 'ALERT',
   'ALIKE', 'ALIVE', 'ALLOW', 'ALONE', 'ALONG', 'ALTER', 'AMONG', 'ANGER',
@@ -314,7 +278,6 @@ const LEGACY_GUESSES = new Set([
   'WORST', 'WORTH', 'WOULD', 'WOUND', 'WOVEN', 'WRAPS', 'WRATH', 'WRECK',
   'WREST', 'WRIST', 'WRITE', 'WRONG', 'WROTE', 'YACHT', 'YEARS', 'YEAST',
   'YIELD', 'YOUNG', 'YOURS', 'YOUTH', 'ZEBRA', 'ZESTY', 'ZONES',
-  // ===== 5-LETTER SPANISH WORDS =====
   'ABAJO', 'ABRIL', 'ABRIR', 'ACABA', 'ACASO', 'ACERO', 'ACIDO', 'ACTOS',
   'ACTOR', 'ADIOS', 'AFUERA', 'AGUAS', 'AHORA', 'AIRES', 'ALADO', 'ALEJA',
   'ALGUN', 'ALMAS', 'ALTAR', 'ALTOS', 'AMABA', 'AMADO', 'AMIGO', 'AMIGA',
@@ -392,7 +355,6 @@ const LEGACY_GUESSES = new Set([
   'VIRUS', 'VISA', 'VISTE', 'VISTA', 'VISTO', 'VITAL', 'VIVAS', 'VIVIR',
   'VIVOS', 'VOCAL', 'VOLAR', 'VOTAR', 'VOTOS', 'VUELA', 'YENDO', 'YUGOS',
   'ZANJA', 'ZAPAS', 'ZONAS', 'ZORRO',
-  // ===== 6-LETTER ENGLISH WORDS =====
   'ACCEPT', 'ACCESS', 'ACROSS', 'ACTION', 'ACTIVE', 'ACTUAL', 'ADVICE',
   'ADVISE', 'AFFAIR', 'AFFECT', 'AFFORD', 'AFRAID', 'AGENCY', 'AGENDA',
   'ALMOST', 'ALWAYS', 'AMOUNT', 'ANIMAL', 'ANNUAL', 'ANSWER', 'ANYONE',
@@ -555,7 +517,6 @@ const LEGACY_GUESSES = new Set([
   'WISHES', 'WITHIN', 'WIZARD', 'WOLVES', 'WONDER', 'WOODEN', 'WORKED',
   'WORKER', 'WORLDS', 'WORTHY', 'WOUNDS', 'WRITER', 'WRITES', 'YELLOW',
   'YIELDS', 'ZOMBIE', 'ZONING',
-  // ===== 6-LETTER SPANISH WORDS =====
   'ABARCA', 'ABIERTA', 'ABIERTO', 'ABOGAD', 'ABORTO', 'ABRAZO', 'ABUELO',
   'ABUELA', 'ACCESO', 'ACEITE', 'ACERCA', 'ACTIVA', 'ACTIVO', 'ACTRIZ',
   'ACUDIR', 'ACUERDO', 'ADEMAS', 'ADONDE', 'ADULTO', 'AGENDA', 'AGOSTO',
@@ -691,13 +652,11 @@ const LEGACY_GUESSES = new Set([
   'VUELTAS', 'VUELVEY', 'YACHTY', 'ZONASY'
 ]);
 
-// Add legacy guesses to VALID_GUESSES as fallback
 LEGACY_GUESSES.forEach(w => VALID_GUESSES.add(w));
 
 const MAX_ATTEMPTS = 6;
 const STATS_KEY = 'sqrrrdle_stats';
 
-// Bound event listener reference for cleanup
 let boundKeydownHandler = null;
 
 export class WordleGame {
@@ -713,9 +672,9 @@ export class WordleGame {
     this.currentRow = 0;
     this.currentTile = 0;
     this.guesses = [];
-    this.gameStatus = 'playing'; // playing, won, lost
+    this.gameStatus = 'playing';
     this.targetWord = '';
-    this.wordLength = 5; // Dynamic - set based on daily word
+    this.wordLength = 5;
     this.keyStates = {};
     this.serverSynced = false;
     this.socketHandlersSetup = false;
@@ -728,26 +687,22 @@ export class WordleGame {
     this.keyboard = document.getElementById('wordle-keyboard');
     this.messageEl = document.getElementById('wordle-message');
 
-    // Load dictionary from txt files (async, game works with fallback while loading)
     loadDictionary();
 
     this.targetWord = this.getDailyWord();
-    this.wordLength = this.targetWord.length; // Set word length dynamically
+    this.wordLength = this.targetWord.length;
     this.createBoard();
     this.setupKeyboard();
     this.setupSocketHandlers();
 
-    // Request state from server first (for cross-device sync)
     if (this.socket) {
       this.socket.emit('sqrrrdle:getState');
     } else {
-      // Fallback to local state if no socket
       this.loadLocalState();
     }
   }
 
   getSpainDate() {
-    // Always use Madrid timezone for consistent daily reset at midnight Spain time
     const spain = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
     const [year, month, day] = spain.split('-').map(Number);
     return { year, month, day };
@@ -759,10 +714,8 @@ export class WordleGame {
   }
 
   getDailyWord() {
-    // Deterministic selection based on date - word is never exposed
     const { year, month, day } = this.getSpainDate();
     let seed = year * 10000 + month * 100 + day;
-    // Scramble seed to avoid sequential word selection (must match server)
     seed = ((seed * 1103515245 + 12345) >>> 0) % 2147483648;
     const idx = seed % WORDS_CLEAN.length;
     return WORDS_CLEAN[idx];
@@ -770,7 +723,6 @@ export class WordleGame {
 
   createBoard() {
     this.board.innerHTML = '';
-    // Add class for 6-letter words to adjust tile size
     this.board.classList.toggle('six-letters', this.wordLength === 6);
 
     for (let r = 0; r < MAX_ATTEMPTS; r++) {
@@ -797,7 +749,6 @@ export class WordleGame {
       });
     });
 
-    // Also handle physical keyboard
     boundKeydownHandler = (e) => {
       if (e.key === 'Enter') {
         this.handleKey('ENTER');
@@ -856,19 +807,16 @@ export class WordleGame {
 
     const guess = this.getCurrentGuess();
 
-    // Check if word is valid (in our dictionary)
     if (!VALID_GUESSES.has(guess) && guess.length === this.wordLength) {
       this.showMessage('Palabra no válida', 'error');
       this.shakeRow(this.currentRow);
       return;
     }
 
-    // Submit to server for validation
     if (this.socket) {
       this.socket.emit('sqrrrdle:guess', { guess });
     }
 
-    // Also process locally for immediate feedback
     this.processGuess(guess);
   }
 
@@ -888,12 +836,10 @@ export class WordleGame {
   processGuess(guess) {
     this.guesses.push(guess);
 
-    // Calculate tile states
     const states = Array(this.wordLength).fill('absent');
     const targetLetters = this.targetWord.split('');
     const guessLetters = guess.split('');
 
-    // First pass: mark correct letters
     for (let i = 0; i < this.wordLength; i++) {
       if (guessLetters[i] === targetLetters[i]) {
         states[i] = 'correct';
@@ -902,7 +848,6 @@ export class WordleGame {
       }
     }
 
-    // Second pass: mark present letters
     for (let i = 0; i < this.wordLength; i++) {
       if (guessLetters[i] !== null) {
         const idx = targetLetters.indexOf(guessLetters[i]);
@@ -913,10 +858,8 @@ export class WordleGame {
       }
     }
 
-    // Animate reveal
     this.revealRow(this.currentRow, states, guess);
 
-    // Check win/loss after animation
     setTimeout(() => {
       if (guess === this.targetWord) {
         this.gameStatus = 'won';
@@ -954,7 +897,6 @@ export class WordleGame {
     const key = this.keyboard.querySelector(`.wordle-key[data-key="${letter}"]`);
     if (!key) return;
 
-    // Only upgrade state (absent -> present -> correct)
     const currentState = this.keyStates[letter];
     if (currentState === 'correct') return;
     if (currentState === 'present' && state === 'absent') return;
@@ -965,7 +907,6 @@ export class WordleGame {
   }
 
   resetKeyboard() {
-    // Clear all keyboard key states
     const keys = this.keyboard.querySelectorAll('.wordle-key');
     keys.forEach(key => {
       key.classList.remove('absent', 'present', 'correct');
@@ -974,12 +915,10 @@ export class WordleGame {
   }
 
   fillRowWithGuess(guess, rowIdx) {
-    // Calculate letter states for this guess
     const states = Array(this.wordLength).fill('absent');
     const targetLetters = this.targetWord.split('');
     const guessLetters = guess.split('');
 
-    // First pass: mark correct letters
     for (let i = 0; i < this.wordLength; i++) {
       if (guessLetters[i] === targetLetters[i]) {
         states[i] = 'correct';
@@ -988,7 +927,6 @@ export class WordleGame {
       }
     }
 
-    // Second pass: mark present letters
     for (let i = 0; i < this.wordLength; i++) {
       if (guessLetters[i] !== null) {
         const idx = targetLetters.indexOf(guessLetters[i]);
@@ -999,7 +937,6 @@ export class WordleGame {
       }
     }
 
-    // Fill in tiles (no animation for restore)
     for (let c = 0; c < this.wordLength; c++) {
       const tile = this.board.querySelector(
         `.wordle-tile[data-row="${rowIdx}"][data-col="${c}"]`
@@ -1030,31 +967,24 @@ export class WordleGame {
     }, 2500);
   }
 
-  // Socket handlers for server sync
   setupSocketHandlers() {
     if (!this.socket || this.socketHandlersSetup) return;
     this.socketHandlersSetup = true;
 
-    // Receive game state from server
     this.socket.on('sqrrrdle:state', (data) => {
       this.serverSynced = true;
 
-      // Server is the source of truth - always sync from server
-      // First, reset all local state
       this.guesses = [];
       this.gameStatus = data.status || 'playing';
       this.currentRow = 0;
       this.currentTile = 0;
       this.keyStates = {};
 
-      // Reset the board and keyboard visually
       this.board.innerHTML = '';
       this.createBoard();
       this.resetKeyboard();
 
-      // Restore guesses from server if any exist for today
       if (data.guesses && data.guesses.length > 0 && data.todayKey === this.todayKey) {
-        // Restore each guess to the board
         data.guesses.forEach((guess, rowIdx) => {
           this.guesses.push(guess);
           this.fillRowWithGuess(guess, rowIdx);
@@ -1062,11 +992,9 @@ export class WordleGame {
         this.currentRow = data.guesses.length;
       }
 
-      // Save synced state to localStorage as backup
       this.saveLocalState();
     });
 
-    // Receive guess result from server
     this.socket.on('sqrrrdle:guessResult', (data) => {
       if (data.payout > 0) {
         this.showMessage(`¡+${data.payout} $qr!`, 'success');
@@ -1078,7 +1006,6 @@ export class WordleGame {
       this.showMessage(data.message, 'error');
     });
 
-    // Handle coin updates from wordle:coins (legacy)
     this.socket.on('wordle:coins', (data) => {
       if (data.payout > 0) {
         this.showMessage(`¡+${data.payout} $qr!`, 'success');
@@ -1088,14 +1015,12 @@ export class WordleGame {
   }
 
   restoreFromServer(data) {
-    // Clear current board state and reset
     this.guesses = [];
     this.keyStates = {};
     this.board.innerHTML = '';
     this.createBoard();
     this.resetKeyboard();
 
-    // Restore each guess
     data.guesses.forEach((guess, rowIdx) => {
       this.guesses.push(guess);
       this.fillRowWithGuess(guess, rowIdx);
@@ -1104,7 +1029,6 @@ export class WordleGame {
     this.currentRow = data.guesses.length;
     this.currentTile = 0;
 
-    // Restore game status
     if (data.status === 'won') {
       this.gameStatus = 'won';
     } else if (data.status === 'lost') {
@@ -1114,7 +1038,6 @@ export class WordleGame {
     }
   }
 
-  // Local storage fallback
   saveLocalState() {
     const state = {
       guesses: this.guesses,
@@ -1130,13 +1053,11 @@ export class WordleGame {
       if (saved) {
         const state = JSON.parse(saved);
 
-        // Check if it's from today - if not, clear the old state
         if (state.todayKey !== this.todayKey) {
           localStorage.removeItem('sqrrrdle_state');
           return;
         }
 
-        // Restore if we have guesses from today
         if (state.guesses && state.guesses.length > 0) {
           this.restoreFromServer({
             guesses: state.guesses,
@@ -1150,7 +1071,6 @@ export class WordleGame {
     }
   }
 
-  // Stats tracking
   updateStats(won, attempts) {
     try {
       let stats = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
@@ -1159,7 +1079,6 @@ export class WordleGame {
       stats.currentStreak = won ? (stats.currentStreak || 0) + 1 : 0;
       stats.maxStreak = Math.max(stats.maxStreak || 0, stats.currentStreak);
 
-      // Track attempt distribution
       if (!stats.distribution) {
         stats.distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
       }
@@ -1173,7 +1092,6 @@ export class WordleGame {
     }
   }
 
-  // Show stats modal
   showStats() {
     let stats = {};
     try {
@@ -1185,7 +1103,6 @@ export class WordleGame {
     const modal = document.getElementById('wordle-stats-modal');
     if (!modal) return;
 
-    // Fill in stats
     document.getElementById('wordle-stat-played').textContent = stats.gamesPlayed || 0;
     const winPct = stats.gamesPlayed > 0
       ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
@@ -1194,7 +1111,6 @@ export class WordleGame {
     document.getElementById('wordle-stat-streak').textContent = stats.currentStreak || 0;
     document.getElementById('wordle-stat-maxstreak').textContent = stats.maxStreak || 0;
 
-    // Fill in distribution
     const distribution = stats.distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
     const maxCount = Math.max(...Object.values(distribution), 1);
 
@@ -1213,7 +1129,6 @@ export class WordleGame {
       barsContainer.appendChild(row);
     });
 
-    // Next word countdown - always show
     const nextWordEl = document.getElementById('wordle-next-word');
     const now = new Date();
     const tomorrow = new Date(now);
@@ -1227,7 +1142,6 @@ export class WordleGame {
     modal.classList.add('active');
   }
 
-  // Cleanup on destroy
   destroy() {
     if (boundKeydownHandler) {
       document.removeEventListener('keydown', boundKeydownHandler);

@@ -1,21 +1,9 @@
-/**
- * VGM Window Controls Module - Drag and resize functionality
- *
- * Handles:
- * - Window dragging via titlebar
- * - Window resizing from edges and corners
- * - Viewport constraints
- * - Focus management on tab switches
- */
-
-// Drag state
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let dragStartLeft = 0;
 let dragStartTop = 0;
 
-// Resize state
 let isResizing = false;
 let resizeEdge = null;
 let startX = 0;
@@ -25,11 +13,9 @@ let startHeight = 0;
 let startLeft = 0;
 let startTop = 0;
 
-// DOM references
 let gameWindow = null;
 let guessInput = null;
 
-// Listener references for cleanup
 const listeners = {
   dragMove: null,
   dragEnd: null,
@@ -39,9 +25,6 @@ const listeners = {
   visibilityChange: null
 };
 
-/**
- * Get cursor style for resize edge
- */
 function getCursorStyle(edge) {
   if (!edge) return 'default';
   const cursors = {
@@ -53,11 +36,6 @@ function getCursorStyle(edge) {
   return cursors[edge] || 'default';
 }
 
-/**
- * Initialize window controls
- * @param {Object} elements - DOM element references
- * @param {Object} documentListeners - Reference to cleanup listener storage
- */
 function init(elements, documentListeners) {
   gameWindow = elements.gameWindow;
   guessInput = elements.guessInput;
@@ -66,12 +44,10 @@ function init(elements, documentListeners) {
 
   if (!gameWindow) return;
 
-  // Setup drag functionality
   if (titlebar) {
     titlebar.style.cursor = 'move';
 
     titlebar.addEventListener('mousedown', (e) => {
-      // Don't drag if clicking on buttons, theme selector, or select elements
       if (e.target.closest('.title-bar-controls')) return;
       if (e.target.closest('.title-bar-theme')) return;
       if (e.target.closest('select')) return;
@@ -85,7 +61,6 @@ function init(elements, documentListeners) {
       dragStartLeft = rect.left;
       dragStartTop = rect.top;
 
-      // Switch to direct positioning
       gameWindow.style.setProperty('position', 'fixed', 'important');
       gameWindow.style.setProperty('left', rect.left + 'px', 'important');
       gameWindow.style.setProperty('top', rect.top + 'px', 'important');
@@ -94,7 +69,6 @@ function init(elements, documentListeners) {
     });
   }
 
-  // Drag move handler
   listeners.dragMove = (e) => {
     if (!isDragging) return;
 
@@ -104,12 +78,10 @@ function init(elements, documentListeners) {
     let newLeft = dragStartLeft + dx;
     let newTop = dragStartTop + dy;
 
-    // Get window dimensions
     const rect = gameWindow.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
 
-    // Constrain to viewport
     newLeft = Math.max(0, Math.min(window.innerWidth - width, newLeft));
     newTop = Math.max(0, Math.min(window.innerHeight - height, newTop));
 
@@ -119,7 +91,6 @@ function init(elements, documentListeners) {
   document.addEventListener('mousemove', listeners.dragMove);
   if (documentListeners) documentListeners.dragMove = listeners.dragMove;
 
-  // Drag end handler
   listeners.dragEnd = () => {
     if (isDragging) {
       isDragging = false;
@@ -129,7 +100,6 @@ function init(elements, documentListeners) {
   document.addEventListener('mouseup', listeners.dragEnd);
   if (documentListeners) documentListeners.dragEnd = listeners.dragEnd;
 
-  // Setup resize functionality
   resizeHandles.forEach(handle => {
     handle.addEventListener('mousedown', (e) => {
       if (!gameWindow) return;
@@ -152,7 +122,6 @@ function init(elements, documentListeners) {
     });
   });
 
-  // Resize move handler
   listeners.resizeMove = (e) => {
     if (!isResizing || !resizeEdge || !gameWindow) return;
 
@@ -164,11 +133,9 @@ function init(elements, documentListeners) {
     let newLeft = startLeft;
     let newTop = startTop;
 
-    // Handle east edge
     if (resizeEdge.indexOf('e') !== -1) {
       newWidth = Math.max(500, startWidth + dx);
     }
-    // Handle west edge
     if (resizeEdge.indexOf('w') !== -1) {
       const proposedWidth = startWidth - dx;
       if (proposedWidth >= 500) {
@@ -176,11 +143,9 @@ function init(elements, documentListeners) {
         newLeft = startLeft + dx;
       }
     }
-    // Handle south edge
     if (resizeEdge.indexOf('s') !== -1) {
       newHeight = Math.max(400, startHeight + dy);
     }
-    // Handle north edge
     if (resizeEdge.indexOf('n') !== -1) {
       const proposedHeight = startHeight - dy;
       if (proposedHeight >= 400) {
@@ -198,7 +163,6 @@ function init(elements, documentListeners) {
   document.addEventListener('mousemove', listeners.resizeMove);
   if (documentListeners) documentListeners.resizeMove = listeners.resizeMove;
 
-  // Resize end handler
   listeners.resizeEnd = () => {
     if (isResizing) {
       isResizing = false;
@@ -210,7 +174,6 @@ function init(elements, documentListeners) {
   document.addEventListener('mouseup', listeners.resizeEnd);
   if (documentListeners) documentListeners.resizeEnd = listeners.resizeEnd;
 
-  // Focus management - refocus input when window regains focus
   listeners.windowFocus = () => {
     if (guessInput && !guessInput.disabled) {
       guessInput.focus();
@@ -219,7 +182,6 @@ function init(elements, documentListeners) {
   window.addEventListener('focus', listeners.windowFocus);
   if (documentListeners) documentListeners.windowFocus = listeners.windowFocus;
 
-  // Handle visibility change
   listeners.visibilityChange = () => {
     if (!document.hidden && guessInput && !guessInput.disabled) {
       setTimeout(() => guessInput.focus(), 100);
@@ -229,9 +191,6 @@ function init(elements, documentListeners) {
   if (documentListeners) documentListeners.visibilityChange = listeners.visibilityChange;
 }
 
-/**
- * Cleanup all event listeners
- */
 function cleanup() {
   if (listeners.dragMove) {
     document.removeEventListener('mousemove', listeners.dragMove);

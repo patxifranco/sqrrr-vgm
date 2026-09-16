@@ -1,26 +1,10 @@
-/**
- * VGM UI Module - User interface helper functions
- *
- * Handles:
- * - Screen management
- * - Player list updates
- * - Hint display
- * - Round state reset
- * - Various UI updates
- */
-
 import { timerManager, socketManager, escapeHtml } from '../../core/index.js';
 
-// DOM references
 let elements = null;
 let state = null;
 let log = null;
 let cleanupCallback = null;
 
-/**
- * Initialize UI module with DOM elements and state
- * @param {Object} config - Configuration object
- */
 function init(config) {
   elements = config.elements;
   state = config.state;
@@ -28,14 +12,9 @@ function init(config) {
   cleanupCallback = config.cleanupDocumentListeners;
 }
 
-/**
- * Show a specific screen
- * @param {string} screenName - Screen to show
- */
 function showScreen(screenName) {
   const previousScreen = state.currentScreen;
 
-  // Cleanup when leaving game screens
   if (previousScreen === 'game' && screenName !== 'game') {
     timerManager.clearByPrefix('vgm-');
     socketManager.cleanupScope('vgm');
@@ -51,22 +30,16 @@ function showScreen(screenName) {
     timerManager.clear('vgm-reveal');
   }
 
-  // Hide all screens
   Object.values(elements.screens).forEach(screen => {
     if (screen) screen.classList.remove('active');
   });
 
-  // Show the requested screen
   if (elements.screens[screenName]) {
     elements.screens[screenName].classList.add('active');
     state.currentScreen = screenName;
   }
 }
 
-/**
- * Update player list display
- * @param {Array} players - Array of player objects
- */
 function updatePlayerList(players) {
   const updateList = (listElement) => {
     if (!listElement) return;
@@ -109,9 +82,6 @@ function updatePlayerList(players) {
   updateList(elements.gamePlayerList);
 }
 
-/**
- * Update hint display
- */
 function updateHintDisplay() {
   const { hintFill, hintPointsText, hintBtn } = elements;
   const hintPoints = state.hintPoints;
@@ -127,9 +97,6 @@ function updateHintDisplay() {
   }
 }
 
-/**
- * Reset round state
- */
 function resetRoundState() {
   state.guessedGame = false;
   state.usedHintThisRound = false;
@@ -139,7 +106,6 @@ function resetRoundState() {
   state.isExtended = false;
   state.fullAudioDuration = null;
 
-  // Restore volume if timer module is available
   if (state.restoreVolume) state.restoreVolume();
 
   const { gameStatus, gameStatusValue, gameStatusText, guessInput, guessBtn, voteExtendBtn, extendVotesDisplay, hintDisplay } = elements;
@@ -166,26 +132,15 @@ function resetRoundState() {
   updateHintDisplay();
 }
 
-/**
- * Set room code display
- * @param {string} code - Room code to display
- */
 function setRoomCode(code) {
   if (elements.roomCodeDisplay) elements.roomCodeDisplay.textContent = code;
   if (elements.gameRoomCode) elements.gameRoomCode.textContent = code;
 }
 
-/**
- * Set round number display
- * @param {number} num - Round number
- */
 function setRoundNumber(num) {
   if (elements.roundNumber) elements.roundNumber.textContent = num;
 }
 
-/**
- * Update game user info display
- */
 function updateGameUserInfo() {
   if (state.currentUser) {
     if (elements.gameUserAvatar) {
@@ -197,16 +152,10 @@ function updateGameUserInfo() {
   }
 }
 
-/**
- * Focus the guess input
- */
 function focusGuessInput() {
   if (elements.guessInput) elements.guessInput.focus();
 }
 
-/**
- * Show game guessed state
- */
 function showGameGuessed() {
   if (elements.gameStatus) elements.gameStatus.classList.add('guessed');
   if (elements.gameStatusValue) elements.gameStatusValue.textContent = 'Correcto';
@@ -217,9 +166,6 @@ function showGameGuessed() {
   }
 }
 
-/**
- * Shake the input (wrong guess)
- */
 function shakeInput() {
   if (elements.guessInput) {
     elements.guessInput.classList.add('shake');
@@ -227,28 +173,15 @@ function shakeInput() {
   }
 }
 
-/**
- * Disable hint button
- */
 function disableHint() {
   if (elements.hintBtn) elements.hintBtn.disabled = true;
   if (elements.hintDisplay) elements.hintDisplay.classList.remove('active');
 }
 
-/**
- * Set start button enabled state
- * @param {boolean} enabled
- */
 function setStartButtonEnabled(enabled) {
   if (elements.startRoundBtnGame) elements.startRoundBtnGame.disabled = !enabled;
 }
 
-/**
- * Play audio from URL
- * @param {string} src - Audio source URL
- * @param {number} startTime - Start time in seconds
- * @param {Function} onMetadataLoaded - Callback with duration in ms
- */
 function playAudio(src, startTime = 0, onMetadataLoaded = null) {
   if (!elements.audioPlayer) return;
 
@@ -264,9 +197,6 @@ function playAudio(src, startTime = 0, onMetadataLoaded = null) {
   elements.audioPlayer.play().catch(() => {});
 }
 
-/**
- * Shake the game screen (nudge effect)
- */
 function shakeScreen() {
   const gameScreen = elements.screens?.game;
   if (gameScreen) {
@@ -275,20 +205,12 @@ function shakeScreen() {
   }
 }
 
-/**
- * Update extend votes display
- * @param {number} votes - Current votes
- * @param {number} needed - Votes needed
- */
 function updateExtendVotes(votes, needed) {
   if (elements.extendVotesDisplay) {
     elements.extendVotesDisplay.textContent = `${votes}/${needed}`;
   }
 }
 
-/**
- * Disable extend vote button
- */
 function disableExtendVote() {
   if (elements.voteExtendBtn) {
     elements.voteExtendBtn.disabled = true;
@@ -296,10 +218,6 @@ function disableExtendVote() {
   }
 }
 
-/**
- * Update typing indicator
- * @param {Array} othersTyping - Array of usernames currently typing
- */
 function updateTypingIndicator(othersTyping) {
   const { typingIndicator, typingIndicatorText } = elements;
   if (!typingIndicator || !typingIndicatorText) return;
@@ -319,11 +237,6 @@ function updateTypingIndicator(othersTyping) {
   }
 }
 
-/**
- * Add message to lobby chat
- * @param {string} message - Message text
- * @param {boolean} isSystem - Is system message
- */
 function addLobbyChatMessage(message, isSystem = false) {
   if (!elements.chatMessages) return;
 

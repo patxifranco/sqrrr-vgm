@@ -1,4 +1,3 @@
-// ==================== CORE MODULES ====================
 import { timerManager, socketManager, audioManager, logger, escapeHtml } from './js/core/index.js';
 import { vgmChat } from './js/games/vgm/chat.js';
 import { vgmTimer } from './js/games/vgm/timer.js';
@@ -9,14 +8,10 @@ import { showCoinAnimation } from './js/ui/coin-animation.js';
 import { shopUI } from './js/ui/shop.js';
 import { cardAlbumUI } from './js/ui/card-album.js';
 
-// Initialize socket connection
 const socket = socketManager.connect();
 
-// Expose socket globally for other modules (cards.js, etc.)
 window._sqrrrSocket = socket;
 
-// ==================== EXPLOIT PENALTY POPUP ====================
-// Listen for penalty/loan collection notices (shown immediately after login)
 socket.on('loanCollectionNotice', (data) => {
   console.log('[PENALTY] Collection notice received:', data);
   showPenaltyPopup(data);
@@ -29,22 +24,18 @@ function showPenaltyPopup(data) {
   const titleBar = overlay.querySelector('.title-bar-text');
   const messageEl = overlay.querySelector('.loan-collection-message');
 
-  // Check if this is a penalty (exploit confiscation)
   if (data.isPenalty) {
     titleBar.textContent = 'Benjamin Netanyahu - Confiscación';
     messageEl.innerHTML = `<strong>${data.penaltyReason}</strong><br><br>Se te han confiscado <strong>${data.actualDeduction.toLocaleString()}</strong> $qr.<br><br>Nuevo balance: <strong>${data.newBalance.toLocaleString()}</strong> $qr`;
   } else {
-    // Normal loan collection
     titleBar.textContent = 'Benjamin Netanyahu - Cobro de Deudas';
     messageEl.innerHTML = `Israel ha deducido <span id="loan-total-due">${data.totalDue}</span>$ de tu cuenta con un 75%
       (<span id="loan-interest">${data.totalInterest}</span>$) de interes de tus <span id="loan-count">${data.loansCollected}</span> prestamos.`;
     document.getElementById('loan-new-balance').textContent = data.newBalance;
   }
 
-  // Show popup
   overlay.classList.add('active');
 
-  // Setup close handlers
   const closeBtn = document.getElementById('loan-collection-close');
   const okBtn = document.getElementById('loan-collection-ok');
   const closePopup = () => overlay.classList.remove('active');
@@ -53,11 +44,8 @@ function showPenaltyPopup(data) {
   okBtn?.addEventListener('click', closePopup, { once: true });
 }
 
-// Create scoped logger for VGM game
 const log = logger.scope('VGM');
 
-// ==================== SOUND EFFECTS ====================
-// Preload sound effects using audioManager
 audioManager.preload('notify', 'windows_xp_notify.mp3');
 audioManager.preload('logon', 'windows_xp_logon.mp3');
 audioManager.preload('logoff', 'windows_xp_logoff.mp3');
@@ -78,7 +66,6 @@ function playLogoffSound() {
   audioManager.play('logoff', { volume: 0.2 });
 }
 
-// Utility: Setup modal close handlers (close button + outside click)
 function setupModalClose(modal, closeBtn) {
   closeBtn.addEventListener('click', () => modal.classList.remove('active'));
   modal.addEventListener('click', (e) => {
@@ -88,7 +75,7 @@ function setupModalClose(modal, closeBtn) {
 
 let currentUser = null;
 let usersList = [];
-let lastPlayerCount = 0; // Track player count for notify sound
+let lastPlayerCount = 0;
 
 const screens = {
   login: document.getElementById('login-screen'),
@@ -97,7 +84,6 @@ const screens = {
   lobby: document.getElementById('lobby-screen'),
   game: document.getElementById('game-screen'),
   roundEnd: document.getElementById('round-end-screen'),
-  // Drawing game screens
   drawingLobby: document.getElementById('drawing-lobby-screen'),
   drawingGame: document.getElementById('drawing-game-screen'),
   drawingResults: document.getElementById('drawing-results-screen')
@@ -194,21 +180,17 @@ const voteExtendBtn = document.getElementById('vote-extend-btn');
 const extendVotesDisplay = document.getElementById('extend-votes');
 const nudgeBtn = document.getElementById('nudge-btn');
 
-// Nudge cooldown tracking (2 minutes = 120000ms)
 const NUDGE_COOLDOWN_MS = 2 * 60 * 1000;
 let nudgeCooldownUntil = 0;
 
-// Initialize audioManager with main player
 audioManager.setMainPlayer(audioPlayer);
 
-// Initialize VGM chat module
 vgmChat.init({
   container: gameMessages,
   emit: (event, data) => socket.emit(event, data),
   playSound: (name, opts) => audioManager.play(name, opts)
 });
 
-// Initialize VGM timer module
 vgmTimer.init({
   timerFill,
   timerText,
@@ -218,9 +200,7 @@ vgmTimer.init({
   onProgressUpdate: (percent) => updateProgressSegments(percent)
 });
 
-// Audio error handling (audioManager handles most cases, but keep custom message)
 audioPlayer.addEventListener('error', (e) => {
-  // Ignore errors when src is empty (happens when leaving game intentionally)
   if (!audioPlayer.src || audioPlayer.src === '' || audioPlayer.src === window.location.href) {
     return;
   }
@@ -261,8 +241,6 @@ let currentCorrectGame = null;
 let currentCorrectSong = null;
 let originalVolume = 1;
 
-// ==================== DOCUMENT EVENT LISTENER CLEANUP ====================
-// Store references to document/window listeners for cleanup when leaving game
 const documentListeners = {
   clickToPlay: null,
   fontPopupClose: null,
@@ -315,21 +293,12 @@ function cleanupDocumentListeners() {
   log.info('Cleaned up document event listeners');
 }
 
-// Format game/song name for file display: "game-name - song-name.mp3"
-function formatFileName(game, song) {
-  const formatPart = (str) => str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  return `${formatPart(game)} - ${formatPart(song)}.mp3`;
-}
-
-// Show a specific screen
 let currentScreen = null;
 
 function showScreen(screenName) {
   const previousScreen = currentScreen;
 
-  // Cleanup when leaving game screens
   if (previousScreen === 'game' && screenName !== 'game') {
-    // Leaving the VGM game screen
     timerManager.clearByPrefix('vgm-');
     socketManager.cleanupScope('vgm');
     cleanupDocumentListeners();
@@ -344,26 +313,21 @@ function showScreen(screenName) {
     timerManager.clear('vgm-reveal');
   }
 
-  // Hide all screens
   Object.values(screens).forEach(screen => {
     if (screen) screen.classList.remove('active');
   });
 
-  // Show the requested screen
   if (screens[screenName]) {
     screens[screenName].classList.add('active');
     currentScreen = screenName;
   }
 }
 
-// Update player list display
-// Player list state for DOM diffing
 const playerListCache = new WeakMap();
 
 function updatePlayerList(players, listElement) {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
-  // Get or create cache for this list element
   let cache = playerListCache.get(listElement);
   if (!cache) {
     cache = { elements: new Map(), order: [] };
@@ -372,7 +336,6 @@ function updatePlayerList(players, listElement) {
 
   const currentIds = new Set(sortedPlayers.map(p => p.id || p.username));
 
-  // Remove players no longer in list
   for (const [id, li] of cache.elements) {
     if (!currentIds.has(id)) {
       li.remove();
@@ -380,13 +343,11 @@ function updatePlayerList(players, listElement) {
     }
   }
 
-  // Update or create player elements
   sortedPlayers.forEach((player, index) => {
     const playerId = player.id || player.username;
     let li = cache.elements.get(playerId);
 
     if (!li) {
-      // Create new element
       li = document.createElement('li');
       li.style.cursor = 'pointer';
       li.addEventListener('click', () => {
@@ -395,7 +356,6 @@ function updatePlayerList(players, listElement) {
       cache.elements.set(playerId, li);
     }
 
-    // Update content if changed
     const avatarSrc = player.profilePicture || 'profiles/default.svg';
     const hasStreak = player.streak > 0;
     const streakHtml = hasStreak ? `<span class="player-streak">Racha: ${player.streak}</span>` : '';
@@ -407,20 +367,17 @@ function updatePlayerList(players, listElement) {
       ${streakHtml}
     `;
 
-    // Only update innerHTML if content changed
     if (li.dataset.content !== newContent) {
       li.innerHTML = newContent;
       li.dataset.content = newContent;
     }
 
-    // Update border style based on guess state
     const newBorder = player.guessedSong ? '3px solid #f39c12' :
                       player.guessedGame ? '3px solid #2ecc71' : '';
     if (li.style.borderLeft !== newBorder) {
       li.style.borderLeft = newBorder;
     }
 
-    // Ensure correct position in DOM
     const currentChild = listElement.children[index];
     if (currentChild !== li) {
       if (currentChild) {
@@ -432,10 +389,8 @@ function updatePlayerList(players, listElement) {
   });
 }
 
-// Expose showScreen globally for drawing.js and typing.js
 window.showScreen = showScreen;
 
-// Add chat/game message (legacy - for lobby chat)
 function addMessage(container, message, className = '') {
   const p = document.createElement('p');
   p.className = className;
@@ -443,9 +398,6 @@ function addMessage(container, message, className = '') {
   container.appendChild(p);
   container.scrollTop = container.scrollHeight;
 }
-
-// ==================== CHAT FUNCTIONS (delegated to vgmChat module) ====================
-// These functions maintain backward compatibility while delegating to the modular chat system
 
 function addMsnMessage(sender, message, isSystem = false, options = {}) {
   vgmChat.addMsnMessage(sender, message, isSystem, options);
@@ -471,7 +423,6 @@ function addSonicBonusMessage(playerName, sonicType) {
   vgmChat.addSonicBonus(playerName, sonicType);
 }
 
-// Sync font settings to chat module
 function syncFontSettings() {
   vgmChat.setFontSettings({
     size: parseInt(userFontSize),
@@ -481,10 +432,8 @@ function syncFontSettings() {
   });
 }
 
-// Initialize font settings from localStorage
 syncFontSettings();
 
-// Timer functions delegated to vgmTimer module
 function startTimer(duration) {
   roundStartTime = Date.now();
   roundDuration = duration;
@@ -496,7 +445,6 @@ function restoreVolume() {
   vgmTimer.restoreVolume();
 }
 
-// Update hint display
 function updateHintDisplay() {
   const percent = (hintPoints / 8) * 100;
   hintFill.style.width = percent + '%';
@@ -549,12 +497,10 @@ function clearPasswordFields() {
   if (adminSuccess) adminSuccess.textContent = '';
 }
 
-// Update login avatar and load saved password based on selection
 function updateLoginAvatar() {
   const selectedUser = userSelect.value;
   if (selectedUser && usersList[selectedUser]) {
     loginAvatar.src = usersList[selectedUser].profilePicture || 'profiles/default.svg';
-    // Load saved password for this user
     const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '{}');
     if (savedPasswords[selectedUser]) {
       loginPassword.value = savedPasswords[selectedUser];
@@ -608,7 +554,6 @@ loginBtn.addEventListener('click', () => {
 
   loginError.textContent = '';
 
-  // Save selection and password if remember me is checked
   if (rememberMe.checked) {
     localStorage.setItem('lastUser', selectedUser);
     const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '{}');
@@ -619,25 +564,20 @@ loginBtn.addEventListener('click', () => {
   socket.emit('login', { username: selectedUser, password: password });
 });
 
-// Login result
 socket.on('loginResult', ({ success, user, error }) => {
   if (success) {
     currentUser = user;
-    window.currentUser = user; // Expose for typing.js
-    window.currentUsername = user.username; // Expose for drawing.js
-    window.currentProfilePicture = user.profilePicture || 'profiles/default.svg'; // Expose for drawing.js
+    window.currentUser = user;
+    window.currentUsername = user.username;
+    window.currentProfilePicture = user.profilePicture || 'profiles/default.svg';
 
-    // Update chat module with current user
     vgmChat.setCurrentUser(user);
 
-    // Play logon sound
     playLogonSound();
 
-    // Update hub screen
     hubAvatar.src = user.profilePicture || 'profiles/default.svg';
     hubUsername.textContent = user.username;
 
-    // Update VGM menu screen
     userAvatar.src = user.profilePicture || 'profiles/default.svg';
     userDisplayName.textContent = user.username;
 
@@ -655,27 +595,20 @@ socket.on('loginResult', ({ success, user, error }) => {
   }
 });
 
-// Kicked (logged in from elsewhere)
 socket.on('kicked', ({ reason }) => {
   alert(reason);
   currentUser = null;
   showScreen('login');
 });
 
-// ==================== HUB NAVIGATION ====================
-
-// VGM button - go to VGM menu
 vgmBtn.addEventListener('click', () => {
-  // Join the single global VGM lobby directly
   socket.emit('joinVGM');
 });
 
-// Back to hub button
 backToHubBtn.addEventListener('click', () => {
   showScreen('hub');
 });
 
-// Hub logout
 hubLogoutBtn.addEventListener('click', () => {
   playLogoffSound();
   socket.emit('logout');
@@ -684,26 +617,20 @@ hubLogoutBtn.addEventListener('click', () => {
   showScreen('login');
 });
 
-// ==================== PROFILE MODAL ====================
-
-// Open profile popup from hub (same as in game)
 hubUserInfo.addEventListener('click', () => {
   if (currentUser) {
     socket.emit('getPlayerProfile', { username: currentUser.username });
   }
 });
 
-// Open profile modal from VGM menu
 userInfoBtn.addEventListener('click', () => {
   socket.emit('getProfile');
   profileModal.classList.add('active');
   clearPasswordFields();
 });
 
-// Setup modal close handlers
 setupModalClose(profileModal, profileClose);
 
-// ==================== PLAYER PROFILE POPUP ====================
 setupModalClose(playerProfilePopup, popupProfileClose);
 
 socket.on('playerProfileData', ({ user, recordsHeld }) => {
@@ -733,7 +660,6 @@ socket.on('playerProfileData', ({ user, recordsHeld }) => {
   playerProfilePopup.classList.add('active');
 });
 
-// Profile data received
 socket.on('profileData', ({ user, users }) => {
   profileAvatar.src = user.profilePicture || 'profiles/default.svg';
   profileUsername.textContent = user.username;
@@ -746,7 +672,6 @@ socket.on('profileData', ({ user, users }) => {
   statTotalPoints.textContent = stats.totalPoints || 0;
   statHintsUsed.textContent = stats.hintsUsed || 0;
 
-  // Most guessed game
   const gameHistory = stats.gameHistory || {};
   let maxGame = null;
   let maxCount = 0;
@@ -763,7 +688,6 @@ socket.on('profileData', ({ user, users }) => {
     mostGuessedGame.textContent = 'No games guessed yet';
   }
 
-  // Admin section
   if (user.isAdmin && users) {
     adminSection.style.display = 'block';
     adminUserSelect.innerHTML = '<option value="">Select user...</option>';
@@ -817,7 +741,6 @@ socket.on('passwordChangeResult', ({ success, error }) => {
   }
 });
 
-// Admin reset password
 adminResetBtn.addEventListener('click', () => {
   const targetUser = adminUserSelect.value;
   const newPwd = adminNewPassword.value;
@@ -838,7 +761,6 @@ adminResetBtn.addEventListener('click', () => {
   socket.emit('adminResetPassword', { targetUsername: targetUser, newPassword: newPwd });
 });
 
-// Admin reset result
 socket.on('adminResetResult', ({ success, error }) => {
   if (success) {
     adminSuccess.textContent = 'Password reset successfully';
@@ -849,9 +771,6 @@ socket.on('adminResetResult', ({ success, error }) => {
   }
 });
 
-// ==================== VGM LOBBY EVENT LISTENERS ====================
-
-// Create lobby
 createLobbyBtn.addEventListener('click', () => {
   if (!currentUser) {
     alert('Please log in first');
@@ -860,7 +779,6 @@ createLobbyBtn.addEventListener('click', () => {
   socket.emit('createLobby', currentUser.username);
 });
 
-// Join lobby
 joinLobbyBtn.addEventListener('click', () => {
   if (!currentUser) {
     alert('Please log in first');
@@ -877,33 +795,28 @@ joinLobbyBtn.addEventListener('click', () => {
   socket.emit('joinLobby', { roomCode, name: currentUser.username });
 });
 
-// Allow Enter key to join
 roomCodeInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') joinLobbyBtn.click();
 });
 
-// Start round
 startGameBtn.addEventListener('click', () => {
   socket.emit('startRound');
 });
 
-// Start round from game screen toolbar
 if (startRoundBtnGame) {
   startRoundBtnGame.addEventListener('click', () => {
     socket.emit('startRound');
   });
 }
 
-// Back to menu from game screen
 if (backToHubGame) {
   backToHubGame.addEventListener('click', () => {
-    // Stop audio and reset game state
     audioPlayer.pause();
     audioPlayer.currentTime = 0;
     audioPlayer.src = '';
-    timerManager.clearByPrefix('vgm-'); // Clear all VGM timers
+    timerManager.clearByPrefix('vgm-');
     roundActive = false;
-    gameMessages.innerHTML = ''; // Clear chat
+    gameMessages.innerHTML = '';
 
     socket.emit('leaveRoom');
     currentRoom = null;
@@ -911,12 +824,10 @@ if (backToHubGame) {
   });
 }
 
-// Request hint
 function requestHint() {
   socket.emit('requestHint');
 }
 
-// Submit guess
 function submitGuess() {
   const guess = guessInput.value.trim();
   if (guess) {
@@ -926,16 +837,14 @@ function submitGuess() {
       return;
     }
 
-    // Add to message history
     if (messageHistory.length === 0 || messageHistory[0] !== guess) {
       messageHistory.unshift(guess);
       if (messageHistory.length > MAX_MESSAGE_HISTORY) {
         messageHistory.pop();
       }
     }
-    messageHistoryIndex = -1; // Reset history index
+    messageHistoryIndex = -1;
 
-    // Don't show locally - server broadcasts to all including sender
     socket.emit('guess', guess);
     guessInput.value = '';
   }
@@ -947,17 +856,14 @@ guessInput.addEventListener('keydown', (e) => {
     e.preventDefault();
     submitGuess();
   }
-  // UP arrow or TAB to cycle through message history
   else if ((e.key === 'ArrowUp' || e.key === 'Tab') && messageHistory.length > 0) {
     e.preventDefault();
     if (messageHistoryIndex < messageHistory.length - 1) {
       messageHistoryIndex++;
       guessInput.value = messageHistory[messageHistoryIndex];
-      // Move cursor to end
       guessInput.setSelectionRange(guessInput.value.length, guessInput.value.length);
     }
   }
-  // DOWN arrow to go back in history
   else if (e.key === 'ArrowDown' && messageHistory.length > 0) {
     e.preventDefault();
     if (messageHistoryIndex > 0) {
@@ -992,7 +898,6 @@ if (volumeSlider) {
   });
 }
 
-// Nudge button with 2-minute cooldown
 if (nudgeBtn) {
   nudgeBtn.addEventListener('click', () => {
     const now = Date.now();
@@ -1002,29 +907,23 @@ if (nudgeBtn) {
     socket.emit('sendNudge');
     nudgeCooldownUntil = now + NUDGE_COOLDOWN_MS;
     nudgeBtn.disabled = true;
-    // Re-enable after cooldown
     setTimeout(() => {
       nudgeBtn.disabled = false;
     }, NUDGE_COOLDOWN_MS);
   });
 }
 
-// Next round
 nextRoundBtn.addEventListener('click', () => {
   resetRoundState();
   showScreen('game');
   socket.emit('startRound');
 });
 
-// Back to lobby
 backToLobbyBtn.addEventListener('click', () => {
   resetRoundState();
   showScreen('lobby');
 });
 
-// ==================== SOCKET EVENTS ====================
-
-// Lobby created
 socketManager.on('lobbyCreated', ({ roomCode, playerName }) => {
   currentRoom = roomCode;
   roomCodeDisplay.textContent = roomCode;
@@ -1032,7 +931,6 @@ socketManager.on('lobbyCreated', ({ roomCode, playerName }) => {
   showScreen('lobby');
 }, 'vgm');
 
-// Lobby joined
 socketManager.on('lobbyJoined', ({ roomCode, playerName }) => {
   currentRoom = roomCode;
   roomCodeDisplay.textContent = roomCode;
@@ -1040,44 +938,35 @@ socketManager.on('lobbyJoined', ({ roomCode, playerName }) => {
   showScreen('lobby');
 }, 'vgm');
 
-// VGM joined - go straight to game screen (single global lobby)
 socketManager.on('vgmJoined', ({ roomCode, playerName, roundActive: isRoundActive, autoPlayActive: isAutoPlayActive, roundNumber: currentRoundNum, currentAudioToken, roundStartTime: serverRoundStartTime, roundDuration: serverRoundDuration }) => {
   currentRoom = roomCode;
   gameRoomCode.textContent = 'VGM';
-  lastPlayerCount = 0; // Reset so we don't trigger notify on first update
+  lastPlayerCount = 0;
 
-  // Update user info on game screen
   if (currentUser) {
     gameUserAvatar.src = currentUser.profilePicture || 'profiles/default.svg';
     gameUserName.textContent = currentUser.username;
   }
 
-  // Reset state for new join
   resetRoundState();
 
-  // Go straight to game screen
   showScreen('game');
 
-  // If round is active, sync with it
   if (isRoundActive && currentAudioToken) {
     roundActive = true;
     roundNumber.textContent = currentRoundNum;
 
-    // Calculate elapsed time and remaining duration
     const elapsed = Date.now() - serverRoundStartTime;
     const remaining = serverRoundDuration - elapsed;
 
     if (remaining > 0) {
-      // Calculate initial progress percentage for file transfer bar
       const initialProgress = (elapsed / serverRoundDuration) * 100;
 
-      // Start playing the current song from the right position
       addFileTransfer(initialProgress);
       audioPlayer.src = `/audio-stream/${currentAudioToken}`;
-      audioPlayer.currentTime = elapsed / 1000; // Sync to current position
+      audioPlayer.currentTime = elapsed / 1000;
       audioPlayer.play().catch(() => {});
 
-      // Start timer with remaining time
       roundStartTime = serverRoundStartTime;
       roundDuration = serverRoundDuration;
       startTimer(serverRoundDuration);
@@ -1085,19 +974,14 @@ socketManager.on('vgmJoined', ({ roomCode, playerName, roundActive: isRoundActiv
       addMsnMessage('SQRRR', 'Te has unido a una ronda en progreso', false);
     }
   } else if (isAutoPlayActive) {
-    // Game is in progress but between rounds - don't show start button
     addMsnMessage('SQRRR', 'Bienvenido a SQRRR VGM. Esperando siguiente ronda...', false);
   } else {
-    // Game hasn't started - show welcome message and start button after chat history loads
     addMsnMessage('SQRRR', 'Bienvenido a SQRRR VGM', false);
-    // Set flag to show start button after chat history
     window.showStartButtonAfterHistory = true;
   }
 }, 'vgm');
 
-// Player list update
 socketManager.on('playerList', (players) => {
-  // Play notify sound when a new player joins (count increased)
   if (players.length > lastPlayerCount && lastPlayerCount > 0) {
     playNotifySound();
   }
@@ -1113,49 +997,41 @@ socketManager.on('playerList', (players) => {
   }
 }, 'vgm');
 
-// Chat message
 socketManager.on('chatMessage', ({ system, message }) => {
   addMessage(chatMessages, message, system ? 'system-message' : '');
 }, 'vgm');
 
-// Round start
 socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   log.info(`Round ${num} starting`);
   resetRoundState();
-  roundActive = true; // Mark round as active
+  roundActive = true;
   roundNumber.textContent = num;
   showScreen('game');
 
-  // Disable start button during round
   if (startRoundBtnGame) startRoundBtnGame.disabled = true;
 
-  // Update MSN chat user info
   if (currentUser) {
     gameUserAvatar.src = currentUser.profilePicture || 'profiles/default.svg';
     gameUserName.textContent = currentUser.username;
   }
 
-  // Don't clear chat - keep history! Just add file transfer
   addFileTransfer();
 
   audioPlayer.src = `/audio-stream/${audioToken}`;
   audioPlayer.currentTime = 0;
 
-  // When audio metadata loads, send the actual file duration to server
   audioPlayer.onloadedmetadata = () => {
     const audioDurationMs = audioPlayer.duration * 1000;
     socket.emit('reportAudioDuration', { duration: audioDurationMs });
   };
 
-  audioManager.resume(); // Use audioManager for better error handling
+  audioManager.resume();
 
   startTimer(duration);
   guessInput.focus();
 }, 'vgm');
 
-// Click to play audio - only during active rounds
 documentListeners.clickToPlay = (e) => {
-  // Only allow click-to-play during active round and not when clicking buttons/inputs
   if (roundActive && audioPlayer.paused && audioPlayer.src &&
       !e.target.closest('button') && !e.target.closest('input') && !e.target.closest('textarea')) {
     audioPlayer.play().catch(() => {});
@@ -1163,7 +1039,6 @@ documentListeners.clickToPlay = (e) => {
 };
 document.addEventListener('click', documentListeners.clickToPlay);
 
-// Guess result
 socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
   if (correct) {
     const time = timeElapsed || ((Date.now() - roundStartTime) / 1000);
@@ -1182,7 +1057,6 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
       if (sonicType) {
         addSonicBonusMessage(currentUser.username, sonicType);
       } else {
-        // Play correct sound only when NOT in sonic time window
         audioManager.play('correct', { volume: 0.8 });
       }
     }
@@ -1195,16 +1069,10 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
   }, 500);
 }, 'vgm');
 
-// Round complete - everyone guessed, but keep input enabled for chat
 socketManager.on('roundComplete', () => {
-  // Don't disable input - players should always be able to chat
-  // guessInput.disabled = true;
-  // guessBtn.disabled = true;
 }, 'vgm');
 
-// Someone guessed correctly
 socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) => {
-  // Only show if it's not the current user (they already see their own message)
   if (currentUser && playerName !== currentUser.username) {
     const time = timeElapsed || ((Date.now() - roundStartTime) / 1000);
     addCorrectGuessMessage(playerName, time, type === 'game', sonicType);
@@ -1215,58 +1083,45 @@ socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) 
   }
 }, 'vgm');
 
-// Hint result - show only as SQRRR chat message, not popup
 socketManager.on('hintResult', ({ success, hint, hintPoints: newPoints, reason }) => {
   if (success) {
     hintPoints = newPoints;
     usedHintThisRound = true;
     updateHintDisplay();
-    // Only show hint in chat as SQRRR message, no popup
     addMsnMessage('SQRRR', `Pista: ${hint}`, false);
   } else {
     addMsnMessage('SQRRR', reason, false);
   }
 }, 'vgm');
 
-// Someone used a hint
 socketManager.on('playerUsedHint', ({ playerName }) => {
   if (currentUser && playerName !== currentUser.username) {
     addMsnMessage('', `${playerName} used a hint`, true);
   }
 }, 'vgm');
 
-// Round end - stay on game screen, sqrrr will send messages
 socketManager.on('roundEnd', ({ correctGame, correctSong, players }) => {
   log.info('Round ended', { correctGame, correctSong });
   vgmTimer.stop();
-  roundActive = false; // Mark round as inactive
+  roundActive = false;
   audioManager.pause();
 
-  // Fill progress bar to 100% when round ends
   updateProgressSegments(100);
 
-  // Store correct game/song for file name reveal
   currentCorrectGame = correctGame;
   currentCorrectSong = correctSong;
   vgmChat.setCorrectAnswer(correctGame, correctSong);
 
-  // Don't show round end screen anymore - stay on game screen
-  // sqrrr will send messages via sqrrrMessage event
   updatePlayerList(players, gamePlayerList);
 
-  // Input stays enabled - players can always chat
-  // Just disable guessing-specific buttons
   hintBtn.disabled = true;
   if (gameStatusText) gameStatusText.textContent = '';
 
-  // Re-enable start button so players can start next round
   if (startRoundBtnGame) startRoundBtnGame.disabled = false;
 }, 'vgm');
 
-// Handle SQRRR messages (auto-play countdown)
 socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   if (isRecord) {
-    // Gold scrolling effect for records
     const div = document.createElement('div');
     div.className = 'chat-msg';
     div.innerHTML = `<span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text record-text">${message}</span>`;
@@ -1281,13 +1136,11 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   }
 }, 'vgm');
 
-// Handle coins earned (from correct guesses)
 socketManager.on('coinsEarned', ({ amount, total }) => {
   showCoinAnimation(amount);
   log.info(`Earned ${amount} $qr, total: ${total}`);
 }, 'vgm');
 
-// Handle edit-based countdown
 socketManager.on('sqrrrCountdown', ({ id, message }) => {
   let countdownDiv = countdownMessages[id];
 
@@ -1304,13 +1157,10 @@ socketManager.on('sqrrrCountdown', ({ id, message }) => {
   gameMessages.scrollTop = gameMessages.scrollHeight;
 }, 'vgm');
 
-// Handle chat messages from all players (including self - server broadcasts to all)
 socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings }) => {
-  // Pass sender's font settings so everyone sees their chosen style
   addMsnMessage(sender, message, false, { senderFontSettings: fontSettings });
 }, 'vgm');
 
-// Handle nudge received - shake screen and play sound
 socketManager.on('nudgeReceived', () => {
   audioManager.play('nudge', { volume: 0.1 });
   const gameScreen = document.getElementById('game-screen');
@@ -1322,7 +1172,6 @@ socketManager.on('nudgeReceived', () => {
   }
 }, 'vgm');
 
-// Handle close guess (private message to user with percentage)
 socketManager.on('closeGuess', ({ guess, type, percentage }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
@@ -1330,11 +1179,9 @@ socketManager.on('closeGuess', ({ guess, type, percentage }) => {
   gameMessages.appendChild(div);
   gameMessages.scrollTop = gameMessages.scrollHeight;
 
-  // Play close guess sound
   audioManager.play('close', { volume: 0.8 });
 }, 'vgm');
 
-// Handle easter eggs
 socketManager.on('easterEgg', ({ type, message }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
@@ -1343,7 +1190,6 @@ socketManager.on('easterEgg', ({ type, message }) => {
   gameMessages.scrollTop = gameMessages.scrollHeight;
 }, 'vgm');
 
-// Handle new record - play supersonic sound
 socketManager.on('newRecord', ({ player, time, previousPlayer, previousTime }) => {
   audioManager.play('supersonic', { volume: 0.8 });
 }, 'vgm');
@@ -1379,22 +1225,18 @@ socketManager.on('chatHistory', (history) => {
     }
   });
 
-  // Show start button after chat history loads (if flag was set)
   if (window.showStartButtonAfterHistory) {
     window.showStartButtonAfterHistory = false;
     addStartVGMButton();
   }
 }, 'vgm');
 
-// Error (global - stays with socket.on)
 socket.on('error', (message) => {
   alert(message);
 });
 
-// Connection status
 socket.on('connect', () => {
   log.info('Connected to server');
-  // Request user list on reconnect
   socket.emit('getUserList');
 });
 
@@ -1405,8 +1247,6 @@ socket.on('disconnect', () => {
   showScreen('login');
 });
 
-// ==================== FONT CUSTOMIZATION ====================
-
 const fontBtn = document.getElementById('font-btn');
 const fontPopup = document.getElementById('font-popup');
 const fontSizeSelect = document.getElementById('font-size-select');
@@ -1415,13 +1255,11 @@ const nameColorInput = document.getElementById('name-color-input');
 const fontEffectSelect = document.getElementById('font-effect-select');
 const fontSaveBtn = document.getElementById('font-save-btn');
 
-// Load saved preferences
 if (fontSizeSelect) fontSizeSelect.value = userFontSize;
 if (fontColorInput) fontColorInput.value = userFontColor;
 if (nameColorInput) nameColorInput.value = userNameColor;
 if (fontEffectSelect) fontEffectSelect.value = userTextEffect;
 
-// Toggle font popup
 if (fontBtn) {
   fontBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1431,7 +1269,6 @@ if (fontBtn) {
   });
 }
 
-// Save font settings
 if (fontSaveBtn) {
   fontSaveBtn.addEventListener('click', () => {
     userFontSize = fontSizeSelect.value;
@@ -1444,10 +1281,8 @@ if (fontSaveBtn) {
     localStorage.setItem('chatNameColor', userNameColor);
     localStorage.setItem('chatTextEffect', userTextEffect);
 
-    // Sync to chat module
     syncFontSettings();
 
-    // Send font settings to server so others see our style
     socket.emit('updateFontSettings', {
       size: userFontSize,
       color: userFontColor,
@@ -1459,7 +1294,6 @@ if (fontSaveBtn) {
   });
 }
 
-// Close popup when clicking outside
 documentListeners.fontPopupClose = (e) => {
   if (fontPopup && !fontPopup.contains(e.target) && e.target !== fontBtn) {
     fontPopup.style.display = 'none';
@@ -1467,23 +1301,19 @@ documentListeners.fontPopupClose = (e) => {
 };
 document.addEventListener('click', documentListeners.fontPopupClose);
 
-// ==================== EMOTICONS ====================
 const emoticonBtn = document.getElementById('emoticon-btn');
 const emoticonPopup = document.getElementById('emoticon-popup');
 
-// Toggle emoticon popup
 if (emoticonBtn) {
   emoticonBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (emoticonPopup) {
       emoticonPopup.style.display = emoticonPopup.style.display === 'none' ? 'block' : 'none';
-      // Close font popup if open
       if (fontPopup) fontPopup.style.display = 'none';
     }
   });
 }
 
-// Handle emoticon clicks - insert code into input
 if (emoticonPopup) {
   emoticonPopup.addEventListener('click', (e) => {
     if (e.target.tagName === 'IMG' && e.target.dataset.code) {
@@ -1501,7 +1331,6 @@ if (emoticonPopup) {
   });
 }
 
-// Close emoticon popup when clicking outside
 documentListeners.emoticonPopupClose = (e) => {
   if (emoticonPopup && !emoticonPopup.contains(e.target) && !emoticonBtn?.contains(e.target)) {
     emoticonPopup.style.display = 'none';
@@ -1509,8 +1338,6 @@ documentListeners.emoticonPopupClose = (e) => {
 };
 document.addEventListener('click', documentListeners.emoticonPopupClose);
 
-// ==================== WINDOW CONTROLS (drag and resize) ====================
-// Delegated to windowControls module
 const chatScreen = document.getElementById('game-screen');
 const gameWindow = chatScreen ? chatScreen.querySelector('.game-window') : null;
 const titlebar = gameWindow ? gameWindow.querySelector('.title-bar') : null;
@@ -1523,20 +1350,17 @@ windowControls.init({
   guessInput
 }, documentListeners);
 
-// ==================== TYPING INDICATOR ====================
 const typingIndicator = document.getElementById('typing-indicator');
 const typingIndicatorText = document.getElementById('typing-indicator-text');
 let typingTimeout = null;
 let isTyping = false;
 
-// Debounced typing detection
 guessInput.addEventListener('input', () => {
   if (!isTyping) {
     isTyping = true;
     socket.emit('startTyping');
   }
 
-  // Reset timeout
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => {
     isTyping = false;
@@ -1544,9 +1368,7 @@ guessInput.addEventListener('input', () => {
   }, 1500);
 });
 
-// Listen for typing updates from server
 socketManager.on('typingUpdate', ({ typing }) => {
-  // Filter out own name
   const othersTyping = typing.filter(name => name !== currentUser?.username);
 
   if (othersTyping.length === 0) {
@@ -1564,36 +1386,27 @@ socketManager.on('typingUpdate', ({ typing }) => {
   }
 }, 'vgm');
 
-// ==================== LEADERBOARD (delegated to leaderboardUI module) ====================
 leaderboardUI.init({ emit: (event, data) => socket.emit(event, data) });
 
-// Bind open buttons
 leaderboardUI.bindOpenButton(document.getElementById('hub-leaderboard-btn'), 'vgm');
 leaderboardUI.bindOpenButton(document.getElementById('game-leaderboard-btn'), 'vgm');
 leaderboardUI.bindOpenButton(document.getElementById('typing-leaderboard-btn'), 'typing');
 
-// Receive leaderboard data
 socket.on('leaderboardData', (data) => leaderboardUI.updateData(data));
 
-// ==================== SLOT MACHINE POPUP ====================
-// Add Tienda and slot popup buttons to the game screen toolbar
 const gameToolbar = document.querySelector('#game-screen .game-toolbar');
 if (gameToolbar) {
-  // Tienda button (opens shop directly)
   const tiendaBtn = document.createElement('button');
   tiendaBtn.className = 'slot-popup-btn tienda-btn';
   tiendaBtn.title = 'Tienda';
-  tiendaBtn.innerHTML = '\u{1F4B2}'; // Dollar sign emoji
+  tiendaBtn.innerHTML = '\u{1F4B2}';
   tiendaBtn.style.marginLeft = 'auto';
   gameToolbar.appendChild(tiendaBtn);
 
-  // Initialize shop
   shopUI.init(socket);
   cardAlbumUI.init(socket);
 
-  // Tienda button opens shop
   tiendaBtn.addEventListener('click', () => shopUI.open());
 
-  // Slot popup button (opens gamba menu)
   const slotPopup = createSlotPopupButton(gameToolbar, socket, { position: 'right-no-margin' });
 }

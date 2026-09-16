@@ -1,7 +1,3 @@
-/**
- * SQRRR Tierlist - collab tier list over khinsider soundtracks.
- * ponytail: one global lobby; key by room code if two groups ever need to play at once.
- */
 const { Readable } = require('stream');
 const { execFile } = require('child_process');
 const fs = require('fs');
@@ -11,7 +7,6 @@ const { log, warn } = require('../utils');
 
 const KH = 'https://downloads.khinsider.com';
 const FETCH_OPTS = { headers: { 'User-Agent': 'Mozilla/5.0 (sqrrr.com tierlist)' } };
-// khinsider gates /search behind a login: log in with KHINSIDER_USER / KHINSIDER_PASS (XenForo forum session) and keep the cookies
 const KH_USER = process.env.KHINSIDER_USER, KH_PASS = process.env.KHINSIDER_PASS;
 let khLoginPromise = null;
 function khLogin() {
@@ -35,7 +30,7 @@ function khLogin() {
     .finally(() => { khLoginPromise = null; });
   return khLoginPromise;
 }
-khLogin(); // warm the session at startup so the first search is fast
+khLogin();
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const COLORS = {
   REASON: '#a01830',
@@ -54,16 +49,16 @@ const emptyTiers = () => Object.fromEntries(TIERS.map(t => [t, []]));
 
 const MODES = ['music', 'general'];
 const lobby = {
-  mode: null,    // null = mode picker | 'music' (khinsider + YouTube, synced player) | 'general' (tiermaker templates, no player)
-  players: {},   // socketId -> { username, color, profilePicture }
-  host: null,    // socketId
-  album: null,   // { slug, title, covers }
-  songs: [],     // { id, name, disc, num, duration, page, cover, mp3 }
+  mode: null,
+  players: {},
+  host: null,
+  album: null,
+  songs: [],
   currentId: null,
   playback: { playing: false, position: 0, at: 0 },
-  tiers: emptyTiers(), // tier -> [songId]
-  trashed: [],         // songIds the host discarded
-  votes: {}            // songId -> { username: tier }
+  tiers: emptyTiers(),
+  trashed: [],
+  votes: {}
 };
 
 function reset() {
@@ -78,7 +73,6 @@ function unplace(id) {
   lobby.trashed = lobby.trashed.filter(x => x !== id);
 }
 
-// ==================== KHINSIDER SCRAPER ====================
 const cache = { search: new Map(), album: new Map(), tm: new Map() };
 
 async function getHtml(url) {
@@ -97,7 +91,7 @@ async function searchAlbums(q) {
   if (cache.search.has(key)) return cache.search.get(key);
   const isGated = h => !h.includes('albumIcon') && /Please Log In/i.test(h);
   let html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`);
-  if (isGated(html) && await khLogin()) html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`); // session expired: log in again, retry once
+  if (isGated(html) && await khLogin()) html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`);
   const gated = isGated(html);
   const results = [];
   for (const row of gated ? [] : html.split('<tr>').slice(1)) {
@@ -106,13 +100,13 @@ async function searchAlbums(q) {
     results.push({ slug: m[1], thumb: m[2] || null, title: unescapeHtml(m[3]), platform: stripTags(m[4]), type: m[5].trim(), year: m[6].trim() });
     if (results.length >= 40) break;
   }
-  if (!results.length) { // maybe the query is the album slug itself (album pages are public even when search is gated)
+  if (!results.length) {
     const slug = key.trim().replace(/\s+/g, '-');
     if (SLUG_RE.test(slug)) {
       try {
         const a = await loadAlbum(slug);
         if (a.songs.length) results.push({ slug, thumb: a.covers[0] || null, title: a.title, platform: '', type: `${a.songs.length} pistas`, year: '' });
-      } catch (e) { /* not an album */ }
+      } catch (e) {  }
     }
   }
   const out = { results, gated };
@@ -140,7 +134,7 @@ async function loadAlbum(slug) {
   return album;
 }
 
-const mp3Cache = new Map(); // khinsider track page -> direct mp3 url
+const mp3Cache = new Map();
 async function resolveMp3(song) {
   if (song.source === 'yt') return ytStreamUrl(song.ytId);
   if (mp3Cache.has(song.page)) return mp3Cache.get(song.page);
@@ -151,8 +145,6 @@ async function resolveMp3(song) {
   return m[0];
 }
 
-// ==================== YOUTUBE (yt-dlp, audio only, streamed through the proxy) ====================
-// ponytail: the yt-dlp binary lives in bin/ (deploy.bat installs and updates it); no cookies until YouTube asks for them.
 const YTDLP = process.env.YTDLP_PATH || path.join(__dirname, '..', '..', 'bin', process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
 const ytAvailable = () => fs.existsSync(YTDLP);
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
@@ -170,28 +162,24 @@ function ytdlp(args, timeout = 45000) {
   });
 }
 
-// playlists only (YouTube's "type: playlist" search filter, query + "music" to keep gameplay out); a tile loads the whole playlist.
-// Single-video "playlists" (usually one long compilation) are dropped so every track can be rated on its own.
 const YT_PL_ID = /^[A-Za-z0-9_-]{10,80}$/;
-const plCounts = new Map(); // playlist id -> video count
+const plCounts = new Map();
 async function ytPlaylistCount(id) {
   if (plCounts.has(id)) return plCounts.get(id);
   let n = 0;
   try {
     const j = JSON.parse(await ytdlp([`https://www.youtube.com/playlist?list=${id}`, '--flat-playlist', '--playlist-items', '1', '-J'], 30000));
     n = Number(j.playlist_count) || (j.entries || []).length;
-  } catch (e) { /* private or gone: keep 0 */ }
+  } catch (e) {  }
   plCounts.set(id, n);
   return n;
 }
-function mapLimit(items, limit, fn) { // run fn over items with at most `limit` in flight
+function mapLimit(items, limit, fn) {
   let i = 0;
   const out = new Array(items.length);
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } });
   return Promise.all(workers).then(() => out);
 }
-// Fast path: YouTube's own results page embeds ytInitialData with every playlist's video count, so one plain fetch
-// (with a consent cookie, YouTube shows EU addresses a consent page otherwise) replaces a dozen yt-dlp calls.
 async function ytSearchPage(q) {
   const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAw%253D%253D&hl=en`, {
     headers: { 'User-Agent': BROWSER_UA, 'Accept-Language': 'en-US,en;q=0.9', cookie: 'SOCS=CAI; CONSENT=YES+cb' },
@@ -203,11 +191,11 @@ async function ytSearchPage(q) {
   const walk = o => {
     if (!o || typeof o !== 'object') return;
     if (Array.isArray(o)) return o.forEach(walk);
-    if (o.playlistRenderer) { // older layout
+    if (o.playlistRenderer) {
       const p = o.playlistRenderer;
       out.push({ id: p.playlistId, title: p.title.simpleText || (p.title.runs || []).map(x => x.text).join(''), count: Number(p.videoCount) || 0,
         channel: (((p.shortBylineText || {}).runs || [])[0] || {}).text || '', thumb: ((((p.thumbnails || [])[0] || {}).thumbnails || []).slice(-1)[0] || {}).url || null });
-    } else if (o.lockupViewModel && o.lockupViewModel.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') { // current layout
+    } else if (o.lockupViewModel && o.lockupViewModel.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') {
       const l = o.lockupViewModel, s = JSON.stringify(l);
       out.push({ id: l.contentId, title: ((((l.metadata || {}).lockupMetadataViewModel || {}).title || {}).content) || l.contentId,
         count: Number(((s.match(/"text":"(\d[\d,]*) (?:videos?|episodes?)"/) || [])[1] || '').replace(/,/g, '')) || 0,
@@ -228,7 +216,7 @@ async function ytSearch(q) {
   let cands;
   try {
     cands = (await ytSearchPage(query)).filter(e => YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({ source: 'yt', ...e }));
-  } catch (e) { // page layout changed or blocked: slow path through yt-dlp + per-playlist counts
+  } catch (e) {
     warn('TIERLIST', 'youtube page search failed, using yt-dlp', e.message);
     const j = JSON.parse(await ytdlp([`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAw%253D%253D`, '--flat-playlist', '-J', '--playlist-end', '14']));
     cands = (j.entries || []).filter(e => e && e.id && YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({
@@ -237,19 +225,18 @@ async function ytSearch(q) {
     const counts = await mapLimit(cands, 6, c => ytPlaylistCount(c.id));
     cands = cands.map((c, i) => ({ ...c, count: counts[i] }));
   }
-  const out = cands.filter(c => c.count > 1).slice(0, 12); // no single-video "playlists" (one long compilation)
+  const out = cands.filter(c => c.count > 1).slice(0, 12);
   cache.search.set(key, out);
   return out;
 }
 
-// a video or playlist url -> { title, entries }
 async function ytList(url) {
-  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J', '--playlist-end', '50'])); // ponytail: 50 cards max, a 2000-video list is not a tier list
+  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J', '--playlist-end', '50']));
   const entries = j._type === 'playlist' ? (j.entries || []) : [j];
   return { title: j.title || 'YouTube', entries: entries.filter(e => e && e.id && YT_ID.test(e.id)).map(ytEntry) };
 }
 
-const ytStreams = new Map(); // video id -> { url, expires }
+const ytStreams = new Map();
 async function ytStreamUrl(id) {
   const c = ytStreams.get(id);
   if (c && c.expires > Date.now()) return c.url;
@@ -260,9 +247,6 @@ async function ytStreamUrl(id) {
   return url;
 }
 
-// ==================== TIERMAKER (general mode) ====================
-// ponytail: tiermaker sits behind Cloudflare, which challenges datacenter IPs (the VPS) but not browsers. Direct fetch first,
-// then the r.jina.ai reader relay, which renders the page for us. Browsers load the template images straight from tiermaker.
 const TM = 'https://tiermaker.com';
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 async function tmFetch(url, format = 'html') {
@@ -270,7 +254,7 @@ async function tmFetch(url, format = 'html') {
     const r = await fetch(url, { headers: { 'User-Agent': BROWSER_UA, accept: '*/*' }, signal: AbortSignal.timeout(15000) });
     const t = await r.text();
     if (r.ok && !/Just a moment/i.test(t)) return t;
-  } catch (e) { /* fall back to the relay */ }
+  } catch (e) {  }
   const r = await fetch(`https://r.jina.ai/${url}`, { headers: { 'X-Return-Format': format }, signal: AbortSignal.timeout(60000) });
   if (!r.ok) throw new Error(`tiermaker relay ${r.status}`);
   return r.text();
@@ -290,7 +274,6 @@ async function tmSearch(q) {
   return out;
 }
 
-// template -> image list. The API answers [basePath, file, file, ...]; old templates give a bare slug, new ones a /template_images/... path
 async function tmTemplate(slug) {
   const txt = await tmFetch(`${TM}/api/?type=templates-v2&id=${encodeURIComponent(slug)}&lastEdited=&variation=`, 'text');
   const arr = JSON.parse(txt.trim().replace(/^<html>.*<body>|<\/body>.*$/gs, ''));
@@ -304,16 +287,14 @@ async function tmTemplate(slug) {
   return { title, images: arr.slice(1).map((f, i) => ({ name: nameOf(String(f)) || `#${i + 1}`, cover: imgUrl(String(f)) })) };
 }
 
-// ==================== SAVED TIERLISTS ====================
-// Finished lists are kept in MongoDB (in memory when there is no database, e.g. local dev) and listed on the first screen.
 const TierList = mongoose.models.TierList || mongoose.model('TierList', new mongoose.Schema({
   title: String, mode: String, host: String, players: [String], createdAt: { type: Date, default: Date.now },
   songs: [{ name: String, cover: String, source: String, num: Number }],
   tiers: mongoose.Schema.Types.Mixed, votes: mongoose.Schema.Types.Mixed
 }));
 const dbReady = () => mongoose.connection.readyState === 1;
-const savedMem = [];      // fallback store
-let savedIndex = [];      // newest first: { id, title, mode, host, createdAt, count }
+const savedMem = [];
+let savedIndex = [];
 const indexOf = d => ({ id: String(d._id || d.id), title: d.title, mode: d.mode, host: d.host, createdAt: d.createdAt, count: TIERS.reduce((n, t) => n + ((d.tiers || {})[t] || []).length, 0) });
 async function loadSavedIndex() {
   try { if (dbReady()) savedIndex = (await TierList.find({}, 'title mode host createdAt tiers').sort({ createdAt: -1 }).limit(30).lean()).map(indexOf); }
@@ -332,7 +313,6 @@ async function getTierList(id) {
   return savedMem.find(s => s.id === id) || null;
 }
 
-// ==================== STATE ====================
 const playerList = () => Object.values(lobby.players);
 const hostName = () => (lobby.players[lobby.host] || {}).username || null;
 const playbackMsg = () => ({
@@ -357,13 +337,11 @@ function leaveSocket(io, socket) {
   if (!lobby.host) reset(); else io.to(ROOM).emit('tlPlayers', { players: playerList(), host: hostName() });
   log('TIERLIST', `${p.username} left`);
 }
-// used by the page-close beacon (POST /tierlist/leave with the socket id)
 function leaveById(io, id) {
   const s = io.sockets.sockets.get(id);
   if (s) leaveSocket(io, s);
 }
 
-// Same-origin audio proxy with Range passthrough, so the client's Web Audio analyser can read the stream
 async function audioProxy(req, res) {
   const u = String(req.query.u || '');
   if (!/^https:\/\/[a-z0-9.-]+\.vgmtreasurechest\.com\/[^?#]+\.mp3$/i.test(u) && !/^https:\/\/[a-z0-9.-]+\.googlevideo\.com\/videoplayback\?/i.test(u)) return res.status(400).end();
@@ -385,7 +363,6 @@ async function audioProxy(req, res) {
   }
 }
 
-// ==================== SOCKET HANDLERS ====================
 function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   const isHost = () => socket.id === lobby.host;
   const broadcastPlayers = () => io.to(ROOM).emit('tlPlayers', { players: playerList(), host: hostName() });
@@ -395,14 +372,14 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     const username = getLoggedInUsername();
     if (!username) return socket.emit('tlError', { message: 'Debes iniciar sesión primero' });
     const user = getUser(username) || {};
-    for (const [sid, p] of Object.entries(lobby.players)) { // same account logged in elsewhere (kicked): drop its stale seat
+    for (const [sid, p] of Object.entries(lobby.players)) {
       if (p.username === username && sid !== socket.id) { const old = io.sockets.sockets.get(sid); if (old) leaveSocket(io, old); else delete lobby.players[sid]; }
     }
     lobby.players[socket.id] = { username, color: COLORS[username] || DEFAULT_COLOR, profilePicture: user.profilePicture || 'profiles/default.svg' };
     if (!lobby.host) lobby.host = socket.id;
     socket.join(ROOM);
     const cur = lobby.songs[lobby.currentId];
-    if (cur && cur.source === 'yt') { try { cur.mp3 = await ytStreamUrl(cur.ytId); } catch (e) { /* keep the old url */ } } // stream urls expire after hours
+    if (cur && cur.source === 'yt') { try { cur.mp3 = await ytStreamUrl(cur.ytId); } catch (e) {  } }
     socket.emit('tlState', publicState());
     broadcastPlayers();
     log('TIERLIST', `${username} joined (${playerList().length} players)`);
@@ -411,7 +388,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   const leave = () => leaveSocket(io, socket);
   socket.on('tlLeave', leave);
 
-  // Host cancels: back to the album search for everyone, everything cleared
   socket.on('tlReset', () => {
     if (!isHost()) return;
     Object.assign(lobby, { album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {} });
@@ -419,7 +395,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', 'reset by host');
   });
 
-  // Host picks the lobby mode (null = back to the picker); switching clears the list for everyone
   socket.on('tlMode', ({ mode } = {}) => {
     if (!isHost() || (mode !== null && !MODES.includes(mode)) || mode === lobby.mode) return;
     Object.assign(lobby, { mode, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: Date.now() }, tiers: emptyTiers(), trashed: [], votes: {} });
@@ -427,7 +402,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', `mode -> ${mode}`);
   });
 
-  // Everyone sees what the host types and the results that come back
   socket.on('tlTyping', ({ q } = {}) => {
     if (!isHost()) return;
     socket.to(ROOM).emit('tlTyping', { q: String(q || '').slice(0, 200) });
@@ -487,7 +461,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     if (!isHost()) return;
     const song = lobby.songs[songId];
     if (!song) return;
-    if (song.source !== 'tm') io.to(ROOM).emit('tlLoading', { on: true }); // everyone waits while the stream url is resolved
+    if (song.source !== 'tm') io.to(ROOM).emit('tlLoading', { on: true });
     try {
       song.mp3 = song.source === 'tm' ? null : await resolveMp3(song);
       lobby.currentId = song.id;
@@ -510,7 +484,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     socket.to(ROOM).volatile.emit('tlCursor', { username: p.username, x: +pos.x || 0, y: +pos.y || 0, drag });
   });
 
-  // Ping: "play this one!" - everyone sees a ring in the pinger's color around that card
   let lastPing = 0;
   socket.on('tlPing', ({ songId } = {}) => {
     const p = lobby.players[socket.id];
@@ -519,7 +492,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     io.to(ROOM).emit('tlPing', { username: p.username, songId });
   });
 
-  // Host finishes: the list is saved and everyone returns to the first screen
   socket.on('tlFinish', async () => {
     if (!isHost() || !lobby.album) return;
     const placed = TIERS.reduce((n, t) => n + lobby.tiers[t].length, 0);
@@ -544,7 +516,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     } catch (e) { fail('No se pudo abrir', e); }
   });
 
-  // Cursor chat: short text shown in a bubble on the sender's hand
   let lastChat = 0;
   socket.on('tlChat', ({ text } = {}) => {
     const p = lobby.players[socket.id];
@@ -554,7 +525,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     io.to(ROOM).emit('tlChat', { username: p.username, text: t });
   });
 
-  // Anyone votes the current song into a tier (until the host places it)
   socket.on('tlVote', ({ songId, tier } = {}) => {
     const p = lobby.players[socket.id];
     if (!p || songId !== lobby.currentId || !TIERS.includes(tier) || isPlaced(songId)) return;
@@ -562,7 +532,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     io.to(ROOM).emit('tlVotes', { songId, votes: lobby.votes[songId] });
   });
 
-  // Host places a song in a tier (verdict), or moves an already placed one
   socket.on('tlVerdict', ({ songId, tier, index } = {}) => {
     if (!isHost() || !lobby.songs[songId] || !TIERS.includes(tier)) return;
     unplace(songId);
@@ -573,7 +542,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', `${lobby.songs[songId].name} -> ${tier}`);
   });
 
-  // Host opens the veredicto panel on every screen (also fired automatically when the song ends)
   socket.on('tlVerdictOpen', () => {
     if (!isHost() || lobby.currentId === null || isPlaced(lobby.currentId)) return;
     io.to(ROOM).emit('tlVerdictOpen', { songId: lobby.currentId });
@@ -584,7 +552,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     unplace(songId);
     lobby.trashed.push(songId);
     io.to(ROOM).emit('tlTiers', tiersMsg(null));
-    if (songId === lobby.currentId) { // trashing the song that is playing stops it
+    if (songId === lobby.currentId) {
       lobby.currentId = null;
       lobby.playback = { playing: false, position: 0, at: Date.now() };
       io.to(ROOM).emit('tlPlayback', playbackMsg());
@@ -602,7 +570,6 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
 
 module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl, tmSearch, tmTemplate };
 
-// Self-check: node server/handlers/tierlist.js
 if (require.main === module) {
   (async () => {
     const results = await searchAlbums('minecraft');

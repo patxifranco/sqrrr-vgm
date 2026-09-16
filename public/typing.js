@@ -1,28 +1,20 @@
-// SQRRR Tikitiki - Typing Game
-// ==================== CORE MODULES ====================
 import { timerManager, socketManager, audioManager, logger, escapeHtml } from './js/core/index.js';
 import { createSlotPopupButton } from './js/ui/slot-popup.js';
 import { showCoinAnimation } from './js/ui/coin-animation.js';
 
-// Get shared socket connection
 const socket = socketManager.socket;
 
-// Alias for backward compatibility
 const TypingTimerManager = timerManager;
 
-// Create scoped logger
 const log = logger.scope('Typing');
 
-// Track player count for notify sound
 let typingLastPlayerCount = 0;
 
-// ==================== DOM ELEMENTS ====================
 const typingMenuScreen = document.getElementById('typing-menu-screen');
 const typingLobbyScreen = document.getElementById('typing-lobby-screen');
 const typingGameScreen = document.getElementById('typing-game-screen');
 const typingResultsScreen = document.getElementById('typing-results-screen');
 
-// Menu elements
 const typingBtn = document.getElementById('typing-btn');
 const typingBackToHubBtn = document.getElementById('typing-back-to-hub-btn');
 const typingSoloBtn = document.getElementById('typing-solo-btn');
@@ -33,7 +25,6 @@ const typingUserName = document.getElementById('typing-user-name');
 const typingTildesOff = document.getElementById('typing-tildes-off');
 const typingTildesOn = document.getElementById('typing-tildes-on');
 
-// Lobby elements
 const typingPlayersContainer = document.getElementById('typing-players-container');
 const typingSpectatorsContainer = document.getElementById('typing-spectators-container');
 const typingLobbyStatusText = document.getElementById('typing-lobby-status-text');
@@ -43,27 +34,22 @@ const typingStartBtn = document.getElementById('typing-start-btn');
 const typingJoinNextBtn = document.getElementById('typing-join-next-btn');
 const typingSpectateBtn = document.getElementById('typing-spectate-btn');
 
-// Game elements
 const typingTimer = document.getElementById('typing-timer');
 const typingWpm = document.getElementById('typing-wpm');
 const typingAccuracy = document.getElementById('typing-accuracy');
 const typingGamePlayers = document.getElementById('typing-game-players');
 const typingGameSpectators = document.getElementById('typing-game-spectators');
 
-// Solo controls
 const typingSoloControls = document.getElementById('typing-solo-controls');
 const typingSoloStartBtn = document.getElementById('typing-solo-start-btn');
 const typingSoloRestartBtn = document.getElementById('typing-solo-restart-btn');
 const typingSoloMenuBtn = document.getElementById('typing-solo-menu-btn');
 
-// Mobile keyboard support
 const typingHiddenInput = document.getElementById('typing-hidden-input');
 let lastInputValue = '';
 
-// Interactive keyboard in menu
 const typingKeyboard = document.getElementById('typing-keyboard');
 
-// Results elements (removed typingStatus as status bar was removed)
 const typingResultsVs = document.getElementById('typing-results-vs');
 const typingResultsRanking = document.getElementById('typing-results-ranking');
 const typingFinalWpm = document.getElementById('typing-final-wpm');
@@ -74,7 +60,6 @@ const typingPlayAgainBtn = document.getElementById('typing-play-again-btn');
 const typingBackToMenuBtn = document.getElementById('typing-back-to-menu-btn');
 const typingSpectatorJoinBtn = document.getElementById('typing-spectator-join-btn');
 
-// ==================== GAME STATE ====================
 let typingWords = [];
 let typingFullText = '';
 let typingCharIndex = 0;
@@ -91,26 +76,20 @@ let typingRoomCode = null;
 let typingCurrentUser = null;
 let typingPlayers = [];
 let typingSpectators = [];
-let typingTildesMode = false; // false = sin tildes, true = con tildes
+let typingTildesMode = false;
 let typingMyTextElement = null;
 
-// Co-op state
 let typingIsCoop = false;
 let typingCoopRoomCode = null;
 let typingCoopCurrentTyper = null;
 let typingCoopWordsPerTurn = 20;
 
-const SCRAMBLE_CHARS = '%/·&$#@!?*+-=<>[]{}()';
-
-// ==================== SCREEN NAVIGATION ====================
 function showTypingScreen(screenId) {
   document.querySelectorAll('.screen-container').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
 }
 
-// ==================== INITIALIZATION ====================
 function initTypingGame() {
-  // Hub -> Typing Menu
   if (typingBtn) {
     typingBtn.addEventListener('click', () => {
       if (window.currentUser) {
@@ -122,16 +101,13 @@ function initTypingGame() {
     });
   }
 
-  // Back to Hub
   typingBackToHubBtn.addEventListener('click', () => {
-    // Cleanup typing game resources
     TypingTimerManager.clearByPrefix('typing-');
     socketManager.cleanupScope('typing');
     log.info('Left Typing game, cleaned up');
     showTypingScreen('hub-screen');
   });
 
-  // Tildes mode toggle
   if (typingTildesOff) {
     typingTildesOff.addEventListener('click', () => {
       typingTildesMode = false;
@@ -148,14 +124,12 @@ function initTypingGame() {
     });
   }
 
-  // Solo mode
   typingSoloBtn.addEventListener('click', () => {
     typingIsMultiplayer = false;
     typingIsSpectator = false;
     startTypingSoloGame();
   });
 
-  // Vs mode - auto matchmaking
   typingVsBtn.addEventListener('click', () => {
     typingIsMultiplayer = true;
     typingIsSpectator = false;
@@ -163,7 +137,6 @@ function initTypingGame() {
     socket.emit('typingJoinVs', { tildesMode: typingTildesMode });
   });
 
-  // Co-op mode - auto matchmaking
   if (typingCoopBtn) {
     typingCoopBtn.addEventListener('click', () => {
       typingIsMultiplayer = true;
@@ -173,7 +146,6 @@ function initTypingGame() {
     });
   }
 
-  // Leave room
   typingLeaveRoomBtn.addEventListener('click', () => {
     if (typingIsCoop) {
       socket.emit('leaveTypingCoopRoom');
@@ -184,7 +156,6 @@ function initTypingGame() {
     showTypingScreen('typing-menu-screen');
   });
 
-  // Start button (host only)
   if (typingStartBtn) {
     typingStartBtn.addEventListener('click', () => {
       if (typingIsCoop) {
@@ -195,21 +166,18 @@ function initTypingGame() {
     });
   }
 
-  // Spectate button - player wants to become spectator
   if (typingSpectateBtn) {
     typingSpectateBtn.addEventListener('click', () => {
       socket.emit('typingBecomeSpectator');
     });
   }
 
-  // Join next match (for spectators)
   if (typingJoinNextBtn) {
     typingJoinNextBtn.addEventListener('click', () => {
       socket.emit('typingSpectatorJoinNext');
     });
   }
 
-  // Play again
   typingPlayAgainBtn.addEventListener('click', () => {
     if (typingIsMultiplayer) {
       if (typingIsCoop) {
@@ -222,7 +190,6 @@ function initTypingGame() {
     }
   });
 
-  // Back to menu
   typingBackToMenuBtn.addEventListener('click', () => {
     if (typingIsMultiplayer) {
       if (typingIsCoop) {
@@ -235,14 +202,12 @@ function initTypingGame() {
     showTypingScreen('typing-menu-screen');
   });
 
-  // Spectator join button on results
   if (typingSpectatorJoinBtn) {
     typingSpectatorJoinBtn.addEventListener('click', () => {
       socket.emit('typingSpectatorJoinNext');
     });
   }
 
-  // Solo control buttons
   if (typingSoloStartBtn) {
     typingSoloStartBtn.addEventListener('click', startSoloCountdown);
   }
@@ -259,27 +224,22 @@ function initTypingGame() {
     });
   }
 
-  // Global keyboard listener
   document.addEventListener('keydown', handleGlobalKeydown);
 
-  // Mobile keyboard support - input event handler
   if (typingHiddenInput) {
     typingHiddenInput.addEventListener('input', handleMobileInput);
 
-    // Prevent form submission on enter
     typingHiddenInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') e.preventDefault();
     });
   }
 
-  // Interactive keyboard in menu - visual effect only
   if (typingKeyboard) {
     document.addEventListener('keydown', (e) => {
       if (!typingMenuScreen.classList.contains('active')) return;
       const key = e.key.toUpperCase();
       const keyEl = typingKeyboard.querySelector(`[data-key="${key}"]`);
       if (keyEl) keyEl.classList.add('active');
-      // Space key
       if (e.key === ' ') {
         const spaceEl = typingKeyboard.querySelector('[data-key=" "]');
         if (spaceEl) spaceEl.classList.add('active');
@@ -290,7 +250,6 @@ function initTypingGame() {
       const key = e.key.toUpperCase();
       const keyEl = typingKeyboard.querySelector(`[data-key="${key}"]`);
       if (keyEl) keyEl.classList.remove('active');
-      // Space key
       if (e.key === ' ') {
         const spaceEl = typingKeyboard.querySelector('[data-key=" "]');
         if (spaceEl) spaceEl.classList.remove('active');
@@ -298,11 +257,9 @@ function initTypingGame() {
     });
   }
 
-  // Setup socket listeners
   setupTypingSocketListeners();
 }
 
-// Handle mobile keyboard input
 function handleMobileInput(e) {
   if (!typingGameScreen.classList.contains('active')) return;
   if (typingIsSpectator) return;
@@ -310,15 +267,12 @@ function handleMobileInput(e) {
 
   const newValue = e.target.value;
 
-  // Compare with last value to detect what changed
   if (newValue.length > lastInputValue.length) {
-    // Characters added - process each new character
     const addedChars = newValue.slice(lastInputValue.length);
     for (const char of addedChars) {
       processTypedCharacter(char);
     }
   } else if (newValue.length < lastInputValue.length) {
-    // Characters deleted - handle backspace
     const deletedCount = lastInputValue.length - newValue.length;
     for (let i = 0; i < deletedCount; i++) {
       handleBackspace();
@@ -327,14 +281,12 @@ function handleMobileInput(e) {
 
   lastInputValue = newValue;
 
-  // Clear input periodically to prevent buffer overflow
   if (newValue.length > 50) {
     e.target.value = '';
     lastInputValue = '';
   }
 }
 
-// Focus hidden input for mobile keyboard
 function focusTypingInput() {
   if (typingHiddenInput) {
     typingHiddenInput.value = '';
@@ -343,30 +295,24 @@ function focusTypingInput() {
   }
 }
 
-// Allow tapping anywhere on game screen to focus input (for mobile)
 if (typingGameScreen) {
   typingGameScreen.addEventListener('click', (e) => {
-    // Don't focus if clicking buttons
     if (e.target.tagName === 'BUTTON') return;
-    // Only focus if game is active
     if (typingGameActive && !typingIsSpectator) {
       focusTypingInput();
     }
   });
 }
 
-// ==================== SOCKET LISTENERS ====================
 function setupTypingSocketListeners() {
-  // Joined Vs lobby as player
   socket.on('typingVsJoined', (data) => {
     typingRoomCode = data.roomCode;
     typingPlayers = data.players;
     typingSpectators = data.spectators || [];
     typingIsMultiplayer = true;
     typingIsSpectator = false;
-    typingLastPlayerCount = data.players.length + (data.spectators?.length || 0); // Reset count
+    typingLastPlayerCount = data.players.length + (data.spectators?.length || 0);
 
-    // Update tildes mode indicator
     if (typingLobbyTildesMode) {
       typingLobbyTildesMode.textContent = data.tildesMode ? 'Modo: Con tildes' : 'Modo: Sin tildes';
     }
@@ -379,7 +325,6 @@ function setupTypingSocketListeners() {
     showTypingScreen('typing-lobby-screen');
   });
 
-  // Joined as spectator (game in progress)
   socket.on('typingJoinedAsSpectator', (data) => {
     typingRoomCode = data.roomCode;
     typingPlayers = data.players;
@@ -388,12 +333,10 @@ function setupTypingSocketListeners() {
     typingIsSpectator = true;
     typingWords = data.words;
 
-    // Go directly to game screen as spectator
     showTypingScreen('typing-game-screen');
     renderGameAsSpectator(data.players, data.spectators);
   });
 
-  // Moved from spectator to player
   socket.on('typingJoinedFromSpectator', (data) => {
     typingIsSpectator = false;
     typingPlayers = data.players;
@@ -406,9 +349,7 @@ function setupTypingSocketListeners() {
     showTypingScreen('typing-lobby-screen');
   });
 
-  // Player list update
   socket.on('typingPlayerList', (data) => {
-    // Play notify sound when a new player joins
     const totalCount = data.players.length + (data.spectators?.length || 0);
     if (totalCount > typingLastPlayerCount && typingLastPlayerCount > 0) {
       playNotifySound();
@@ -424,9 +365,7 @@ function setupTypingSocketListeners() {
       : 'Listo cohone';
   });
 
-  // Spectator list update (for spectators watching)
   socket.on('typingSpectatorList', (data) => {
-    // Play notify sound when a spectator joins
     const totalCount = (data.players?.length || typingPlayers.length) + (data.spectators?.length || 0);
     if (totalCount > typingLastPlayerCount && typingLastPlayerCount > 0) {
       playNotifySound();
@@ -438,32 +377,27 @@ function setupTypingSocketListeners() {
     if (typingIsSpectator && typingGameScreen.classList.contains('active')) {
       updateSpectatorPanel(data.spectators);
     }
-    // Also update lobby if visible
     if (typingLobbyScreen.classList.contains('active')) {
       renderLobbyPlayers(data.players || typingPlayers, data.spectators, false);
     }
   });
 
-  // Player became spectator
   socket.on('typingNowSpectator', (data) => {
     typingIsSpectator = true;
     typingPlayers = data.players;
     typingSpectators = data.spectators;
-    // Stay in lobby but hide start button, show as spectating
     renderLobbyPlayers(data.players, data.spectators, false);
     typingLobbyStatusText.textContent = 'Modo Espectador';
     if (typingSpectateBtn) typingSpectateBtn.style.display = 'none';
     if (typingStartBtn) typingStartBtn.style.display = 'none';
   });
 
-  // Countdown
   socket.on('typingCountdown', (data) => {
     typingPlayers = data.players;
     typingSpectators = data.spectators || [];
     showGameWithCountdown(data.seconds, data.players, data.spectators, typingIsSpectator);
   });
 
-  // Game start
   socket.on('typingStart', (data) => {
     typingPlayers = data.players;
     typingSpectators = data.spectators || [];
@@ -474,64 +408,51 @@ function setupTypingSocketListeners() {
     }
   });
 
-  // Opponent progress
   socket.on('typingOpponentProgress', (data) => {
     updateOpponentProgress(data);
   });
 
-  // Round end
   socket.on('typingRoundEnd', (data) => {
     endTypingGame(data);
   });
 
-  // Spectator can join next
   socket.on('typingCanJoinNext', (data) => {
     typingPlayers = data.players;
     typingSpectators = data.spectators;
-    // Enable join button if showing results
     if (typingSpectatorJoinBtn) {
       typingSpectatorJoinBtn.disabled = false;
       typingSpectatorJoinBtn.textContent = 'Unirse al Siguiente';
     }
   });
 
-  // Error
   socket.on('typingError', (data) => {
     alert(data.message);
   });
 
-  // Coins earned
   socket.on('coinsEarned', ({ amount, total }) => {
     showCoinAnimation(amount);
     log.info(`Earned ${amount} $qr, total: ${total}`);
   });
 
-  // ==================== CO-OP SOCKET LISTENERS ====================
-
-  // Joined Co-op lobby
   socket.on('typingCoopJoined', (data) => {
     typingCoopRoomCode = data.roomCode;
     typingPlayers = data.players;
     typingIsCoop = true;
     typingIsSpectator = false;
-    typingLastPlayerCount = data.players.length; // Reset count
+    typingLastPlayerCount = data.players.length;
 
-    // Update lobby title for Co-op
     const lobbyTitle = document.querySelector('#typing-lobby-screen .title-bar-text');
     if (lobbyTitle) lobbyTitle.textContent = 'SQRRR Tikitiki - Co-op';
 
-    // Update tildes mode indicator
     if (typingLobbyTildesMode) {
       typingLobbyTildesMode.textContent = data.tildesMode ? 'Modo: Con tildes' : 'Modo: Sin tildes';
     }
 
-    // Show spectate button in Co-op
     if (typingSpectateBtn) {
       typingSpectateBtn.style.display = '';
       typingSpectateBtn.onclick = () => socket.emit('typingCoopBecomeSpectator');
     }
 
-    // Show join next button for spectators
     if (typingJoinNextBtn) {
       typingJoinNextBtn.style.display = 'none';
       typingJoinNextBtn.onclick = () => socket.emit('typingCoopSpectatorJoinNext');
@@ -545,9 +466,7 @@ function setupTypingSocketListeners() {
     showTypingScreen('typing-lobby-screen');
   });
 
-  // Co-op player list update
   socket.on('typingCoopPlayerList', (data) => {
-    // Play notify sound when a new player joins
     if (data.players.length > typingLastPlayerCount && typingLastPlayerCount > 0) {
       playNotifySound();
     }
@@ -561,14 +480,12 @@ function setupTypingSocketListeners() {
       : 'Lesgo';
   });
 
-  // Co-op countdown
   socket.on('typingCoopCountdown', (data) => {
     typingPlayers = data.players;
     typingCoopCurrentTyper = data.currentTyper;
     showCoopGameWithCountdown(data.seconds, data.players, data.currentTyper);
   });
 
-  // Co-op game start
   socket.on('typingCoopStart', (data) => {
     typingPlayers = data.players;
     typingCoopCurrentTyper = data.currentTyper;
@@ -576,24 +493,20 @@ function setupTypingSocketListeners() {
     startTypingCoopGame(data.words, data.fullText, data.players, data.currentTyper);
   });
 
-  // Co-op progress update
   socket.on('typingCoopProgress', (data) => {
     updateCoopProgress(data);
   });
 
-  // Co-op turn change
   socket.on('typingCoopTurnChange', (data) => {
     typingCoopCurrentTyper = data.currentTyper;
     typingPlayers = data.players;
     handleCoopTurnChange(data);
   });
 
-  // Co-op round end
   socket.on('typingCoopRoundEnd', (data) => {
     endTypingCoopGame(data);
   });
 
-  // Co-op: Joined as spectator (game in progress)
   socket.on('typingCoopJoinedAsSpectator', (data) => {
     typingCoopRoomCode = data.roomCode;
     typingPlayers = data.players;
@@ -604,23 +517,19 @@ function setupTypingSocketListeners() {
     typingCharIndex = data.charIndex;
     typingCoopCurrentTyper = data.currentTyper;
 
-    // Go directly to game screen as spectator
     showTypingScreen('typing-game-screen');
     renderCoopGameAsSpectator(data.players, data.charIndex, data.currentTyper);
   });
 
-  // Co-op: Player became spectator
   socket.on('typingCoopNowSpectator', (data) => {
     typingIsSpectator = true;
     typingPlayers = data.players;
-    // Stay in lobby but hide start button, show as spectating
     renderLobbyPlayers(data.players, data.spectators || [], false);
     typingLobbyStatusText.textContent = 'Modo Espectador';
     if (typingSpectateBtn) typingSpectateBtn.style.display = 'none';
     if (typingStartBtn) typingStartBtn.style.display = 'none';
   });
 
-  // Co-op: Joined from spectator to player
   socket.on('typingCoopJoinedFromSpectator', (data) => {
     typingIsSpectator = false;
     typingPlayers = data.players;
@@ -632,9 +541,7 @@ function setupTypingSocketListeners() {
     showTypingScreen('typing-lobby-screen');
   });
 
-  // Co-op: Spectator list update
   socket.on('typingCoopSpectatorList', (data) => {
-    // Update lobby display if visible
     if (typingLobbyScreen.classList.contains('active')) {
       const specContainer = document.getElementById('typing-spectators-container');
       if (specContainer && data.spectators && data.spectators.length > 0) {
@@ -650,10 +557,8 @@ function setupTypingSocketListeners() {
     }
   });
 
-  // Co-op: Can join next (after game ends)
   socket.on('typingCoopCanJoinNext', (data) => {
     typingPlayers = data.players;
-    // Enable join button if showing results
     if (typingSpectatorJoinBtn) {
       typingSpectatorJoinBtn.disabled = false;
       typingSpectatorJoinBtn.textContent = 'Unirse al Siguiente';
@@ -661,7 +566,6 @@ function setupTypingSocketListeners() {
   });
 }
 
-// ==================== START BUTTON STATE ====================
 function updateStartButtonState(playerCount, isHost) {
   if (!typingStartBtn) return;
 
@@ -673,7 +577,6 @@ function updateStartButtonState(playerCount, isHost) {
   }
 }
 
-// ==================== LOBBY RENDERING ====================
 function renderLobbyPlayers(players, spectators, isHost) {
   if (!typingPlayersContainer) return;
   typingPlayersContainer.innerHTML = '';
@@ -690,7 +593,6 @@ function renderLobbyPlayers(players, spectators, isHost) {
     typingPlayersContainer.appendChild(box);
   });
 
-  // Render spectators
   if (typingSpectatorsContainer) {
     typingSpectatorsContainer.innerHTML = '';
     if (spectators && spectators.length > 0) {
@@ -703,23 +605,19 @@ function renderLobbyPlayers(players, spectators, isHost) {
     }
   }
 
-  // Update start button
   updateStartButtonState(players.length, isHost);
 }
 
-// ==================== COUNTDOWN ====================
 function showGameWithCountdown(seconds, players, spectators, isSpectator) {
   showTypingScreen('typing-game-screen');
   typingPlayers = players;
   typingSpectators = spectators || [];
 
-  // Remove solo-mode class for multiplayer
   const gameWindow = document.querySelector('.typing-game-window');
   if (gameWindow) {
     gameWindow.classList.remove('solo-mode');
   }
 
-  // Render player boxes with countdown
   renderGamePlayers(players, spectators, true, seconds, isSpectator);
 }
 
@@ -727,7 +625,6 @@ function renderGamePlayers(players, spectators, isCountdown, countdownNum, isSpe
   if (!typingGamePlayers) return;
   typingGamePlayers.innerHTML = '';
 
-  // Calculate grid layout
   const playerCount = players.length;
   let columns = 1;
   if (playerCount >= 6) columns = 3;
@@ -748,17 +645,13 @@ function renderGamePlayers(players, spectators, isCountdown, countdownNum, isSpe
     textDiv.id = `typing-text-${player.id}`;
 
     if (isCountdown && countdownNum > 0) {
-      // Show countdown numbers
       textDiv.innerHTML = `<div class="typing-countdown-text">${countdownNum}</div>`;
     } else if (isCountdown && countdownNum <= 0) {
-      // Show GO
       textDiv.innerHTML = `<div class="typing-countdown-text">GO</div>`;
     } else if (typingWords && typingWords.length > 0) {
-      // Show actual words (for spectators and pre-game)
       const text = typingWords.join(' ');
       textDiv.innerHTML = renderTypingText(text, false);
     } else {
-      // Fallback - waiting for words
       textDiv.innerHTML = '<span style="color: #999;">Esperando...</span>';
     }
 
@@ -772,13 +665,11 @@ function renderGamePlayers(players, spectators, isCountdown, countdownNum, isSpe
     box.appendChild(textDiv);
     typingGamePlayers.appendChild(box);
 
-    // Store reference to own text element
     if (isSelf && !isSpectator) {
       typingMyTextElement = textDiv;
     }
   });
 
-  // Update spectator panel
   updateSpectatorPanel(spectators);
 }
 
@@ -799,23 +690,6 @@ function updateSpectatorPanel(spectators) {
   }
 }
 
-function generateScrambledText(length) {
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += `<span class="typing-char scrambled">${SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]}</span>`;
-    if (i < length - 1 && Math.random() > 0.7) {
-      result += `<span class="typing-char scrambled"> </span>`;
-    }
-  }
-  return result;
-}
-
-function renderScrambledText(text) {
-  // Render the text as scrambled characters (for waiting state)
-  return generateScrambledText(Math.min(text.length, 200));
-}
-
-// ==================== SPECTATOR MODE ====================
 function renderGameAsSpectator(players, spectators) {
   renderGamePlayers(players, spectators, false, 0, true);
 }
@@ -828,13 +702,10 @@ function startTypingGameAsSpectator(words, players, spectators) {
   typingTimeRemaining = 60;
   typingGameActive = true;
 
-  // Update UI
   typingTimer.textContent = '60';
 
-  // Render players
   renderGamePlayersForGame(players, spectators, true);
 
-  // Start timer display
   startSpectatorTimer();
 }
 
@@ -849,23 +720,19 @@ function startSpectatorTimer() {
   }, 1000);
 }
 
-// ==================== SOLO GAME ====================
 async function startTypingSoloGame() {
   try {
-    // Load words based on tildes mode
     const wordFile = typingTildesMode ? '/words-es-con-tildes.json' : '/words-es-sin-tildes.json';
     const response = await fetch(wordFile);
     const data = await response.json();
     typingWords = shuffleArray([...data.words]).slice(0, 120);
 
-    // Create solo player
     typingPlayers = [{
       id: 'solo',
       name: typingCurrentUser?.username || 'Player',
       profilePicture: typingCurrentUser?.profilePicture || 'profiles/default.svg'
     }];
 
-    // Show waiting screen with Empezar button
     showSoloWaitingScreen(typingWords);
   } catch (error) {
     console.error('Error loading words:', error);
@@ -874,7 +741,6 @@ async function startTypingSoloGame() {
 }
 
 function showSoloWaitingScreen(words) {
-  // Clear any existing timer from previous game
   TypingTimerManager.clearByPrefix('typing-');
 
   typingFullText = words.join(' ');
@@ -886,34 +752,28 @@ function showSoloWaitingScreen(words) {
   typingTimeRemaining = 60;
   typingGameActive = false;
 
-  // Reset UI
   typingTimer.textContent = '60';
   typingWpm.textContent = '0';
   typingAccuracy.textContent = '100%';
 
-  // Add solo-mode class
   const gameWindow = document.querySelector('.typing-game-window');
   if (gameWindow) {
     gameWindow.classList.add('solo-mode');
     gameWindow.classList.remove('coop-mode');
   }
 
-  // Show game screen
   showTypingScreen('typing-game-screen');
 
-  // Show solo controls with Empezar button, hide Restart
   if (typingSoloControls) {
     typingSoloControls.style.display = 'flex';
     typingSoloStartBtn.style.display = '';
     typingSoloRestartBtn.style.display = 'none';
   }
 
-  // Show back tab button for solo mode
   if (typingSoloMenuBtn) {
     typingSoloMenuBtn.style.display = '';
   }
 
-  // Render player box with scrambled text (waiting state)
   renderSoloWaitingPlayer();
 }
 
@@ -933,7 +793,6 @@ function renderSoloWaitingPlayer() {
   textDiv.id = `typing-text-${player.id}`;
   textDiv.tabIndex = 0;
 
-  // Show waiting text
   textDiv.innerHTML = '<span style="color: #666; font-style: italic;">Esperando a comenzar...</span>';
 
   box.innerHTML = `
@@ -948,23 +807,19 @@ function renderSoloWaitingPlayer() {
 }
 
 function startSoloCountdown() {
-  // Hide Empezar button, show countdown
   if (typingSoloStartBtn) typingSoloStartBtn.style.display = 'none';
 
   let countdown = 3;
   const textDiv = document.getElementById('typing-text-solo');
 
-  // Show countdown in the text area
   const showCountdown = () => {
     if (!textDiv) return;
 
     if (countdown > 0) {
-      // Show just the number
       textDiv.innerHTML = `<div class="typing-countdown-display">${countdown}</div>`;
       countdown--;
       setTimeout(showCountdown, 1000);
     } else {
-      // Start the actual game
       startSoloGameAfterCountdown();
     }
   };
@@ -972,32 +827,18 @@ function startSoloCountdown() {
   showCountdown();
 }
 
-function generateScrambledCountdown(num) {
-  const chars = SCRAMBLE_CHARS;
-  let result = '';
-  for (let i = 0; i < 20; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result.slice(0, 10) + ` ${num} ` + result.slice(10);
-}
-
 function startSoloGameAfterCountdown() {
-  // Show restart button
   if (typingSoloRestartBtn) typingSoloRestartBtn.style.display = '';
 
-  // Render actual typing text
   renderGamePlayersForGame(typingPlayers, [], false);
 
-  // Focus hidden input for mobile keyboard
   focusTypingInput();
 
-  // Start game
   typingStartTime = Date.now();
   typingGameActive = true;
   startTypingTimer();
 }
 
-// ==================== START GAME ====================
 function startTypingGameMultiplayer(words, players, spectators) {
   typingWords = words;
   typingPlayers = players;
@@ -1006,7 +847,6 @@ function startTypingGameMultiplayer(words, players, spectators) {
 }
 
 function startTypingGame(words) {
-  // Clear any existing timer from previous game
   TypingTimerManager.clearByPrefix('typing-');
 
   typingFullText = words.join(' ');
@@ -1018,12 +858,10 @@ function startTypingGame(words) {
   typingTimeRemaining = 60;
   typingGameActive = false;
 
-  // Reset UI
   typingTimer.textContent = '60';
   typingWpm.textContent = '0';
   typingAccuracy.textContent = '100%';
 
-  // Add/remove solo-mode class
   const gameWindow = document.querySelector('.typing-game-window');
   if (gameWindow) {
     if (!typingIsMultiplayer) {
@@ -1034,7 +872,6 @@ function startTypingGame(words) {
     gameWindow.classList.remove('coop-mode');
   }
 
-  // Hide solo controls and back tab for multiplayer
   if (typingSoloControls) {
     typingSoloControls.style.display = typingIsMultiplayer ? 'none' : 'flex';
   }
@@ -1042,16 +879,12 @@ function startTypingGame(words) {
     typingSoloMenuBtn.style.display = typingIsMultiplayer ? 'none' : '';
   }
 
-  // Show game screen
   showTypingScreen('typing-game-screen');
 
-  // Render player boxes
   renderGamePlayersForGame(typingPlayers, typingSpectators, false);
 
-  // Focus hidden input for mobile keyboard
   focusTypingInput();
 
-  // Start immediately
   typingStartTime = Date.now();
   typingGameActive = true;
   startTypingTimer();
@@ -1061,7 +894,6 @@ function renderGamePlayersForGame(players, spectators, isSpectator) {
   if (!typingGamePlayers) return;
   typingGamePlayers.innerHTML = '';
 
-  // Calculate grid layout
   const playerCount = players.length;
   let columns = 1;
   if (playerCount >= 6) columns = 3;
@@ -1082,7 +914,6 @@ function renderGamePlayersForGame(players, spectators, isSpectator) {
     textDiv.id = `typing-text-${player.id}`;
     textDiv.tabIndex = 0;
 
-    // Render text
     textDiv.innerHTML = renderTypingText(typingFullText, isSelf && !isSpectator);
 
     box.innerHTML = `
@@ -1095,14 +926,12 @@ function renderGamePlayersForGame(players, spectators, isSpectator) {
     box.appendChild(textDiv);
     typingGamePlayers.appendChild(box);
 
-    // Store reference and focus
     if (isSelf && !isSpectator) {
       typingMyTextElement = textDiv;
       setTimeout(() => textDiv.focus(), 100);
     }
   });
 
-  // Update spectator panel
   updateSpectatorPanel(spectators);
 }
 
@@ -1117,20 +946,13 @@ function renderTypingText(text, showCurrent) {
   return html;
 }
 
-// ==================== KEYBOARD HANDLING ====================
-// handleGlobalKeydown is defined at end of file with Co-op support
-
-// Delete entire word (Ctrl+Backspace / Ctrl+Delete behavior)
 function handleDeleteWord() {
   if (typingCharIndex <= 0) return;
 
-  // Keep deleting until we hit a space or reach the start
-  // First, if we're right after a space, delete the space
   if (typingCharIndex > 0 && typingFullText[typingCharIndex - 1] === ' ') {
     handleBackspace();
   }
 
-  // Now delete backwards until we hit a space or reach index 0
   while (typingCharIndex > 0 && typingFullText[typingCharIndex - 1] !== ' ') {
     handleBackspace();
   }
@@ -1139,13 +961,11 @@ function handleDeleteWord() {
 function handleBackspace() {
   if (typingCharIndex <= 0) return;
 
-  // Move back
   typingCharIndex--;
 
   const charSpan = typingMyTextElement.querySelector(`[data-index="${typingCharIndex}"]`);
   if (!charSpan) return;
 
-  // Check what state the character was in
   if (charSpan.classList.contains('correct')) {
     typingCorrectChars--;
   } else if (charSpan.classList.contains('incorrect')) {
@@ -1153,11 +973,9 @@ function handleBackspace() {
   }
   typingTotalTyped--;
 
-  // Reset character state
   charSpan.classList.remove('correct', 'incorrect');
   charSpan.classList.add('current');
 
-  // Remove current from next char
   const nextSpan = typingMyTextElement.querySelector(`[data-index="${typingCharIndex + 1}"]`);
   if (nextSpan) {
     nextSpan.classList.remove('current');
@@ -1191,7 +1009,6 @@ function processTypedCharacter(typedChar) {
 
   typingCharIndex++;
 
-  // Mark next character as current
   if (typingCharIndex < typingFullText.length) {
     const nextSpan = typingMyTextElement.querySelector(`[data-index="${typingCharIndex}"]`);
     if (nextSpan) {
@@ -1207,7 +1024,6 @@ function processTypedCharacter(typedChar) {
     sendTypingProgress();
   }
 
-  // Check if finished
   if (typingCharIndex >= typingFullText.length) {
     finishTypingGame();
   }
@@ -1217,16 +1033,13 @@ function scrollToCurrentChar(charSpan, container) {
   if (!container) container = typingMyTextElement;
   if (!container || !charSpan) return;
 
-  // Get the line height and scroll to put current char near the top
   const charTop = charSpan.offsetTop;
   const containerHeight = container.clientHeight;
   const lineHeight = charSpan.offsetHeight;
 
-  // Scroll so current line is at the top with a small margin
   container.scrollTop = Math.max(0, charTop - lineHeight);
 }
 
-// ==================== TIMER ====================
 function startTypingTimer() {
   typingTimeRemaining = 60;
   typingTimer.textContent = typingTimeRemaining;
@@ -1241,14 +1054,11 @@ function startTypingTimer() {
   }, 1000);
 }
 
-// ==================== STATS ====================
 function updateTypingStats() {
-  // Don't update if game isn't active or hasn't started
   if (!typingGameActive || !typingStartTime) return;
 
   const elapsedMs = Date.now() - typingStartTime;
   const elapsedMinutes = elapsedMs / 60000;
-  // WPM based only on correct characters (wrong letters don't count)
   const wpm = Math.round((typingCorrectChars / 5) / elapsedMinutes) || 0;
   const accuracy = typingTotalTyped > 0
     ? Math.round((typingCorrectChars / typingTotalTyped) * 100)
@@ -1257,22 +1067,18 @@ function updateTypingStats() {
   typingWpm.textContent = wpm;
   typingAccuracy.textContent = accuracy + '%';
 
-  // Update own WPM display
   const wpmEl = document.getElementById('wpm-solo') || document.getElementById(`wpm-${socket.id}`);
   if (wpmEl) wpmEl.textContent = wpm + ' WPM';
 }
 
-// ==================== MULTIPLAYER ====================
 function sendTypingProgress() {
   if (TypingTimerManager._timers.has('typing-progress-throttle')) return;
 
   TypingTimerManager.setTimeout('typing-progress-throttle', () => {
-    // Timer auto-clears after firing
   }, 200);
 
   const elapsedMs = Date.now() - typingStartTime;
   const elapsedMinutes = elapsedMs / 60000;
-  // WPM based only on correct characters (wrong letters don't count)
   const wpm = Math.round((typingCorrectChars / 5) / elapsedMinutes) || 0;
   const accuracy = typingTotalTyped > 0
     ? Math.round((typingCorrectChars / typingTotalTyped) * 100)
@@ -1288,11 +1094,9 @@ function sendTypingProgress() {
 }
 
 function updateOpponentProgress(data) {
-  // Update opponent's WPM
   const wpmEl = document.getElementById(`wpm-${data.playerId}`);
   if (wpmEl) wpmEl.textContent = data.wpm + ' WPM';
 
-  // Update opponent's text display (show progress)
   const textEl = document.getElementById(`typing-text-${data.playerId}`);
   if (textEl) {
     const chars = textEl.querySelectorAll('.typing-char');
@@ -1308,21 +1112,18 @@ function updateOpponentProgress(data) {
       }
     });
 
-    // Autoscroll opponent's text too
     if (currentCharSpan) {
       scrollToCurrentChar(currentCharSpan, textEl);
     }
   }
 }
 
-// ==================== FINISH GAME ====================
 function finishTypingGame() {
   typingGameActive = false;
   TypingTimerManager.clearByPrefix('typing-');
 
   const elapsedMs = typingStartTime ? (Date.now() - typingStartTime) : 60000;
   const elapsedMinutes = elapsedMs / 60000;
-  // WPM based only on correct characters (wrong letters don't count)
   const finalWpm = Math.round((typingCorrectChars / 5) / elapsedMinutes) || 0;
   const finalAccuracy = typingTotalTyped > 0
     ? Math.round((typingCorrectChars / typingTotalTyped) * 100)
@@ -1336,7 +1137,6 @@ function finishTypingGame() {
       errors: typingErrors
     });
   } else {
-    // Report solo result to server for leaderboard
     socket.emit('typingSoloResult', {
       wpm: finalWpm,
       accuracy: finalAccuracy
@@ -1360,9 +1160,7 @@ function endTypingGame(data) {
   showTypingResults(data);
 }
 
-// ==================== RESULTS ====================
 function showTypingResults(data) {
-  // Show personal stats (if not spectator)
   if (data.myResult) {
     typingFinalWpm.textContent = data.myResult.wpm;
     typingFinalAccuracy.textContent = data.myResult.accuracy + '%';
@@ -1370,7 +1168,6 @@ function showTypingResults(data) {
     typingFinalErrors.textContent = data.myResult.errors;
   }
 
-  // Show ranking for multiplayer
   if (data.isMultiplayer && data.results && data.results.length > 0) {
     if (typingResultsRanking) {
       typingResultsRanking.style.display = 'block';
@@ -1387,7 +1184,6 @@ function showTypingResults(data) {
       `;
     }
 
-    // Hide old VS display
     if (typingResultsVs) {
       typingResultsVs.style.display = 'none';
     }
@@ -1396,7 +1192,6 @@ function showTypingResults(data) {
     if (typingResultsVs) typingResultsVs.style.display = 'none';
   }
 
-  // Show/hide spectator join button
   if (typingSpectatorJoinBtn) {
     if (data.isSpectator) {
       typingSpectatorJoinBtn.style.display = 'inline-block';
@@ -1407,12 +1202,10 @@ function showTypingResults(data) {
     }
   }
 
-  // Hide play again if spectator
   if (typingPlayAgainBtn) {
     typingPlayAgainBtn.style.display = data.isSpectator ? 'none' : 'inline-block';
   }
 
-  // Personal stats section
   const personalStatsSection = document.querySelector('.typing-final-stats')?.parentElement;
   if (personalStatsSection) {
     personalStatsSection.style.display = data.isSpectator ? 'none' : 'block';
@@ -1421,7 +1214,6 @@ function showTypingResults(data) {
   showTypingScreen('typing-results-screen');
 }
 
-// ==================== UTILITIES ====================
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -1430,27 +1222,21 @@ function shuffleArray(array) {
   return array;
 }
 
-// ==================== CO-OP MODE FUNCTIONS ====================
-
 function showCoopGameWithCountdown(seconds, players, currentTyper) {
   showTypingScreen('typing-game-screen');
   typingPlayers = players;
 
-  // Update game window title
   const gameTitle = document.querySelector('#typing-game-screen .title-bar-text');
   if (gameTitle) gameTitle.textContent = 'SQRRR Tikitiki - Co-op';
 
-  // Remove solo-mode class
   const gameWindow = document.querySelector('.typing-game-window');
   if (gameWindow) {
     gameWindow.classList.remove('solo-mode');
     gameWindow.classList.add('coop-mode');
   }
 
-  // Hide solo controls
   if (typingSoloControls) typingSoloControls.style.display = 'none';
 
-  // Render single shared text box with countdown
   renderCoopGameCountdown(seconds, players, currentTyper);
 }
 
@@ -1460,7 +1246,6 @@ function renderCoopGameCountdown(seconds, players, currentTyper) {
   typingGamePlayers.style.gridTemplateColumns = '1fr';
   typingGamePlayers.className = 'typing-game-players cols-1 coop';
 
-  // Create single shared text box
   const box = document.createElement('div');
   box.className = 'typing-player-box coop-shared';
   box.id = 'coop-shared-box';
@@ -1470,7 +1255,6 @@ function renderCoopGameCountdown(seconds, players, currentTyper) {
   textDiv.id = 'typing-text-coop';
   textDiv.innerHTML = `<div class="typing-countdown-display">${seconds}</div>`;
 
-  // Player status panel
   const statusPanel = document.createElement('div');
   statusPanel.className = 'coop-status-panel';
   statusPanel.innerHTML = renderCoopPlayerStatus(players, currentTyper);
@@ -1499,7 +1283,6 @@ function renderCoopPlayerStatus(players, currentTyper) {
 }
 
 function startTypingCoopGame(words, fullText, players, currentTyper) {
-  // Clear any existing timer from previous game
   TypingTimerManager.clearByPrefix('typing-');
 
   typingWords = words;
@@ -1511,39 +1294,32 @@ function startTypingCoopGame(words, fullText, players, currentTyper) {
   typingTotalTyped = 0;
   typingErrors = 0;
   typingStartTime = Date.now();
-  typingTimeRemaining = 120; // 2 minutes
+  typingTimeRemaining = 120;
   typingGameActive = true;
 
-  // Reset UI
   typingTimer.textContent = '120';
   typingWpm.textContent = '0';
   typingAccuracy.textContent = '100%';
 
-  // Render game
   renderCoopGame(players, currentTyper);
 
-  // Focus input if it's our turn
   if (currentTyper === socket.id) {
     focusTypingInput();
   }
 
-  // Start timer
   startCoopTimer();
 }
 
 function renderCoopGameAsSpectator(players, charIndex, currentTyper) {
-  // Update game window
   const gameWindow = document.querySelector('.typing-game-window');
   if (gameWindow) {
     gameWindow.classList.remove('solo-mode');
     gameWindow.classList.add('coop-mode');
   }
 
-  // Hide solo controls
   if (typingSoloControls) typingSoloControls.style.display = 'none';
   if (typingSoloMenuBtn) typingSoloMenuBtn.style.display = 'none';
 
-  // Render the game view
   renderCoopGame(players, currentTyper);
 }
 
@@ -1553,7 +1329,6 @@ function renderCoopGame(players, currentTyper) {
   typingGamePlayers.style.gridTemplateColumns = '1fr';
   typingGamePlayers.className = 'typing-game-players cols-1 coop';
 
-  // Create single shared text box
   const box = document.createElement('div');
   box.className = 'typing-player-box coop-shared';
   const isMyturn = currentTyper === socket.id;
@@ -1564,20 +1339,16 @@ function renderCoopGame(players, currentTyper) {
   textDiv.id = 'typing-text-coop';
   textDiv.tabIndex = 0;
 
-  // Calculate turn boundaries (word indices where turns change)
-  // Turn order: player 0 starts, then rotates through all players
   const turnOrder = players.map(p => p.id);
   const wordsPerTurn = typingCoopWordsPerTurn;
 
-  // Find word boundary positions (indices right after each space)
-  const wordStartPositions = [0]; // First word starts at 0
+  const wordStartPositions = [0];
   for (let i = 0; i < typingFullText.length; i++) {
     if (typingFullText[i] === ' ' && i + 1 < typingFullText.length) {
       wordStartPositions.push(i + 1);
     }
   }
 
-  // Calculate which word index we're currently at based on charIndex
   let currentWordIndex = 0;
   for (let i = 0; i < wordStartPositions.length; i++) {
     if (typingCharIndex >= wordStartPositions[i]) {
@@ -1587,18 +1358,15 @@ function renderCoopGame(players, currentTyper) {
     }
   }
 
-  // Render text with highlighting and turn markers
   let html = '';
   let wordCount = 0;
 
   for (let i = 0; i < typingFullText.length; i++) {
     const char = typingFullText[i];
 
-    // Check if this is the start of a word where turn changes
     if (i > 0 && typingFullText[i - 1] === ' ') {
       wordCount++;
 
-      // Every 20 words, a turn change happens
       if (wordCount > 0 && wordCount % wordsPerTurn === 0) {
         const turnIndex = Math.floor(wordCount / wordsPerTurn) % turnOrder.length;
         const nextTyper = players.find(p => p.id === turnOrder[turnIndex]);
@@ -1625,10 +1393,8 @@ function renderCoopGame(players, currentTyper) {
   }
   textDiv.innerHTML = html;
 
-  // Save reference for typing
   typingMyTextElement = textDiv;
 
-  // Player status panel
   const statusPanel = document.createElement('div');
   statusPanel.className = 'coop-status-panel';
   statusPanel.id = 'coop-status-panel';
@@ -1638,7 +1404,6 @@ function renderCoopGame(players, currentTyper) {
   typingGamePlayers.appendChild(box);
   typingGamePlayers.appendChild(statusPanel);
 
-  // Scroll to current char
   const currentChar = textDiv.querySelector('.current');
   if (currentChar) scrollToCurrentChar(currentChar);
 }
@@ -1650,7 +1415,6 @@ function startCoopTimer() {
 
     if (typingTimeRemaining <= 0) {
       TypingTimerManager.clear('typing-coop-timer');
-      // Server will end the game
     }
   }, 1000);
 }
@@ -1660,7 +1424,6 @@ function updateCoopProgress(data) {
   typingCoopCurrentTyper = data.currentTyper;
   typingPlayers = data.players;
 
-  // Only update char display if it's not our turn (we handle our own display locally)
   if (!isMyTurn) {
     typingCharIndex = data.charIndex;
     const textEl = document.getElementById('typing-text-coop');
@@ -1680,13 +1443,11 @@ function updateCoopProgress(data) {
     }
   }
 
-  // Update status panel
   const statusPanel = document.getElementById('coop-status-panel');
   if (statusPanel) {
     statusPanel.innerHTML = renderCoopPlayerStatus(data.players, data.currentTyper);
   }
 
-  // Update box class for whose turn
   const box = document.querySelector('.coop-shared');
   if (box) {
     if (isMyTurn) {
@@ -1701,15 +1462,12 @@ function handleCoopTurnChange(data) {
   typingCoopCurrentTyper = data.currentTyper;
   typingCharIndex = data.charIndex || typingCharIndex;
 
-  // Focus input if now our turn
   if (data.currentTyper === socket.id) {
     focusTypingInput();
   }
 
-  // Update UI
   updateCoopProgress(data);
 
-  // Flash indicator for turn change
   const statusPanel = document.getElementById('coop-status-panel');
   if (statusPanel) {
     statusPanel.classList.add('turn-flash');
@@ -1722,12 +1480,10 @@ function handleGlobalKeydown(e) {
   if (typingIsSpectator) return;
   if (!typingGameActive) return;
 
-  // For Co-op mode, only allow typing if it's our turn
   if (typingIsCoop && typingCoopCurrentTyper !== socket.id) {
     return;
   }
 
-  // Ctrl+Backspace or Ctrl+Delete: delete entire word
   if ((e.ctrlKey || e.metaKey) && (e.key === 'Backspace' || e.key === 'Delete')) {
     e.preventDefault();
     if (!typingIsCoop) {
@@ -1746,7 +1502,6 @@ function handleGlobalKeydown(e) {
     return;
   }
 
-  // Ignore control keys
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key.length > 1) return;
 
@@ -1760,10 +1515,8 @@ function handleGlobalKeydown(e) {
 }
 
 function handleCoopBackspace() {
-  // Find the current character span (should have 'incorrect' class if we can delete it)
   const currentSpan = typingMyTextElement.querySelector(`[data-index="${typingCharIndex}"]`);
   if (currentSpan && currentSpan.classList.contains('incorrect')) {
-    // Clear the error from current position
     currentSpan.classList.remove('incorrect');
     currentSpan.classList.add('current');
     typingErrors--;
@@ -1778,7 +1531,6 @@ function processCoopCharacter(typedChar) {
   const expectedChar = typingFullText[typingCharIndex];
   const isCorrect = typedChar === expectedChar;
 
-  // Update local display immediately
   const charSpan = typingMyTextElement.querySelector(`[data-index="${typingCharIndex}"]`);
   if (charSpan) {
     charSpan.classList.remove('current', 'pending');
@@ -1787,7 +1539,6 @@ function processCoopCharacter(typedChar) {
       typingCorrectChars++;
       typingCharIndex++;
 
-      // Mark next character as current
       const nextSpan = typingMyTextElement.querySelector(`[data-index="${typingCharIndex}"]`);
       if (nextSpan) {
         nextSpan.classList.add('current');
@@ -1803,7 +1554,6 @@ function processCoopCharacter(typedChar) {
   typingTotalTyped++;
   updateTypingStats();
 
-  // Send to server
   socket.emit('typingCoopChar', {
     char: typedChar,
     correct: isCorrect
@@ -1817,7 +1567,6 @@ function endTypingCoopGame(data) {
 }
 
 function showCoopResults(data) {
-  // Show team stats in ranking area
   if (typingResultsRanking) {
     typingResultsRanking.style.display = 'block';
     typingResultsRanking.innerHTML = `
@@ -1849,12 +1598,10 @@ function showCoopResults(data) {
     `;
   }
 
-  // Hide old VS display
   if (typingResultsVs) {
     typingResultsVs.style.display = 'none';
   }
 
-  // Find my result for personal stats
   const myResult = data.results.find(r => r.id === socket.id);
   if (myResult) {
     typingFinalWpm.textContent = myResult.wpm;
@@ -1863,7 +1610,6 @@ function showCoopResults(data) {
     typingFinalErrors.textContent = myResult.errors;
   }
 
-  // Hide spectator button for Co-op
   if (typingSpectatorJoinBtn) {
     typingSpectatorJoinBtn.style.display = 'none';
   }
@@ -1871,12 +1617,9 @@ function showCoopResults(data) {
   showTypingScreen('typing-results-screen');
 }
 
-// ==================== SLOT MACHINE POPUP ====================
-// Add slot popup button to typing game screen stats bar
 const typingStatsBar = document.querySelector('#typing-game-screen .typing-stats-bar');
 if (typingStatsBar) {
   createSlotPopupButton(typingStatsBar, socket);
 }
 
-// ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', initTypingGame);

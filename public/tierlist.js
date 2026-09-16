@@ -1,14 +1,11 @@
-// SQRRR Tierlist - collab tier list (client)
 import { socketManager, audioManager } from './js/core/index.js';
 
 const socket = socketManager.socket;
 const $ = id => document.getElementById(id);
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const TIER_COLORS = { S: '#ff7f7f', A: '#ffbf7f', B: '#ffdf7f', C: '#ffff7f', D: '#bfff7f', F: '#7fff7f' };
-const ME = Symbol('me'); // key for your own cursor in the cursors map
+const ME = Symbol('me');
 
-// The whole game lives on a fixed 1920x1080 canvas scaled to fit the window, so every card, button and hand sits at the
-// same spot for everyone no matter their window size, browser zoom or Windows scaling. Network positions are fractions of it.
 const STAGE_W = 1920, STAGE_H = 1080;
 let stageScale = 1, stageLeft = 0, stageTop = 0;
 function fitStage() {
@@ -16,7 +13,7 @@ function fitStage() {
   $('tl-stage').style.transform = `translate(-50%, -50%) scale(${stageScale})`;
   const r = $('tl-stage').getBoundingClientRect();
   stageLeft = r.left; stageTop = r.top;
-  fitTray(); // the tray has no size while the screen is hidden
+  fitTray();
 }
 const toStage = (cx, cy) => ({ x: (cx - stageLeft) / stageScale, y: (cy - stageTop) / stageScale });
 window.addEventListener('resize', () => { if (isActive()) fitStage(); });
@@ -29,14 +26,14 @@ const SRC_ICON = {
 };
 const PLACEHOLDER = { music: 'Buscar en khinsider y YouTube, o pega una URL', general: 'Buscar plantillas en TierMaker' };
 const audio = $('tl-audio');
-const cursors = {}; // username | ME -> { key, el, spin, x, y, tilt, tiltTarget, lastX, lastT, ghost, bubble, samples }
-let lastPos = null;      // last own cursor position (fraction of the stage)
+const cursors = {};
+let lastPos = null;
 let cursorDirty = false;
 let seekDragging = false;
-let drag = null;         // local card drag (see startDrag)
+let drag = null;
 let suppressClick = false;
 let hintTimer = null;
-let actx = null, analyser = null, freq = null; // Web Audio graph for the soundwave
+let actx = null, analyser = null, freq = null;
 
 const isHost = () => !!tl.me && tl.host === tl.me.username;
 const fmt = s => `${String(Math.floor((s || 0) / 60)).padStart(2, '0')}:${String(Math.floor((s || 0) % 60)).padStart(2, '0')}`;
@@ -58,7 +55,6 @@ function show(id) {
   $(id).classList.add('active');
 }
 
-// ==================== RENDER ====================
 function renderPlayers() {
   for (const p of tl.players) tl.colors[p.username] = p.color;
   $('tl-players').innerHTML = tl.players.map(p =>
@@ -93,7 +89,7 @@ function renderBoard() {
   stage.classList.toggle('mode-general', viewing ? tl.view.mode === 'general' : tl.mode === 'general');
   stage.classList.toggle('mode-none', !viewing && !tl.mode);
   stage.classList.toggle('has-list', !viewing && !!tl.album);
-  $('tl-pick').hidden = viewing || !!tl.mode;          // first screen: pick Música / General, or browse past lists
+  $('tl-pick').hidden = viewing || !!tl.mode;
   $('tl-search').hidden = viewing || !tl.mode || !!tl.album;
   $('tl-board').hidden = !hasList;
   $('tl-view-back').hidden = !viewing;
@@ -101,26 +97,24 @@ function renderBoard() {
   if (!hasList) { $('tl-search-results').innerHTML = ''; renderSaved(); return; }
   const list = songs(), tt = tiers();
   for (const t of TIERS) $(`tl-drop-${t}`).innerHTML = (tt[t] || []).map(id => cardHtml(list[id])).join('');
-  $('tl-tray').innerHTML = viewing ? '' : list.map(cardHtml).join(''); // the full track list: upcoming greyed, playing with wave, placed with tier badge
+  $('tl-tray').innerHTML = viewing ? '' : list.map(cardHtml).join('');
   fitTray();
   renderCurrent();
   renderVotes();
 }
 
-// ponytail: biggest square that fits every track in the tray with no scrollbar (stage px, so identical on every screen); below 36px it scrolls
 function fitTray() {
   const tray = $('tl-tray'), n = tray.children.length;
   if (!n || !tray.clientWidth) return;
-  const W = tray.clientWidth - 16, H = tray.clientHeight - 16, gap = 6; // 8px padding, 6px gap
+  const W = tray.clientWidth - 16, H = tray.clientHeight - 16, gap = 6;
   let outer = 36;
   for (let c = 100; c >= 36; c -= 2) {
     const cols = Math.floor((W + gap) / (c + gap));
     if (cols && Math.ceil(n / cols) * (c + gap) - gap <= H) { outer = c; break; }
   }
-  tray.style.setProperty('--cs', `${outer}px`); // border-box, so this is the outer size
+  tray.style.setProperty('--cs', `${outer}px`);
 }
 
-// track list states: upcoming / current (soundwave) / placed (tier badge) / trashed
 function renderTrayStates() {
   const ranked = rankedIds();
   document.querySelectorAll('#tl-tray .tl-card').forEach(c => {
@@ -183,13 +177,12 @@ function renderResults({ results, gated, error }) {
   }).join('') : `<div class="tl-empty">${empty}</div>`;
 }
 
-// loading: dark overlay + every hand becomes a spinning ring in its color, until the song or list arrives
 let loadingTimer = null;
 function setLoading(on) {
   $('tl-loading').hidden = !on;
   $('tl-cursors').classList.toggle('loading', on);
   clearTimeout(loadingTimer);
-  if (on) loadingTimer = setTimeout(() => setLoading(false), 25000); // never stuck if the answer got lost
+  if (on) loadingTimer = setTimeout(() => setLoading(false), 25000);
 }
 
 function renderVerdict() {
@@ -210,27 +203,24 @@ function openVerdict() {
   $('tl-verdict').hidden = false;
 }
 
-// ping: "play this one!" - a ring in the pinger's color bursts around the card on every screen
 function pingCard(id, color) {
   document.querySelectorAll(`.tl-card:not(.tl-vote)[data-id="${id}"]`).forEach(card => {
     const ring = document.createElement('span');
     ring.className = 'tl-ping';
     ring.style.setProperty('--c', color);
-    card.style.setProperty('--c', color); // the card's own outline uses it too
+    card.style.setProperty('--c', color);
     card.appendChild(ring);
     card.classList.add('pinged');
     setTimeout(() => { ring.remove(); card.classList.remove('pinged'); card.style.removeProperty('--c'); }, 1600);
   });
 }
 
-// ==================== PLAYBACK SYNC ====================
 function expectedTime() {
   const pb = tl.playback;
   if (!pb) return 0;
   return pb.position + (pb.playing ? (Date.now() + tl.offset - pb.at) / 1000 : 0);
 }
 
-// Audio goes through the site's proxy so the analyser can read it (the mp3 host sends no CORS headers)
 function ensureAudioGraph() {
   if (actx || !window.AudioContext) return;
   try {
@@ -245,8 +235,6 @@ function ensureAudioGraph() {
   } catch (e) { actx = null; analyser = null; }
 }
 
-// ==================== SFX ====================
-// ponytail: Web Audio buffers (not <audio>) so pickup/drop can be pitch-shifted through playbackRate. Fetched once, on first use or preload.
 const SFX_NAMES = ['mensaje', 'pickup', 'drop', 'ping', 'select'];
 const sfxBufs = {};
 const sfxLoad = name => sfxBufs[name] || (sfxBufs[name] = fetch(`tierlist/audio/${name}.wav`).then(r => r.arrayBuffer()).then(b => actx.decodeAudioData(b)).catch(() => { delete sfxBufs[name]; }));
@@ -260,8 +248,8 @@ function sfx(name, { rate = 1, volume = 0.7 } = {}) {
     src.start();
   });
 }
-const wobble = () => 0.85 + Math.random() * 0.3; // random pitch (stretch / shrink) for pickup and drop
-const pingSoundAt = {}; // username -> last time their ping made a sound (1.5 s cooldown each)
+const wobble = () => 0.85 + Math.random() * 0.3;
+const pingSoundAt = {};
 
 function stopAudio() {
   audio.pause(); audio.removeAttribute('src');
@@ -273,7 +261,7 @@ function applyPlayback({ currentId, mp3, playback, serverNow }) {
   if (currentId !== tl.currentId) $('tl-verdict').hidden = true;
   tl.currentId = currentId;
   tl.playback = playback;
-  if (currentId === null || !mp3) { // nothing playing, or a general-mode item (no audio)
+  if (currentId === null || !mp3) {
     stopAudio();
     renderCurrent(); renderVotes();
     return;
@@ -308,10 +296,7 @@ audio.addEventListener('ended', () => {
   socket.emit('tlVerdictOpen');
 });
 
-// ==================== CURSORS ====================
-// The native cursor is hidden on the stage (see CSS); everyone, including you, is a Wii hand overlay.
-// Hands tilt with horizontal speed and settle back; cards being dragged swing like a pendulum from the grab point.
-const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.988, TILT_EASE = 0.1; // ponytail: cursor feel knobs
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.988, TILT_EASE = 0.1;
 
 function getCursor(key) {
   if (cursors[key]) return cursors[key];
@@ -321,7 +306,7 @@ function getCursor(key) {
   img.className = key === ME ? 'tl-cursor me' : 'tl-cursor';
   img.alt = '';
   img.src = cursorUrl(username);
-  img.onerror = () => { img.onerror = null; img.src = 'tierlist/cursors/default.png'; }; // no PNG for this player: the default hand
+  img.onerror = () => { img.onerror = null; img.src = 'tierlist/cursors/default.png'; };
   $('tl-cursors').appendChild(img);
   c.el = img;
   c.spin = document.createElement('span');
@@ -332,18 +317,17 @@ function getCursor(key) {
   return c;
 }
 
-const NET_DELAY = 70; // ms: other players' hands are drawn this far behind the newest sample so motion can be interpolated smoothly
-function pointCursor(c, x, y, now) { // stage coordinates
-  if (c.key !== ME) { // remote: buffer the sample, tick() interpolates through it
+const NET_DELAY = 70;
+function pointCursor(c, x, y, now) {
+  if (c.key !== ME) {
     c.samples.push({ x, y, t: now });
     if (c.samples.length > 60) c.samples.shift();
     return;
   }
-  if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * TILT_GAIN, -TILT_MAX, TILT_MAX); // px/ms -> degrees
+  if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * TILT_GAIN, -TILT_MAX, TILT_MAX);
   c.lastX = x; c.lastT = now;
   c.x = x; c.y = y;
 }
-// position of a remote hand at render time: interpolate between the two samples around (now - NET_DELAY), hold at the newest
 function sampleAt(c, now) {
   const s = c.samples, t = now - NET_DELAY;
   if (!s.length) return null;
@@ -386,7 +370,6 @@ function setRemoteGhost(c, d) {
   c.ghost.gx = d.gx; c.ghost.gy = d.gy; c.ghost.rotTarget = d.rot;
 }
 
-// pointermove, not mousemove: preventDefault on pointerdown (drag start) suppresses the compatibility mouse events
 window.addEventListener('pointermove', e => {
   if (!isActive()) return;
   const p = toStage(e.clientX, e.clientY);
@@ -402,18 +385,16 @@ setInterval(() => {
   socket.emit('tlCursor', { ...lastPos, drag: drag ? { id: drag.id, gx: drag.gx, gy: drag.gy, rot: drag.rot } : null });
 }, 16);
 
-// ==================== CARD DRAG (vote / host move) ====================
-// ponytail: pendulum with a moving pivot; G, DAMP and AMAX are the feel knobs.
 const G = 3000, DAMP = 5, AMAX = 3000;
 
 function startDrag(e, card, mode) {
   const id = +card.dataset.id;
   const r = card.getBoundingClientRect();
   const p = toStage(e.clientX, e.clientY);
-  const gx = (e.clientX - r.left) / stageScale, gy = (e.clientY - r.top) / stageScale; // grab point inside the card (stage px)
+  const gx = (e.clientX - r.left) / stageScale, gy = (e.clientY - r.top) / stageScale;
   const w = r.width / stageScale, h = r.height / stageScale;
-  const ox = gx - w / 2, oy = -Math.abs(gy - h / 2);                     // ponytail: physics pretends you grabbed the top half so the card never flips 180°
-  const phi0 = Math.atan2(-ox, -oy);                                      // card center hangs at angle phi from straight-down; 0 = hanging
+  const ox = gx - w / 2, oy = -Math.abs(gy - h / 2);
+  const phi0 = Math.atan2(-ox, -oy);
   drag = { id, mode, card, gx, gy, L: Math.max(10, Math.hypot(ox, oy)), phi: phi0, phi0, omega: 0, rot: 0,
     px: p.x, py: p.y, prevPx: p.x, vx: 0, startX: p.x, startY: p.y, moved: false, lastT: performance.now(), el: ghostEl(tl.songs[id]) };
   drag.el.style.transformOrigin = `${gx}px ${gy}px`;
@@ -436,13 +417,13 @@ function stepDrag(now) {
   d.el.style.transform = `translate(${d.px - d.gx}px, ${d.py - d.gy}px) rotate(${d.rot}deg)`;
 }
 
-function dropTarget(x, y) { // client coordinates
+function dropTarget(x, y) {
   const el = document.elementFromPoint(x, y);
   return { row: el && el.closest('.tl-row'), trash: el && el.closest('#tl-trash') };
 }
 
 $('tl-board').addEventListener('pointerdown', e => {
-  if (e.button === 1) e.preventDefault(); // middle click: no autoscroll, it's a ping (see auxclick)
+  if (e.button === 1) e.preventDefault();
   if (e.button !== 0 || drag || tl.view) return;
   const card = e.target.closest('.tl-card');
   if (!card) return;
@@ -496,7 +477,6 @@ window.addEventListener('pointerup', e => {
   }
 });
 
-// ==================== ANIMATION LOOP ====================
 function stepWave(now) {
   const wave = document.querySelector('#tl-tray .tl-card.current .tl-wave');
   if (!wave) return;
@@ -511,7 +491,7 @@ function stepWave(now) {
       for (let k = a; k < b; k++) s += freq[k];
       return clamp(0.12 + (s / ((b - a) * 255)) * (1 + i * 0.5), 0.12, 1);
     });
-  } else if (playing) { // no analyser: gentle fake pulse
+  } else if (playing) {
     const t = now / 1000;
     levels = [0, 1, 2, 3].map(i => 0.3 + 0.3 * (1 + Math.sin(t * 5 + i * 1.7)) / 2);
   } else levels = [0.12, 0.12, 0.12, 0.12];
@@ -535,7 +515,7 @@ function tick(now) {
       c.spin.style.transform = `translate(${c.x}px, ${c.y}px)`;
       if (c.bubble && !c.bubble.el.hidden) {
         if (now > c.bubble.until) c.bubble.el.hidden = true;
-        else c.bubble.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg) translate(18px, 34px)`; // hangs off the hand, pivots on the fingertip
+        else c.bubble.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg) translate(18px, 34px)`;
       }
       if (c.ghost) {
         c.ghost.rot += (c.ghost.rotTarget - c.ghost.rot) * 0.5;
@@ -549,8 +529,6 @@ function tick(now) {
 }
 requestAnimationFrame(tick);
 
-// ==================== CURSOR CHAT ====================
-// Enter: a bubble opens on your hand and everything else dims. Enter sends it to everyone, Escape (or clicking away) cancels.
 const chatInput = document.createElement('input');
 chatInput.type = 'text'; chatInput.maxLength = 60; chatInput.autocomplete = 'off'; chatInput.className = 'tl-chat-input';
 $('tl-stage').appendChild(chatInput);
@@ -603,7 +581,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); startChat(); return; }
   if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
   const tier = TIERS[Number(e.key) - 1];
-  if (tier) { // 1-6 = S-F: the host's verdict while the panel is open, otherwise your vote
+  if (tier) {
     if (isHost() && !$('tl-verdict').hidden) socket.emit('tlVerdict', { songId: tl.currentId, tier });
     else socket.emit('tlVote', { songId: tl.currentId, tier });
   } else if (e.key === 'v' || e.key === 'V') $('tl-verdict-btn').click();
@@ -620,13 +598,12 @@ socket.on('tlChat', ({ username, text }) => {
   b.until = performance.now() + 3000;
 });
 
-// ==================== SOCKET ====================
 socket.on('tlLoading', ({ on }) => setLoading(!!on));
 socket.on('tlState', s => {
   setLoading(false);
   Object.assign(tl, { mode: s.mode || null, players: s.players, host: s.host, album: s.album, songs: s.songs, tiers: s.tiers, trashed: s.trashed || [], votes: s.votes, saved: s.saved || tl.saved });
   tl.offset = s.serverNow - Date.now();
-  if (tl.mode) tl.view = null; // the host started something: stop browsing old lists
+  if (tl.mode) tl.view = null;
   $('tl-verdict').hidden = true;
   renderPlayers();
   renderBoard();
@@ -639,13 +616,13 @@ socket.on('tlState', s => {
   }
 });
 socket.on('tlPlayers', ({ players, host }) => {
-  if (tl.players.length && players.length > tl.players.length) audioManager.play('notify', { volume: 0.6 }); // someone joined
+  if (tl.players.length && players.length > tl.players.length) audioManager.play('notify', { volume: 0.6 });
   tl.players = players; tl.host = host; renderPlayers();
 });
 socket.on('tlSearchResults', renderResults);
 socket.on('tlSearching', () => { if (!isHost()) $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>'; });
 socket.on('tlTyping', ({ q }) => { if (!isHost()) $('tl-search-input').value = q; });
-socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select'); applyPlayback(d); });
+socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select', { volume: 0.35 }); applyPlayback(d); });
 socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) { renderVotes(); sfx('drop', { rate: wobble() }); } });
 socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
@@ -675,7 +652,6 @@ socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
   setRemoteGhost(c, d && tl.songs[d.id] ? d : null);
 });
 
-// ==================== CONTROLS ====================
 function leaveScreen() {
   endChat(false);
   setLoading(false);
@@ -689,14 +665,13 @@ function leaveScreen() {
 $('tierlist-btn').addEventListener('click', () => {
   tl.me = window.currentUser;
   if (!tl.me) return;
-  ensureAudioGraph(); // inside the click so the AudioContext is allowed to start
+  ensureAudioGraph();
   if (actx) SFX_NAMES.forEach(sfxLoad);
   socket.emit('tlJoin');
   show('tierlist-screen');
   fitStage();
 });
 $('tl-back-btn').addEventListener('click', leaveScreen);
-// leave the lobby the moment the tab closes or navigates away
 window.addEventListener('pagehide', () => {
   if (!isActive()) return;
   try { socket.emit('tlLeave'); navigator.sendBeacon('/tierlist/leave', socket.id); } catch {}
@@ -709,9 +684,9 @@ function load(source, id) { socket.emit('tlLoad', { source, id }); }
 function search() {
   const q = $('tl-search-input').value.trim();
   if (!q || !isHost()) return;
-  const kh = q.match(/khinsider\.com\/game-soundtracks\/album\/([A-Za-z0-9._-]+)/); // pasted album URL: load it directly
+  const kh = q.match(/khinsider\.com\/game-soundtracks\/album\/([A-Za-z0-9._-]+)/);
   if (kh) return load('kh', kh[1]);
-  if (/^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//.test(q)) return load('yturl', q); // pasted video or playlist
+  if (/^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//.test(q)) return load('yturl', q);
   const tm = q.match(/tiermaker\.com\/create\/([A-Za-z0-9._-]+)/);
   if (tm) return load('tm', tm[1]);
   $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>';
@@ -719,18 +694,17 @@ function search() {
 }
 $('tl-search-input').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
 let typingTimer = null;
-$('tl-search-input').addEventListener('input', e => { // mirror the host's typing to everyone
+$('tl-search-input').addEventListener('input', e => {
   if (!isHost() || typingTimer) return;
   typingTimer = setTimeout(() => { typingTimer = null; socket.emit('tlTyping', { q: e.target.value }); }, 80);
 });
 document.querySelectorAll('.tl-pick-box').forEach(b => b.addEventListener('click', () => { if (isHost()) socket.emit('tlMode', { mode: b.dataset.mode }); }));
-$('tl-search-back').addEventListener('click', () => { if (isHost()) socket.emit('tlMode', { mode: null }); }); // everyone back to the picker
+$('tl-search-back').addEventListener('click', () => { if (isHost()) socket.emit('tlMode', { mode: null }); });
 $('tl-search-go').addEventListener('click', search);
 $('tl-search-results').addEventListener('click', e => {
   const r = e.target.closest('.tl-result');
   if (r && isHost()) load(r.dataset.source, r.dataset.id);
 });
-// click: host plays / restores; anyone else pings. Middle click always pings.
 $('tl-board').addEventListener('click', e => {
   if (suppressClick) { suppressClick = false; return; }
   const c = e.target.closest('.tl-card:not(.tl-vote)');
@@ -744,7 +718,6 @@ $('tl-board').addEventListener('auxclick', e => {
   if (e.button === 1 && c && !tl.view) { e.preventDefault(); socket.emit('tlPing', { songId: +c.dataset.id }); }
 });
 $('tl-trash').addEventListener('click', () => { if (isHost() && tl.currentId !== null) socket.emit('tlTrash', { songId: tl.currentId }); });
-// bubble above the hovered card: song name, vote breakdown, or whose vote it is
 $('tl-board').addEventListener('mouseover', e => {
   const c = e.target.closest('.tl-card');
   if (!c || drag) return;
@@ -780,7 +753,6 @@ $('tl-verdict-rows').addEventListener('click', e => {
   if (!r || !isHost()) return;
   socket.emit('tlVerdict', { songId: tl.currentId, tier: r.dataset.tier });
 });
-// no backdrop close: the panel stays until the host picks a tier (tlTiers hides it)
 $('tl-seek').addEventListener('pointerdown', () => { seekDragging = true; });
 $('tl-seek').addEventListener('input', e => { if (seekDragging) $('tl-clock').textContent = fmt(e.target.value / 1000 * (audio.duration || 0)); });
 $('tl-seek').addEventListener('change', e => {

@@ -7,10 +7,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>SQRRR</title>
   <link rel="icon" type="image/png" href="jovani.png">
-  <!-- Theme stylesheets - one active at a time -->
   <link id="theme-xp" rel="stylesheet" href="https://unpkg.com/xp.css@0.2.6/dist/XP.css">
   <link id="theme-aero" rel="stylesheet" href="https://unpkg.com/7.css" disabled>
-  <!-- Custom styles -->
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/theme-aero.css">
   <link rel="stylesheet" href="style.css">
@@ -20,7 +18,6 @@
   <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
-  <!-- LOGIN SCREEN -->
   <div id="login-screen" class="screen-container active">
     <div class="window login-window">
       <div class="title-bar">
@@ -68,7 +65,6 @@
     </div>
   </div>
 
-  <!-- HUB SCREEN -->
   <div id="hub-screen" class="screen-container">
     <div class="window hub-window">
       <div class="title-bar">
@@ -154,7 +150,6 @@
                   <small>Minigolf de frikitones</small>
                 </span>
               </button>
-              <!-- Fellowship hidden for now -->
               <button id="fellowship-btn" class="hub-activity-btn" style="display: none;">
                 <span class="activity-icon">&#x2694;</span>
                 <span class="activity-text">
@@ -192,7 +187,6 @@
     </div>
   </div>
 
-  <!-- MENU SCREEN -->
   <div id="menu-screen" class="screen-container">
     <div class="window menu-window">
       <div class="title-bar">
@@ -231,7 +225,6 @@
     </div>
   </div>
 
-  <!-- LOBBY SCREEN -->
   <div id="lobby-screen" class="screen-container">
     <div class="window lobby-window">
       <div class="title-bar">
@@ -268,7 +261,6 @@
     </div>
   </div>
 
-  <!-- GAME SCREEN -->
   <div id="game-screen" class="screen-container game-screen-container">
     <div class="window game-window">
       <div class="resize-handle resize-n" data-edge="n"></div>
@@ -310,19 +302,16 @@
 
         <div class="game-main">
           <div class="game-left">
-            <!-- MSN-style "To:" header -->
             <div class="msn-chat-header">
               <span>Para:</span> <strong>SQRRR</strong> <span class="msn-chat-status">(sqrrr_vgm@sqrrr.com)</span>
             </div>
             <div id="game-messages" class="chat-box game-chat"></div>
 
             <div class="game-input-area">
-              <!-- Typing indicator - above toolbar so it doesn't push things around -->
               <div id="typing-indicator" class="typing-indicator" style="display: none;">
                 <span id="typing-indicator-text"></span>
               </div>
 
-              <!-- MSN-style format toolbar -->
               <div class="msn-format-bar">
                 <button id="emoticon-btn" class="msn-toolbar-btn" title="Emojiconicos">
                   <img src="emoticons/regular_smile.png" class="msn-toolbar-emoticon" alt=":)"> Emojiconicos
@@ -337,7 +326,6 @@
                   <button id="font-btn" class="msn-toolbar-btn" title="Fuente">
                     <span class="msn-toolbar-icon">A</span> Fuente
                   </button>
-                  <!-- Font popup -->
                   <div id="font-popup" class="font-popup" style="display: none;">
                     <fieldset>
                       <legend>Configuracion de fuente</legend>
@@ -386,7 +374,6 @@
                   <input id="volume-slider" type="range" min="0" max="100" value="100">
                 </div>
 
-                <!-- Emoticons popup -->
                 <div id="emoticon-popup" class="emoticon-popup" style="display: none;">
                   <div class="emoticon-grid">
                     <img src="emoticons/regular_smile.png" data-code=":)" title=":)" alt=":)">
@@ -418,7 +405,6 @@
                 </div>
               </div>
 
-              <!-- MSN-style input row -->
               <div class="msn-input-row">
                 <input type="text" id="guess-input" placeholder="Escribe tu respuesta..." maxlength="100">
                 <button id="guess-btn">Enviar</button>
@@ -450,7 +436,6 @@
     </div>
   </div>
 
-  <!-- ROUND END SCREEN -->
   <div id="round-end-screen" class="screen-container">
     <div class="window round-end-window">
       <div class="title-bar">
@@ -485,7 +470,6 @@
     </div>
   </div>
 
-  <!-- TYPING MENU SCREEN -->
   <div id="typing-menu-screen" class="screen-container">
     <div class="window typing-menu-window">
       <div class="title-bar">
@@ -517,7 +501,6 @@
         </div>
 
         <div class="menu-content">
-          <!-- Interactive keyboard display -->
           <div id="typing-keyboard" class="typing-keyboard">
             <div class="keyboard-row">
               <span class="key" data-key="Q">Q</span>
@@ -573,7 +556,6 @@
     </div>
   </div>
 
-  <!-- TYPING LOBBY SCREEN -->
   <div id="typing-lobby-screen" class="screen-container">
     <div class="window typing-lobby-window">
       <div class="title-bar">
@@ -595,11 +577,9 @@
         </div>
 
         <div id="typing-players-container" class="typing-players-container">
-          <!-- Player boxes will be added dynamically -->
         </div>
 
         <div id="typing-spectators-container" class="typing-spectators-container">
-          <!-- Spectators will be shown here -->
         </div>
 
         <div class="typing-lobby-controls">
@@ -611,7 +591,6 @@
     </div>
   </div>
 
-  <!-- TYPING GAME SCREEN -->
   <div id="typing-game-screen" class="screen-container">
     <div class="window typing-game-window">
       <button id="typing-solo-menu-btn" class="typing-back-tab" style="display: none;">Volver</button>
@@ -639,18 +618,15 @@
           </div>
         </div>
 
-        <!-- Hidden input for mobile keyboard -->
         <input type="text" id="typing-hidden-input"
                autocomplete="off" autocorrect="off"
                autocapitalize="off" spellcheck="false"
                style="position: absolute; left: -9999px; opacity: 0;">
 
         <div id="typing-game-spectators" class="typing-game-spectators" style="display: none;">
-          <!-- Spectator panel -->
         </div>
 
         <div id="typing-game-players" class="typing-game-players">
-          <!-- Player boxes rendered dynamically -->
         </div>
 
         <div id="typing-solo-controls" class="typing-solo-controls" style="display: none;">
@@ -661,7 +637,6 @@
     </div>
   </div>
 
-  <!-- TYPING RESULTS SCREEN -->
   <div id="typing-results-screen" class="screen-container">
     <div class="window typing-results-window">
       <div class="title-bar">
@@ -674,11 +649,9 @@
       </div>
       <div class="window-body">
         <div id="typing-results-vs" class="typing-results-vs" style="display: none;">
-          <!-- Old VS display - kept for compatibility -->
         </div>
 
         <div id="typing-results-ranking" class="typing-results-ranking" style="display: none;">
-          <!-- Ranking will be rendered dynamically -->
         </div>
 
         <fieldset id="typing-personal-stats">
@@ -712,7 +685,6 @@
     </div>
   </div>
 
-  <!-- DRAWING LOBBY SCREEN -->
   <div id="drawing-lobby-screen" class="screen-container">
     <div class="window drawing-lobby-window">
       <div class="title-bar">
@@ -729,7 +701,6 @@
           <p id="drawing-player-count">0/3 jugadores (mínimo 3)</p>
         </div>
         <div id="drawing-players-container" class="drawing-players-container">
-          <!-- Player boxes rendered dynamically -->
         </div>
         <div id="drawing-spectators-container" class="drawing-spectators-container" style="display: none;">
           <p class="spectators-title">Espectadores:</p>
@@ -743,10 +714,8 @@
     </div>
   </div>
 
-  <!-- DRAWING GAME SCREEN -->
   <div id="drawing-game-screen" class="screen-container">
     <div class="window drawing-game-window xp-paint">
-      <!-- Title Bar -->
       <div class="title-bar">
         <div class="title-bar-text">SQRRRILLO - Ronda <span id="drawing-round-number">1</span>/<span id="drawing-total-rounds">1</span></div>
         <div class="title-bar-theme">
@@ -762,7 +731,6 @@
         </div>
       </div>
 
-      <!-- XP Paint Menu Bar -->
       <div class="xp-menubar">
         <span class="xp-menu-item"><u>F</u>ile</span>
         <span class="xp-menu-item"><u>E</u>dit</span>
@@ -772,38 +740,29 @@
         <span class="xp-menu-item"><u>H</u>elp</span>
       </div>
 
-      <!-- Main Content Area -->
       <div class="xp-paint-body">
-        <!-- Left: XP Paint Toolbox -->
         <div class="xp-toolbox">
           <div class="xp-tool-grid">
-            <!-- Brush -->
             <button class="xp-tool-btn active" data-tool="brush" title="Pincel">
               <svg viewBox="0 0 16 16"><path d="M2 14 L4 10 L12 2 L14 4 L6 12 Z" fill="#FFD700" stroke="#000"/><path d="M2 14 L4 12 L4 14 Z" fill="#000"/></svg>
             </button>
-            <!-- Eraser -->
             <button class="xp-tool-btn" data-tool="eraser" title="Borrador">
               <svg viewBox="0 0 16 16"><rect x="2" y="8" width="12" height="6" fill="#FFC0CB" stroke="#000"/><rect x="2" y="4" width="12" height="4" fill="#4169E1" stroke="#000"/></svg>
             </button>
-            <!-- Fill Bucket -->
             <button class="xp-tool-btn" data-tool="fill" title="Rellenar">
               <svg viewBox="0 0 16 16"><path d="M4 12 L8 4 L12 12 Z" fill="currentColor"/><path d="M3 13 L13 13 L13 15 L3 15 Z" fill="#FFD700"/></svg>
             </button>
-            <!-- Spray -->
             <button class="xp-tool-btn" data-tool="spray" title="Aerografo">
               <svg viewBox="0 0 16 16"><circle cx="4" cy="3" r="1" fill="currentColor"/><circle cx="7" cy="2" r="1" fill="currentColor"/><circle cx="5" cy="5" r="1" fill="currentColor"/><circle cx="8" cy="4" r="1" fill="currentColor"/><circle cx="3" cy="6" r="1" fill="currentColor"/><path d="M10 6 L14 6 L14 14 L10 14 Z" fill="#808080" stroke="#000"/><path d="M11 4 L13 4 L13 6 L11 6 Z" fill="#000"/></svg>
             </button>
-            <!-- Rectangle -->
             <button class="xp-tool-btn" data-tool="rectangle" title="Rectangulo">
               <svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
             </button>
-            <!-- Circle -->
             <button class="xp-tool-btn" data-tool="circle" title="Circulo">
               <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
             </button>
           </div>
 
-          <!-- Size Options (below tools) -->
           <div class="xp-size-options" id="xp-size-options">
             <button class="xp-size-btn" data-size="2"><div class="size-preview" style="width:2px;height:2px;"></div></button>
             <button class="xp-size-btn" data-size="4"><div class="size-preview" style="width:4px;height:4px;"></div></button>
@@ -812,31 +771,25 @@
           </div>
         </div>
 
-        <!-- Center: Canvas Area -->
         <div class="xp-canvas-area">
-          <!-- Word Display above canvas -->
           <div class="xp-word-bar">
             <span class="xp-turn-info">Turno: <span id="drawing-turn-player">---</span></span>
             <span class="xp-word-display" id="drawing-word-display">_ _ _ _ _</span>
             <span class="xp-timer"><span id="drawing-timer">60</span>s</span>
           </div>
 
-          <!-- Canvas Container -->
           <div class="xp-canvas-wrapper">
             <canvas id="drawing-canvas"></canvas>
 
-            <!-- Word Selection Overlay -->
             <div id="drawing-word-selection" class="xp-word-selection hidden">
               <div class="xp-word-selection-box">
                 <h3>Elige una palabra:</h3>
                 <div class="xp-word-options" id="drawing-word-options">
-                  <!-- Word buttons rendered dynamically -->
                 </div>
                 <p class="xp-word-timer">Tiempo: <span id="drawing-word-timer">15</span>s</p>
               </div>
             </div>
 
-            <!-- Turn End Overlay -->
             <div id="drawing-turn-end" class="xp-turn-end hidden">
               <div class="xp-turn-end-box">
                 <p>La palabra era:</p>
@@ -846,19 +799,14 @@
           </div>
         </div>
 
-        <!-- Right: Game Sidebar -->
         <div class="xp-game-sidebar">
-          <!-- Player List (VGM style) -->
           <div class="xp-player-list">
             <ul id="drawing-players-list">
-              <!-- Players rendered dynamically -->
             </ul>
           </div>
 
-          <!-- Chat/Guess Area -->
           <div class="xp-chat-area">
             <div class="xp-chat-messages" id="drawing-chat-messages">
-              <!-- Messages rendered dynamically -->
             </div>
             <div class="xp-chat-input">
               <input type="text" id="drawing-chat-input" placeholder="Escribe tu respuesta..." maxlength="50" autocomplete="off">
@@ -867,7 +815,6 @@
         </div>
       </div>
 
-      <!-- Bottom: Color Palette (exact XP Paint style) -->
       <div class="xp-palette-bar">
         <div class="xp-current-colors">
           <div class="xp-color-stack">
@@ -914,7 +861,6 @@
     </div>
   </div>
 
-  <!-- DRAWING RESULTS SCREEN -->
   <div id="drawing-results-screen" class="screen-container">
     <div class="window drawing-results-window">
       <div class="title-bar">
@@ -927,7 +873,6 @@
       </div>
       <div class="window-body">
         <div id="drawing-results-ranking" class="drawing-results-ranking">
-          <!-- Rankings rendered dynamically -->
         </div>
         <section class="field-row" style="justify-content: center; gap: 10px;">
           <button id="drawing-play-again-btn">Jugar de Nuevo</button>
@@ -938,7 +883,6 @@
     </div>
   </div>
 
-  <!-- FELLOWSHIP MENU SCREEN -->
   <div id="fellowship-menu-screen" class="screen-container">
     <div class="window fellowship-menu-window">
       <div class="title-bar">
@@ -975,7 +919,6 @@
     </div>
   </div>
 
-  <!-- FELLOWSHIP CHARACTER CHOICE SCREEN (Gear vs Talents) -->
   <div id="fellowship-choice-screen" class="screen-container">
     <div class="window fellowship-choice-window">
       <div class="title-bar">
@@ -1007,7 +950,6 @@
     </div>
   </div>
 
-  <!-- FELLOWSHIP TALENT SCREEN -->
   <div id="fellowship-talent-screen" class="screen-container">
     <div class="window fellowship-talent-window">
       <div class="title-bar">
@@ -1026,7 +968,6 @@
           </div>
           <div class="fellowship-talent-level-selector">
             <div class="talent-level-buttons" id="talent-level-buttons">
-              <!-- Level buttons 2-13 will be generated dynamically -->
             </div>
           </div>
           <div class="fellowship-talent-points">
@@ -1034,9 +975,7 @@
           </div>
         </div>
         <div id="fellowship-talent-tree" class="fellowship-talent-tree">
-          <!-- Talent tree will be rendered dynamically -->
         </div>
-        <!-- Talent Tooltip -->
         <div id="fellowship-talent-tooltip" class="fellowship-tooltip">
           <div class="fellowship-tooltip-name"></div>
           <div class="fellowship-tooltip-desc"></div>
@@ -1045,7 +984,6 @@
     </div>
   </div>
 
-  <!-- FELLOWSHIP GEAR SCREEN -->
   <div id="fellowship-gear-screen" class="screen-container">
     <div class="window fellowship-gear-window">
       <div class="title-bar">
@@ -1066,7 +1004,6 @@
         </div>
 
         <div class="fellowship-gear-layout">
-          <!-- Left column: Head to Feet -->
           <div class="fellowship-gear-column">
             <div class="fellowship-slot" data-slot="head">
               <div class="fellowship-slot-label">Head</div>
@@ -1098,7 +1035,6 @@
             </div>
           </div>
 
-          <!-- Right column: Legs to Weapon -->
           <div class="fellowship-gear-column">
             <div class="fellowship-slot" data-slot="legs">
               <div class="fellowship-slot-label">Legs</div>
@@ -1131,7 +1067,6 @@
           </div>
         </div>
 
-        <!-- Por Mazmorras button -->
         <div class="fellowship-gear-dungeon-btn-container">
           <button id="fellowship-dungeon-btn" class="fellowship-dungeon-btn">Por Mazmorras</button>
         </div>
@@ -1140,7 +1075,6 @@
     </div>
   </div>
 
-  <!-- FELLOWSHIP DUNGEON SCREEN -->
   <div id="fellowship-dungeon-screen" class="screen-container">
     <div class="window fellowship-dungeon-window">
       <div class="title-bar">
@@ -1156,13 +1090,11 @@
           <button id="fellowship-dungeon-back-btn">Personajes</button>
         </div>
         <div id="fellowship-dungeon-list" class="fellowship-dungeon-list">
-          <!-- Dungeons will be rendered dynamically -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ARC RAIDERS SKILL TREE SCREEN -->
   <div id="arcraiders-screen" class="screen-container">
     <div class="window arcraiders-window">
       <div class="title-bar">
@@ -1192,7 +1124,6 @@
         <div id="arcraiders-tree-container" class="arcraiders-tree-container">
           <svg id="arcraiders-connections" class="arcraiders-connections"></svg>
           <div id="arcraiders-nodes" class="arcraiders-nodes"></div>
-          <!-- Category labels inside tree -->
           <div class="arcraiders-category-label conditioning">
             <span class="category-name">CONDITIONING</span>
             <span class="category-count" id="cond-tree-points">0</span>
@@ -1215,7 +1146,6 @@
     </div>
   </div>
 
-  <!-- SLOTS CASINO SCREEN -->
   <div id="slots-screen" class="screen-container">
     <div class="window slots-window">
       <div class="title-bar">
@@ -1235,13 +1165,11 @@
           </div>
         </div>
         <div id="slots-game-container" class="slots-game-container">
-          <!-- Slot machine will be rendered here -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- PROFILE MODAL -->
   <div id="profile-modal" class="modal-overlay">
     <div class="window profile-window">
       <div class="title-bar">
@@ -1334,7 +1262,6 @@
     </div>
   </div>
 
-  <!-- PLAYER PROFILE POPUP -->
   <div id="player-profile-popup" class="modal-overlay">
     <div class="window player-popup-window">
       <div class="title-bar">
@@ -1394,7 +1321,6 @@
     </div>
   </div>
 
-  <!-- Global Fellowship Tooltips (outside containers for proper fixed positioning) -->
   <div id="fellowship-tooltip" class="fellowship-tooltip">
     <div class="fellowship-tooltip-name"></div>
     <div class="fellowship-tooltip-stats"></div>
@@ -1406,7 +1332,6 @@
     <div class="fellowship-tooltip-dungeon"></div>
   </div>
 
-  <!-- LEADERBOARD MODAL -->
   <div id="leaderboard-modal" class="modal-overlay">
     <div class="window leaderboard-window">
       <div class="title-bar">
@@ -1474,7 +1399,6 @@
     </div>
   </div>
 
-  <!-- SHOP MODAL -->
   <div id="shop-modal" class="modal-overlay">
     <div class="window shop-window">
       <div class="title-bar">
@@ -1504,7 +1428,6 @@
     </div>
   </div>
 
-  <!-- CARD ALBUM MODAL -->
   <div id="card-album-modal" class="modal-overlay">
     <div class="window card-album-window">
       <div class="title-bar">
@@ -1522,20 +1445,16 @@
           <button id="card-free-btn">Carta Gratis</button>
         </div>
         <div id="card-album-grid" class="card-album-grid">
-          <!-- Cards rendered dynamically -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- CARD INSPECT MODAL -->
   <div id="card-inspect-modal" class="modal-overlay">
     <div class="card-inspect-container">
-      <!-- Card rendered dynamically with 3D effect -->
     </div>
   </div>
 
-  <!-- GAMBA MENU MODAL -->
   <div id="gamba-menu-modal" class="modal-overlay">
     <div class="window gamba-menu-window">
       <div class="title-bar">
@@ -1565,7 +1484,6 @@
     </div>
   </div>
 
-  <!-- STACKING GAME SCREEN -->
   <div id="stacking-screen" class="screen-container">
     <div class="window stacking-window">
       <div class="title-bar">
@@ -1582,13 +1500,11 @@
           <span id="stacking-coins" class="stacking-coins">0 $qr</span>
         </div>
         <div id="stacking-game-container" class="stacking-game-container">
-          <!-- Stacking game will be rendered here -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- FISHING GAME SCREEN -->
   <div id="fishing-screen" class="screen-container">
     <div class="window fishing-window">
       <div class="title-bar">
@@ -1605,13 +1521,11 @@
           <span id="fishing-coins" class="fishing-coins">0 $qr</span>
         </div>
         <div id="fishing-game-container" class="fishing-game-container">
-          <!-- Fishing game will be rendered here -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MINIGOLF GAME SCREEN -->
   <div id="minigolf-screen" class="screen-container">
     <div class="window minigolf-window" style="width:100%;height:100%;max-width:none;max-height:none;">
       <div class="title-bar">
@@ -1623,15 +1537,12 @@
         </div>
       </div>
       <div class="window-body minigolf-body" style="padding:0;height:calc(100% - 25px);overflow:hidden;">
-        <!-- Godot game iframe container -->
         <div id="minigolf-game" class="minigolf-game" style="width:100%;height:100%;display:block;">
-          <!-- Iframe will be injected here by minigolf.js -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- WORDLE GAME SCREEN -->
   <div id="wordle-screen" class="screen-container">
     <div class="window wordle-window">
       <div class="title-bar">
@@ -1651,11 +1562,8 @@
           </div>
         </div>
         <div id="wordle-game-container" class="wordle-game-container">
-          <!-- Game board -->
           <div id="wordle-board" class="wordle-board">
-            <!-- 6 rows x 5 tiles each, rendered by JS -->
           </div>
-          <!-- Keyboard -->
           <div id="wordle-keyboard" class="wordle-keyboard">
             <div class="wordle-keyboard-row">
               <button class="wordle-key" data-key="Q">Q</button>
@@ -1692,14 +1600,12 @@
               <button class="wordle-key wordle-key-wide" data-key="BACKSPACE">&#x232B;</button>
             </div>
           </div>
-          <!-- Message area -->
           <div id="wordle-message" class="wordle-message"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- WORDLE STATS MODAL -->
   <div id="wordle-stats-modal" class="modal-overlay">
     <div class="window wordle-stats-window">
       <div class="title-bar">
@@ -1730,7 +1636,6 @@
         <div class="wordle-distribution">
           <h4>Distribucion de Intentos</h4>
           <div id="wordle-distribution-bars" class="wordle-distribution-bars">
-            <!-- Distribution bars rendered by JS -->
           </div>
         </div>
         <div id="wordle-next-word" class="wordle-next-word"></div>
@@ -1739,7 +1644,6 @@
     </div>
   </div>
 
-  <!-- Israel Loan Collection Popup -->
   <div id="loan-collection-overlay" class="loan-collection-overlay">
     <div class="window loan-collection-window">
       <div class="title-bar">
@@ -1762,7 +1666,6 @@
     </div>
   </div>
 
-  <!-- TIERLIST SCREEN -->
   <div id="tierlist-screen" class="screen-container">
     <div id="tl-stage" class="tl-stage">
       <div class="tl-top">

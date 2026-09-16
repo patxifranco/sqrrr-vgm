@@ -12,7 +12,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Modular game handlers
 const drawingHandler = require('./server/handlers/drawing');
 const typingHandler = require('./server/handlers/typing');
 const vgmHandler = require('./server/handlers/vgm');
@@ -27,7 +26,6 @@ const authHandler = require('./server/handlers/auth');
 const profileHandler = require('./server/handlers/profile');
 const leaderboardsHandler = require('./server/handlers/leaderboards');
 
-// MongoDB connection (optional - uses in-memory storage if not configured)
 const MONGODB_URI = process.env.MONGODB_URI;
 let useInMemory = !MONGODB_URI;
 
@@ -43,7 +41,6 @@ if (MONGODB_URI) {
   console.log('No MONGODB_URI configured - using in-memory storage (data will not persist)');
 }
 
-// User Schema
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -74,7 +71,6 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Record Schema
 const recordSchema = new mongoose.Schema({
   songKey: { type: String, required: true, unique: true },
   player: { type: String, required: true },
@@ -84,28 +80,24 @@ const recordSchema = new mongoose.Schema({
 
 const Record = mongoose.model('Record', recordSchema);
 
-// Typing Leaderboard Schema
 const typingLeaderboardSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   profilePicture: { type: String, default: 'profiles/default.svg' },
   bestWpm: { type: Number, default: 0 },
   bestAccuracy: { type: Number, default: 0 },
-  bestScore: { type: Number, default: 0 }, // Combined WPM * (accuracy/100)
+  bestScore: { type: Number, default: 0 },
   gamesPlayed: { type: Number, default: 0 },
   lastUpdated: { type: Number, default: Date.now }
 });
 
 const TypingLeaderboard = mongoose.model('TypingLeaderboard', typingLeaderboardSchema);
 
-// In-memory cache for users and records (loaded from MongoDB at startup)
 let users = {};
 let records = {};
-let typingLeaderboard = {}; // username -> { bestWpm, bestAccuracy, bestScore }
+let typingLeaderboard = {};
 
-// Track who's typing in each room (for typing indicator)
-const typingUsers = {}; // roomCode -> Set of socket.ids
+const typingUsers = {};
 
-// Load users from MongoDB into memory
 async function loadUsers() {
   try {
     const dbUsers = await User.find({});
@@ -113,7 +105,6 @@ async function loadUsers() {
     const usersNeedingCoins = [];
 
     for (const user of dbUsers) {
-      // Initialize coins to 1000 if undefined, null, or 0
       const needsCoins = user.coins === undefined || user.coins === null || user.coins === 0;
       const coins = needsCoins ? 1000 : user.coins;
 
@@ -150,7 +141,6 @@ async function loadUsers() {
       }
     }
 
-    // Save users who needed coin initialization
     for (const username of usersNeedingCoins) {
       await saveUser(username);
     }
@@ -165,9 +155,7 @@ async function loadUsers() {
   }
 }
 
-// Save a single user to MongoDB (no-op in memory mode)
 async function saveUser(username) {
-  // In memory mode, data is already in the users object, nothing to persist
   if (useInMemory) return;
 
   try {
@@ -210,7 +198,6 @@ async function saveUser(username) {
   }
 }
 
-// Load records from MongoDB into memory
 async function loadRecords() {
   try {
     const dbRecords = await Record.find({});
@@ -228,7 +215,6 @@ async function loadRecords() {
   }
 }
 
-// Save a single record to MongoDB (no-op in memory mode)
 async function saveRecord(songKey) {
   if (useInMemory) return;
 
@@ -251,7 +237,6 @@ async function saveRecord(songKey) {
   }
 }
 
-// Load typing leaderboard from MongoDB into memory
 async function loadTypingLeaderboard() {
   try {
     const entries = await TypingLeaderboard.find({});
@@ -271,13 +256,11 @@ async function loadTypingLeaderboard() {
   }
 }
 
-// Save/update typing leaderboard entry
 async function updateTypingLeaderboard(username, wpm, accuracy, profilePicture) {
   try {
     const score = Math.round(wpm * (accuracy / 100));
     const existing = typingLeaderboard[username];
 
-    // Only update if this is a better score
     if (!existing || score > existing.bestScore) {
       typingLeaderboard[username] = {
         profilePicture: profilePicture || 'profiles/default.svg',
@@ -287,7 +270,6 @@ async function updateTypingLeaderboard(username, wpm, accuracy, profilePicture) 
         gamesPlayed: (existing?.gamesPlayed || 0) + 1
       };
 
-      // Skip MongoDB operations in memory mode
       if (!useInMemory) {
         await TypingLeaderboard.findOneAndUpdate(
           { username: username },
@@ -304,7 +286,6 @@ async function updateTypingLeaderboard(username, wpm, accuracy, profilePicture) 
         );
       }
     } else {
-      // Just increment games played
       typingLeaderboard[username].gamesPlayed++;
       if (!useInMemory) {
         await TypingLeaderboard.findOneAndUpdate(
@@ -318,7 +299,6 @@ async function updateTypingLeaderboard(username, wpm, accuracy, profilePicture) 
   }
 }
 
-// Migrate existing users.json to MongoDB (run once)
 async function migrateUsersToMongoDB() {
   try {
     const usersFile = path.join(__dirname, 'users.json');
@@ -356,7 +336,6 @@ async function migrateUsersToMongoDB() {
   }
 }
 
-// Migrate existing records.json to MongoDB (run once)
 async function migrateRecordsToMongoDB() {
   try {
     const recordsFile = path.join(__dirname, 'records.json');
@@ -386,12 +365,10 @@ async function migrateRecordsToMongoDB() {
   }
 }
 
-// Audio token system - prevents cheating by hiding song filenames
-const audioTokens = new Map(); // token -> { songFile, expires }
+const audioTokens = new Map();
 
 function generateAudioToken(songFile) {
   const token = crypto.randomBytes(32).toString('hex');
-  // Token expires in 5 minutes
   audioTokens.set(token, {
     songFile,
     expires: Date.now() + 5 * 60 * 1000
@@ -399,7 +376,6 @@ function generateAudioToken(songFile) {
   return token;
 }
 
-// Clean up expired tokens periodically (store ID for graceful shutdown)
 const tokenCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [token, data] of audioTokens) {
@@ -407,9 +383,8 @@ const tokenCleanupInterval = setInterval(() => {
       audioTokens.delete(token);
     }
   }
-}, 60 * 1000); // Clean every minute
+}, 60 * 1000);
 
-// Serve audio by token (must be before static middleware)
 app.get('/audio-stream/:token', (req, res) => {
   const tokenData = audioTokens.get(req.params.token);
   if (!tokenData || tokenData.expires < Date.now()) {
@@ -421,7 +396,6 @@ app.get('/audio-stream/:token', (req, res) => {
     return res.status(404).send('Not found');
   }
 
-  // Stream the audio file
   res.setHeader('Content-Type', 'audio/mpeg');
   res.setHeader('Accept-Ranges', 'bytes');
 
@@ -445,26 +419,21 @@ app.get('/audio-stream/:token', (req, res) => {
   }
 });
 
-// Tierlist: same-origin audio proxy (lets the soundwave analyser read the stream) and leave-on-close beacon
 app.get('/tierlist/audio', tierlistHandler.audioProxy);
 app.post('/tierlist/leave', express.text({ type: '*/*' }), (req, res) => {
   tierlistHandler.leaveById(io, String(req.body || '').trim());
   res.status(204).end();
 });
 
-// Block direct access to audio files (prevent cheating)
 app.use('/audio', (req, res, next) => {
-  // Only block mp3 files, allow other assets if any
   if (req.path.endsWith('.mp3')) {
     return res.status(403).send('Access denied');
   }
   next();
 });
 
-// Serve static files from 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Load songs database
 let songs = [];
 try {
   songs = JSON.parse(fs.readFileSync(path.join(__dirname, 'songs.json'), 'utf8'));
@@ -473,14 +442,9 @@ try {
   console.error('Error loading songs.json:', err.message);
 }
 
-// Game state
 const lobbies = {};
-const loggedInUsers = {}; // Map socket.id to username
+const loggedInUsers = {};
 
-// Drawing game state and handlers now in server/handlers/drawing.js
-// Typing game state and handlers now in server/handlers/typing.js
-
-// Chat history persistence
 const chatHistoryFile = path.join(__dirname, 'chatHistory.json');
 let chatHistory = [];
 
@@ -511,7 +475,6 @@ function addToChatHistory(roomCode, message) {
     timestamp: Date.now(),
     ...message
   });
-  // Keep last 10000 messages
   if (chatHistory.length > 10000) {
     chatHistory = chatHistory.slice(-10000);
   }
@@ -528,7 +491,6 @@ function clearChatHistoryForRoom(roomCode) {
   }
 }
 
-// Generate a random 4-letter room code
 function generateRoomCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let code = '';
@@ -538,14 +500,11 @@ function generateRoomCode() {
   return code;
 }
 
-// Get a random song with cooldown (avoids last 100 songs)
 function getRandomSong(recentSongs = []) {
   if (songs.length === 0) return null;
 
-  // Filter out recently played songs
   const availableSongs = songs.filter(song => !recentSongs.includes(song.file));
 
-  // If all songs are on cooldown, just pick any
   if (availableSongs.length === 0) {
     return songs[Math.floor(Math.random() * songs.length)];
   }
@@ -553,7 +512,6 @@ function getRandomSong(recentSongs = []) {
   return availableSongs[Math.floor(Math.random() * availableSongs.length)];
 }
 
-// Update user stats after a round
 function updateUserStats(username, gameName, guessedGame, gotSuperSonic, usedHint, points) {
   if (!users[username]) return;
 
@@ -580,7 +538,6 @@ function updateUserStats(username, gameName, guessedGame, gotSuperSonic, usedHin
   saveUser(username);
 }
 
-// Get user's most guessed game
 function getMostGuessedGame(username) {
   if (!users[username]) return null;
 
@@ -598,13 +555,11 @@ function getMostGuessedGame(username) {
   return maxGame ? { game: maxGame, count: maxCount } : null;
 }
 
-// Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('Player connected:', socket.id);
 
   let currentRoom = null;
 
-  // Setup auth handler first - returns helper functions for other handlers
   const authHelpers = authHandler.setupHandlers(io, socket, {
     users,
     loggedInUsers,
@@ -614,7 +569,6 @@ io.on('connection', (socket) => {
     TypingLeaderboard
   });
 
-  // Setup profile and leaderboard handlers
   profileHandler.setupHandlers(io, socket, {
     users,
     records,
@@ -628,7 +582,6 @@ io.on('connection', (socket) => {
     typingLeaderboard
   });
 
-  // Setup modular game handlers
   const drawingCleanup = drawingHandler.setupHandlers(io, socket, {
     getUser: (username) => users[username],
     saveUser: saveUser,
@@ -695,7 +648,6 @@ io.on('connection', (socket) => {
     getLoggedInUsername: authHelpers.getLoggedInUsername
   });
 
-  // Create a new lobby
   socket.on('createLobby', () => {
     const loggedInUsername = authHelpers.getLoggedInUsername();
     if (!loggedInUsername) {
@@ -707,7 +659,6 @@ io.on('connection', (socket) => {
     authHelpers.setPlayerName(user.username);
     let roomCode = generateRoomCode();
 
-    // Make sure code is unique
     while (lobbies[roomCode]) {
       roomCode = generateRoomCode();
     }
@@ -723,7 +674,6 @@ io.on('connection', (socket) => {
     console.log(`Lobby ${roomCode} created by ${user.username}`);
   });
 
-  // Join an existing lobby
   socket.on('joinLobby', ({ roomCode }) => {
     const loggedInUsername = authHelpers.getLoggedInUsername();
     if (!loggedInUsername) {
@@ -749,52 +699,35 @@ io.on('connection', (socket) => {
     io.to(room).emit('playerList', vgmHandler.getPlayerList(lobbies, room));
     io.to(room).emit('chatMessage', { system: true, message: `${user.username} se ha unido al lobby!` });
 
-    // Send chat history to the new player (last 100 messages only)
     const roomHistory = chatHistory.filter(msg => msg.roomCode === room).slice(-100);
     socket.emit('chatHistory', roomHistory);
 
     console.log(`${user.username} joined lobby ${room}`);
   });
 
-  // VGM game handlers (joinVGM, startRound, typing indicators) now in server/handlers/vgm.js
-  // Leaderboards now in server/handlers/leaderboards.js
-
-  // Leave room (go back to menu) - handled by VGM module
   socket.on('leaveRoom', () => {
     vgmCleanup.handleLeaveRoom();
   });
 
-  // Typing game handlers now in server/handlers/typing.js
-  // Drawing game handlers now in server/handlers/drawing.js
-
   socket.on('disconnect', () => {
     console.log('Player disconnected:', socket.id);
 
-    // Clean up auth state
     authHelpers.handleDisconnect();
 
-    // Clean up VGM game (using modular handler)
     vgmCleanup.handleDisconnect();
 
-    // Clean up typing game (using modular handler)
     typingCleanup.handleDisconnect();
 
-    // Clean up drawing game (using modular handler)
     if (drawingCleanup.isDrawingPlayer() || drawingCleanup.isDrawingSpectator()) {
       drawingCleanup.handleDisconnect();
     }
 
-    // Clean up minigolf game
     minigolfCleanup.handleDisconnect();
 
-    // Clean up tierlist lobby
     tierlistCleanup.handleDisconnect();
   });
 });
 
-// VGM round management functions now in server/handlers/vgm.js
-
-// Add new users if they don't exist
 async function ensureUsersExist() {
   const newUsers = [
     { username: 'cilveti', password: 'helloworld' },
@@ -827,13 +760,11 @@ async function ensureUsersExist() {
   }
 }
 
-// One-time exploit penalty for Kelmi (Feb 2026)
 async function applyExploitPenalties() {
   try {
     const kelmi = await User.findOne({ username: { $regex: /^kelmi$/i } });
     if (!kelmi) return;
 
-    // Check if this specific penalty was already applied (using a unique flag)
     if (kelmi.exploitPenalty2026Applied) {
       console.log('[PENALTY] Kelmi exploit penalty (Feb 2026) already applied, skipping.');
       return;
@@ -842,13 +773,12 @@ async function applyExploitPenalties() {
     const currentCoins = kelmi.coins ?? 0;
     const currentDebt = kelmi.debt ?? 0;
 
-    // Only apply if he has significant coins
     if (currentCoins <= 1000) {
       console.log(`[PENALTY] Kelmi has only ${currentCoins} coins, no penalty needed.`);
       return;
     }
 
-    const penaltyAmount = currentCoins; // Take everything
+    const penaltyAmount = currentCoins;
 
     console.log(`[PENALTY] Applying Kelmi exploit penalty:`);
     console.log(`  Before: ${currentCoins.toLocaleString()} coins, ${currentDebt.toLocaleString()} debt`);
@@ -865,12 +795,10 @@ async function applyExploitPenalties() {
   }
 }
 
-// Load users from JSON files for in-memory mode
 function createInMemoryUsers() {
   const usersFile = path.join(__dirname, 'users.json');
   const recordsFile = path.join(__dirname, 'records.json');
 
-  // Try to load users from users.json
   if (fs.existsSync(usersFile)) {
     try {
       const fileUsers = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
@@ -909,7 +837,6 @@ function createInMemoryUsers() {
     }
   }
 
-  // Try to load records from records.json
   if (fs.existsSync(recordsFile)) {
     try {
       const fileRecords = JSON.parse(fs.readFileSync(recordsFile, 'utf8'));
@@ -926,7 +853,6 @@ function createInMemoryUsers() {
     }
   }
 
-  // If no users loaded, create defaults
   if (Object.keys(users).length === 0) {
     console.log('No users.json found, creating test users');
     const defaultUsers = [
@@ -968,24 +894,18 @@ function createInMemoryUsers() {
   }
 }
 
-// Initialize MongoDB data and start server
 async function initializeAndStart() {
   if (!useInMemory) {
     try {
-      // Wait for MongoDB connection
       await mongoose.connection.asPromise();
 
-      // Migrate existing JSON data to MongoDB (runs only if MongoDB is empty)
       await migrateUsersToMongoDB();
       await migrateRecordsToMongoDB();
 
-      // Ensure required users exist
       await ensureUsersExist();
 
-      // Apply one-time exploit penalties
       await applyExploitPenalties();
 
-      // Load data from MongoDB into memory
       await loadUsers();
       await loadRecords();
       await loadTypingLeaderboard();
@@ -996,12 +916,10 @@ async function initializeAndStart() {
     }
   }
 
-  // If using in-memory mode, create test users
   if (useInMemory) {
     createInMemoryUsers();
   }
 
-  // Initialize modular game handlers
   drawingHandler.init(io, __dirname);
   typingHandler.init(io, __dirname);
   vgmHandler.init(io);
@@ -1014,7 +932,6 @@ async function initializeAndStart() {
   profileHandler.init(io);
   leaderboardsHandler.init(io);
 
-  // Start server
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
@@ -1031,24 +948,19 @@ initializeAndStart().catch(err => {
   process.exit(1);
 });
 
-// Graceful shutdown handling
 function gracefulShutdown(signal) {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
 
-  // Clear the token cleanup interval
   clearInterval(tokenCleanupInterval);
   console.log('Cleared token cleanup interval');
 
-  // Close all socket connections
   io.close(() => {
     console.log('Socket.IO connections closed');
   });
 
-  // Close HTTP server
   server.close(() => {
     console.log('HTTP server closed');
 
-    // Close MongoDB connection if connected
     if (!useInMemory && mongoose.connection.readyState === 1) {
       mongoose.connection.close(false).then(() => { console.log('MongoDB connection closed'); process.exit(0); }).catch(() => process.exit(0));
     } else {
@@ -1056,7 +968,6 @@ function gracefulShutdown(signal) {
     }
   });
 
-  // Force exit after 10 seconds if graceful shutdown fails
   setTimeout(() => {
     console.error('Forced shutdown after timeout');
     process.exit(1);

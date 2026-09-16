@@ -1,32 +1,14 @@
-/**
- * VGM (Video Game Music) Game Socket Handlers
- *
- * Core guessing game where players identify video game music.
- * Extracted from server.js for modularity.
- */
-
 const { createVGMPlayer } = require('../utils');
-
-// ==================== STATE ====================
 
 let _io = null;
 const VGM_ROOM = 'VGM';
 
-// Store player scores for 12 hours after leaving
-// Key: username, Value: { score, streak, hintPoints, savedAt }
 const savedPlayerScores = new Map();
-const SCORE_EXPIRY_MS = 12 * 60 * 60 * 1000; // 12 hours
+const SCORE_EXPIRY_MS = 12 * 60 * 60 * 1000;
 
-// ==================== INITIALIZATION ====================
-
-/**
- * Initialize VGM module with io reference
- * @param {Object} io - Socket.IO server instance
- */
 function init(io) {
   _io = io;
 
-  // Start cleanup interval for expired saved scores (runs every hour)
   setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
@@ -39,14 +21,9 @@ function init(io) {
     if (cleaned > 0) {
       console.log(`[VGM] Cleaned up ${cleaned} expired saved scores`);
     }
-  }, 60 * 60 * 1000); // Every hour
+  }, 60 * 60 * 1000);
 }
 
-// ==================== TEXT PROCESSING ====================
-
-/**
- * Normalize text for comparison (lowercase, remove accents, remove extra spaces)
- */
 function normalizeText(text) {
   return text
     .toLowerCase()
@@ -57,9 +34,6 @@ function normalizeText(text) {
     .replace(/\s+/g, ' ');
 }
 
-/**
- * Levenshtein distance for close guess detection
- */
 function levenshteinDistance(str1, str2) {
   const m = str1.length;
   const n = str2.length;
@@ -80,9 +54,6 @@ function levenshteinDistance(str1, str2) {
   return dp[m][n];
 }
 
-/**
- * Calculate similarity percentage
- */
 function calculateSimilarity(str1, str2) {
   const distance = levenshteinDistance(str1, str2);
   const maxLen = Math.max(str1.length, str2.length);
@@ -90,9 +61,6 @@ function calculateSimilarity(str1, str2) {
   return Math.round((1 - distance / maxLen) * 100);
 }
 
-/**
- * Check if a guess matches the correct answer (exact match only)
- */
 function checkGuess(guess, correctAnswer, aliases) {
   const normalizedGuess = normalizeText(guess);
   const normalizedCorrect = normalizeText(correctAnswer);
@@ -107,9 +75,6 @@ function checkGuess(guess, correctAnswer, aliases) {
   return false;
 }
 
-/**
- * Get close guess percentage (0-100) or 0 if not close enough
- */
 function getCloseGuessPercentage(guess, correctAnswer, aliases) {
   const normalizedGuess = normalizeText(guess);
   const normalizedCorrect = normalizeText(correctAnswer);
@@ -181,9 +146,6 @@ function getCloseGuessPercentage(guess, correctAnswer, aliases) {
   return bestPercentage;
 }
 
-/**
- * Generate a hint for the game name
- */
 function generateHint(gameName) {
   const name = gameName.trim();
   const words = name.split(' ');
@@ -206,11 +168,6 @@ function generateHint(gameName) {
   return hint;
 }
 
-// ==================== LOBBY MANAGEMENT ====================
-
-/**
- * Create a new lobby
- */
 function createLobby(roomCode) {
   return {
     roomCode,
@@ -230,9 +187,6 @@ function createLobby(roomCode) {
   };
 }
 
-/**
- * Get player list for a room
- */
 function getPlayerList(lobbies, roomCode) {
   const lobby = lobbies[roomCode];
   if (!lobby) return [];
@@ -249,11 +203,6 @@ function getPlayerList(lobbies, roomCode) {
   }));
 }
 
-// ==================== ROUND MANAGEMENT ====================
-
-/**
- * End the current round
- */
 function endRound(roomCode, context) {
   const { lobbies, users, updateUserStats } = context;
   const lobby = lobbies[roomCode];
@@ -322,9 +271,6 @@ function endRound(roomCode, context) {
   }
 }
 
-/**
- * First round countdown
- */
 function startFirstRoundCountdown(roomCode, context) {
   const { lobbies } = context;
   const lobby = lobbies[roomCode];
@@ -362,15 +308,11 @@ function startFirstRoundCountdown(roomCode, context) {
   });
 }
 
-/**
- * Auto-play countdown after round ends
- */
 function startAutoPlayCountdown(roomCode, context) {
   const { lobbies, addToChatHistory, records } = context;
   const lobby = lobbies[roomCode];
   if (!lobby || !lobby.autoPlayActive) return;
 
-  // Build combined message with song reveal and record holder
   const songKey = `${lobby.currentSong.game} - ${lobby.currentSong.song}`;
   const record = records ? records[songKey] : null;
 
@@ -421,9 +363,6 @@ function startAutoPlayCountdown(roomCode, context) {
   }, 5000);
 }
 
-/**
- * Start next round automatically
- */
 function startNextRound(roomCode, context) {
   const { lobbies, getRandomSong, generateAudioToken } = context;
   const lobby = lobbies[roomCode];
@@ -449,7 +388,7 @@ function startNextRound(roomCode, context) {
     player.guessedGame = false;
     player.gotSuperSonic = false;
     player.usedHintThisRound = false;
-    player.closeGuesses = []; // Clear close guesses for new round
+    player.closeGuesses = [];
   });
 
   lobby.roundDuration = 20000;
@@ -477,15 +416,6 @@ function startNextRound(roomCode, context) {
   }, lobby.roundDuration);
 }
 
-// ==================== SOCKET HANDLERS ====================
-
-/**
- * Setup VGM socket handlers for a connection
- * @param {Object} io - Socket.IO server instance
- * @param {Object} socket - Socket instance
- * @param {Object} context - Context with dependencies
- * @returns {Object} Cleanup functions
- */
 function setupHandlers(io, socket, context) {
   const {
     lobbies,
@@ -508,7 +438,6 @@ function setupHandlers(io, socket, context) {
     generateAudioToken
   } = context;
 
-  // Join the single global VGM lobby
   socket.on('joinVGM', () => {
     const loggedInUsername = getLoggedInUsername();
     if (!loggedInUsername) {
@@ -526,7 +455,6 @@ function setupHandlers(io, socket, context) {
 
     const lobby = lobbies[VGM_ROOM];
 
-    // Check for saved scores within 12 hours
     let restoredScore = 0;
     let restoredStreak = 0;
     let restoredHintPoints = 4;
@@ -538,7 +466,6 @@ function setupHandlers(io, socket, context) {
       restoredHintPoints = savedData.hintPoints;
       savedPlayerScores.delete(loggedInUsername);
     } else if (savedData) {
-      // Expired, remove it
       savedPlayerScores.delete(loggedInUsername);
     }
 
@@ -553,7 +480,7 @@ function setupHandlers(io, socket, context) {
       gotSuperSonic: false,
       streak: restoredStreak,
       fontSettings: { size: 13, color: '#000000', nameColor: '#0000ff', effect: 'none' },
-      closeGuesses: [] // Track close guesses for /fail command
+      closeGuesses: []
     };
 
     socket.join(VGM_ROOM);
@@ -578,7 +505,6 @@ function setupHandlers(io, socket, context) {
     socket.emit('chatHistory', roomHistory);
   });
 
-  // Start a new round
   socket.on('startRound', () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -593,7 +519,6 @@ function setupHandlers(io, socket, context) {
     startFirstRoundCountdown(currentRoom, { ...context, lobbies });
   });
 
-  // Handle font settings update
   socket.on('updateFontSettings', (settings) => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -608,9 +533,7 @@ function setupHandlers(io, socket, context) {
     };
   });
 
-  // Handle a guess
   socket.on('guess', (guess) => {
-    // Validate and truncate message to 100 chars
     if (typeof guess !== 'string') return;
     guess = guess.slice(0, 100);
 
@@ -619,17 +542,14 @@ function setupHandlers(io, socket, context) {
 
     const lobby = lobbies[currentRoom];
 
-    // If round is not active, treat as regular chat or handle commands
     if (!lobby.roundActive || !lobby.currentSong) {
       const player = lobby.players[socket.id];
       if (!player) return;
 
-      // Handle /fail command - show all players' close guesses from last round to everyone
       if (guess.trim().toLowerCase() === '/fail') {
         const allCloseGuesses = [];
         Object.values(lobby.players).forEach(p => {
           if (p.closeGuesses && p.closeGuesses.length > 0) {
-            // Each guess on its own line for this player
             p.closeGuesses.forEach(g => {
               allCloseGuesses.push(`${p.name}: ${g}`);
             });
@@ -695,7 +615,6 @@ function setupHandlers(io, socket, context) {
           sonicType = 'super';
         }
 
-        // Check and update record
         const songKey = `${song.game} - ${song.song}`;
         const currentRecord = records[songKey];
         const isNewRecord = !currentRecord || player.guessTime < currentRecord.time;
@@ -749,10 +668,9 @@ function setupHandlers(io, socket, context) {
 
         socket.emit('roundComplete');
 
-        // Award $qr coins for correct guess
         const loggedInUser = getLoggedInUsername();
         if (loggedInUser && users[loggedInUser]) {
-          let coinsEarned = 10; // Normal guess
+          let coinsEarned = 10;
           if (isUltraSonico) coinsEarned = 30;
           else if (isSuperSonico) coinsEarned = 20;
 
@@ -761,7 +679,6 @@ function setupHandlers(io, socket, context) {
           socket.emit('coinsEarned', { amount: coinsEarned, total: users[loggedInUser].coins });
         }
       } else {
-        // Easter egg: "mairo" typo (triggers if guess contains "mairo") - show to everyone
         if (normalizeText(guess).includes('mairo')) {
           io.to(currentRoom).emit('gameChatMessage', {
             sender: player.name,
@@ -778,7 +695,6 @@ function setupHandlers(io, socket, context) {
         } else {
           const closePercentage = getCloseGuessPercentage(guess, song.game, song.gameAliases);
           if (closePercentage > 0) {
-            // Track close guesses for /fail command
             if (!player.closeGuesses) player.closeGuesses = [];
             player.closeGuesses.push(guess);
 
@@ -806,7 +722,6 @@ function setupHandlers(io, socket, context) {
         }
       }
     } else {
-      // Player already guessed - treat as chat
       addToChatHistory(currentRoom, {
         sender: player.name,
         message: guess,
@@ -821,7 +736,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Request a hint
   socket.on('requestHint', () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -861,7 +775,6 @@ function setupHandlers(io, socket, context) {
     io.to(currentRoom).emit('playerList', getPlayerList(lobbies, currentRoom));
   });
 
-  // Report audio duration
   socket.on('reportAudioDuration', ({ duration }) => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -872,7 +785,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Vote to extend round
   socket.on('voteExtend', () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -890,7 +802,6 @@ function setupHandlers(io, socket, context) {
     const votesNeeded = Math.ceil(totalPlayers / 2);
     const currentVotes = lobby.extendVotes.size;
 
-    // Send SQRRR message about the vote
     io.to(currentRoom).emit('gameChatMessage', {
       sender: 'SQRRR',
       message: `${player.name} ha votado para extender la canción. Votos: ${currentVotes}/${votesNeeded}`,
@@ -919,7 +830,6 @@ function setupHandlers(io, socket, context) {
         }
       }, remaining);
 
-      // Send SQRRR message about song extension
       io.to(currentRoom).emit('gameChatMessage', {
         sender: 'SQRRR',
         message: 'Canción extendida hasta el final',
@@ -931,9 +841,7 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Chat message
   socket.on('chatMessage', (message) => {
-    // Validate and truncate message to 100 chars
     if (typeof message !== 'string') return;
     message = message.slice(0, 100);
 
@@ -956,20 +864,17 @@ function setupHandlers(io, socket, context) {
     });
   });
 
-  // Nudge - broadcast to all players in room
   socket.on('sendNudge', () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
     const player = lobbies[currentRoom].players[socket.id];
     if (!player) return;
 
-    // Broadcast nudge to all players in the room
     io.to(currentRoom).emit('nudgeReceived', {
       senderName: player.name
     });
   });
 
-  // Typing indicator
   socket.on('startTyping', () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -997,7 +902,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Return cleanup functions
   return {
     handleDisconnect: () => {
       const currentRoom = getCurrentRoom();
@@ -1005,7 +909,6 @@ function setupHandlers(io, socket, context) {
         const lobby = lobbies[currentRoom];
         const player = lobby.players[socket.id];
 
-        // Clean up typing indicator
         if (typingUsers[currentRoom]) {
           typingUsers[currentRoom].delete(socket.id);
           io.to(currentRoom).emit('typingUpdate', {
@@ -1014,7 +917,6 @@ function setupHandlers(io, socket, context) {
         }
 
         if (player) {
-          // Save player score for 12 hours
           if (player.username && (player.score > 0 || player.streak > 0)) {
             savedPlayerScores.set(player.username, {
               score: player.score,
@@ -1032,7 +934,6 @@ function setupHandlers(io, socket, context) {
           io.to(currentRoom).emit('playerList', getPlayerList(lobbies, currentRoom));
         }
 
-        // Reset VGM lobby when empty
         if (currentRoom === VGM_ROOM && Object.keys(lobby.players).length === 0) {
           if (lobby.roundTimeout) {
             clearTimeout(lobby.roundTimeout);
@@ -1043,13 +944,10 @@ function setupHandlers(io, socket, context) {
           lobby.currentSong = null;
           lobby.roundNumber = 0;
           lobby.roundStartTime = null;
-          // Clear chat history when lobby is empty
           clearChatHistoryForRoom(currentRoom);
         }
 
-        // Delete non-VGM lobbies when empty
         if (currentRoom !== VGM_ROOM && Object.keys(lobby.players).length === 0) {
-          // Clear chat history before deleting lobby
           clearChatHistoryForRoom(currentRoom);
           delete lobbies[currentRoom];
         }
@@ -1069,7 +967,6 @@ function setupHandlers(io, socket, context) {
         }
 
         if (player) {
-          // Save player score for 12 hours
           if (player.username && (player.score > 0 || player.streak > 0)) {
             savedPlayerScores.set(player.username, {
               score: player.score,
@@ -1098,12 +995,10 @@ function setupHandlers(io, socket, context) {
           lobby.currentSong = null;
           lobby.roundNumber = 0;
           lobby.roundStartTime = null;
-          // Clear chat history when lobby is empty
           clearChatHistoryForRoom(currentRoom);
         }
 
         if (currentRoom !== VGM_ROOM && Object.keys(lobby.players).length === 0) {
-          // Clear chat history before deleting lobby
           clearChatHistoryForRoom(currentRoom);
           delete lobbies[currentRoom];
         }

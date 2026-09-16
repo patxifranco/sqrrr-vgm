@@ -1,6 +1,3 @@
-/**
- * Theme Manager - Handles switching between XP and Aero themes
- */
 const ThemeManager = {
   THEMES: { XP: 'xp', AERO: 'aero' },
 
@@ -27,7 +24,6 @@ const ThemeManager = {
 
     localStorage.setItem('userTheme', theme);
 
-    // Sync all theme selectors
     this.syncSelectors();
   },
 
@@ -48,17 +44,14 @@ const ThemeManager = {
   }
 };
 
-// Make it globally available
 window.ThemeManager = ThemeManager;
 
-// Auto-initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => ThemeManager.init());
 } else {
   ThemeManager.init();
 }
 
-// Add global listener for theme selector changes
 document.addEventListener('change', (e) => {
   if (e.target.classList.contains('theme-selector')) {
     ThemeManager.apply(e.target.value);

@@ -1,20 +1,8 @@
-/**
- * Card Album UI Module
- *
- * Handles:
- * - Album modal display
- * - Card grid rendering
- * - Pack opening animation
- * - Card inspection
- */
-
 import { initCard3D, destroyCard3D } from './card-3d.js';
 import { showPopup } from './popup.js';
 
-// Cards with holographic effects
 const HOLO_CARDS = [2, 3, 6, 8, 14, 19, 23, 26, 29, 41, 42, 45, 46, 47, 48, 49];
 
-// Card data - extracted from filenames
 const CARD_DATA = [
   { id: 1, name: 'Imanol' },
   { id: 2, name: 'Imanol' },
@@ -67,7 +55,6 @@ const CARD_DATA = [
   { id: 49, name: 'Cilveti' }
 ];
 
-// Map card ID to filename
 const CARD_FILES = {
   1: '1_Imanol.png',
   2: '2_Imanol.png',
@@ -140,14 +127,10 @@ class CardAlbumUI {
     this._cooldownInterval = null;
     this._initialized = false;
     this._handlersSetup = false;
-    this._claimingFree = false;  // Prevent double-clicks
-    this._claimingTimeout = null;  // Timeout to reset _claimingFree on network failure
+    this._claimingFree = false;
+    this._claimingTimeout = null;
   }
 
-  /**
-   * Initialize the album UI
-   * @param {Object} socket - Socket.IO instance
-   */
   init(socket) {
     if (this._initialized) return;
 
@@ -156,11 +139,7 @@ class CardAlbumUI {
     this._initialized = true;
   }
 
-  /**
-   * Setup socket event listeners
-   */
   _setupSocketListeners() {
-    // Collection data received
     this.socket.on('cardsCollection', (data) => {
       this.cards = data.cards || {};
       this.coins = data.coins || 0;
@@ -169,7 +148,6 @@ class CardAlbumUI {
       this._updateDisplay();
     });
 
-    // Pack purchased successfully
     this.socket.on('cardsPackOpened', (data) => {
       this.cards[data.cardId] = data.count;
       this.coins = data.coins;
@@ -177,7 +155,6 @@ class CardAlbumUI {
       this._updateDisplay();
     });
 
-    // Free card claimed successfully
     this.socket.on('cardsFreeOpened', (data) => {
       this._clearClaimingTimeout();
       this._claimingFree = false;
@@ -188,12 +165,10 @@ class CardAlbumUI {
       this._startCooldownTimer();
     });
 
-    // Not enough coins
     this.socket.on('cardsInsufficientFunds', () => {
       showPopup('No tienes suficientes monedas');
     });
 
-    // Free card on cooldown
     this.socket.on('cardsFreeNotReady', (data) => {
       this._clearClaimingTimeout();
       this._claimingFree = false;
@@ -202,7 +177,6 @@ class CardAlbumUI {
       this._startCooldownTimer();
     });
 
-    // Error
     this.socket.on('cardsError', (data) => {
       this._clearClaimingTimeout();
       this._claimingFree = false;
@@ -210,9 +184,6 @@ class CardAlbumUI {
     });
   }
 
-  /**
-   * Open the album modal
-   */
   open() {
     this.modal = document.getElementById('card-album-modal');
     this.inspectModal = document.getElementById('card-inspect-modal');
@@ -224,31 +195,25 @@ class CardAlbumUI {
 
     if (!this.modal) return;
 
-    // Disable free button until we get server response (prevents race condition)
     if (this.freeBtn) {
       this.freeBtn.disabled = true;
     }
 
-    // Request fresh data
     this.socket.emit('cardsGetCollection');
 
-    // Setup button handlers ONLY ONCE
     if (!this._handlersSetup) {
       this._handlersSetup = true;
 
       this.buyBtn?.addEventListener('click', () => this._buyPack());
       this.freeBtn?.addEventListener('click', () => this._claimFree());
 
-      // Back button
       document.getElementById('card-album-back-btn')?.addEventListener('click', () => this.close());
 
-      // Close handlers
       document.getElementById('card-album-close')?.addEventListener('click', () => this.close());
       this.modal.addEventListener('click', (e) => {
         if (e.target === this.modal) this.close();
       });
 
-      // Event delegation for grid card clicks (prevents listener accumulation)
       this.grid?.addEventListener('click', (e) => {
         const slot = e.target.closest('.card-slot:not(.empty)');
         if (slot) {
@@ -263,19 +228,12 @@ class CardAlbumUI {
     this._startCooldownTimer();
   }
 
-  /**
-   * Close the album modal
-   */
   close() {
-    // Also close inspect modal to cleanup keyboard handlers
     this._closeInspect();
     this.modal?.classList.remove('active');
     this._stopCooldownTimer();
   }
 
-  /**
-   * Update the entire display
-   */
   _updateDisplay() {
     this._renderGrid();
     this._updateCount();
@@ -283,9 +241,6 @@ class CardAlbumUI {
     this._updateFreeButton();
   }
 
-  /**
-   * Render the card grid
-   */
   _renderGrid() {
     if (!this.grid) return;
 
@@ -310,29 +265,19 @@ class CardAlbumUI {
         `;
       }
     }).join('');
-    // Click handlers use event delegation (setup in open())
   }
 
-  /**
-   * Update card count display
-   */
   _updateCount() {
     if (!this.countDisplay) return;
     const uniqueCount = Object.keys(this.cards).length;
     this.countDisplay.textContent = `${uniqueCount}/${this.totalCards} cartas`;
   }
 
-  /**
-   * Update coins display
-   */
   _updateCoins() {
     if (!this.coinsDisplay) return;
     this.coinsDisplay.textContent = `${this.coins} $qr`;
   }
 
-  /**
-   * Update free button state
-   */
   _updateFreeButton() {
     if (!this.freeBtn) return;
 
@@ -347,9 +292,6 @@ class CardAlbumUI {
     }
   }
 
-  /**
-   * Update cooldown text
-   */
   _updateCooldownText() {
     if (!this.freeBtn || this.freeCardCooldown <= 0) return;
 
@@ -369,9 +311,6 @@ class CardAlbumUI {
     this.freeBtn.innerHTML = `Carta Gratis<span class="card-free-cooldown">${timeStr}</span>`;
   }
 
-  /**
-   * Start cooldown timer
-   */
   _startCooldownTimer() {
     this._stopCooldownTimer();
 
@@ -389,9 +328,6 @@ class CardAlbumUI {
     }, 1000);
   }
 
-  /**
-   * Stop cooldown timer
-   */
   _stopCooldownTimer() {
     if (this._cooldownInterval) {
       clearInterval(this._cooldownInterval);
@@ -399,22 +335,14 @@ class CardAlbumUI {
     }
   }
 
-  /**
-   * Buy a card pack
-   */
   _buyPack() {
     this.socket.emit('cardsBuyPack');
   }
 
-  /**
-   * Claim free card
-   */
   _claimFree() {
-    // Prevent if on cooldown or already processing
     if (this.freeCardCooldown > 0 || this._claimingFree) return;
     this._claimingFree = true;
 
-    // Timeout to reset flag if server doesn't respond (network failure)
     this._claimingTimeout = setTimeout(() => {
       this._claimingFree = false;
       this._claimingTimeout = null;
@@ -423,9 +351,6 @@ class CardAlbumUI {
     this.socket.emit('cardsClaimFree');
   }
 
-  /**
-   * Clear claiming timeout (called when server responds)
-   */
   _clearClaimingTimeout() {
     if (this._claimingTimeout) {
       clearTimeout(this._claimingTimeout);
@@ -433,22 +358,15 @@ class CardAlbumUI {
     }
   }
 
-  /**
-   * Get sorted list of owned card IDs
-   */
   _getOwnedCardIds() {
     return Object.keys(this.cards)
       .map(id => parseInt(id))
       .sort((a, b) => a - b);
   }
 
-  /**
-   * Open card inspect modal
-   */
   _openInspect(cardId, cardName) {
     if (!this.inspectModal) return;
 
-    // Cleanup any existing handlers first (prevents accumulation)
     if (this._inspectKeyHandler) {
       document.removeEventListener('keydown', this._inspectKeyHandler);
     }
@@ -461,7 +379,6 @@ class CardAlbumUI {
 
     this.inspectModal.classList.add('active');
 
-    // Keyboard navigation
     this._inspectKeyHandler = (e) => {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -475,7 +392,6 @@ class CardAlbumUI {
     };
     document.addEventListener('keydown', this._inspectKeyHandler);
 
-    // Close on backdrop click
     this._inspectBackdropHandler = (e) => {
       if (e.target === this.inspectModal) {
         this._closeInspect();
@@ -484,9 +400,6 @@ class CardAlbumUI {
     this.inspectModal.addEventListener('click', this._inspectBackdropHandler);
   }
 
-  /**
-   * Render the inspect card content
-   */
   _renderInspectCard(cardId) {
     const file = CARD_FILES[cardId];
     const card = CARD_DATA.find(c => c.id === cardId);
@@ -495,7 +408,6 @@ class CardAlbumUI {
 
     if (!container) return;
 
-    // Destroy previous 3D effect
     const oldCard = container.querySelector('#card-inspect-3d');
     if (oldCard) {
       destroyCard3D(oldCard);
@@ -504,7 +416,6 @@ class CardAlbumUI {
     const isHolo = HOLO_CARDS.includes(cardId);
     const holoClasses = isHolo ? 'card-holo card-shine' : '';
 
-    // Check if prev/next cards exist
     const ownedIds = this._getOwnedCardIds();
     const currentIndex = ownedIds.indexOf(cardId);
     const hasPrev = currentIndex > 0;
@@ -522,18 +433,15 @@ class CardAlbumUI {
       </div>
     `;
 
-    // Initialize 3D effect
     const card3d = container.querySelector('#card-inspect-3d');
     if (card3d) {
       initCard3D(card3d, { animate: true });
     }
 
-    // Close button
     container.querySelector('.card-inspect-close')?.addEventListener('click', () => {
       this._closeInspect();
     });
 
-    // Navigation buttons
     container.querySelector('#card-nav-prev')?.addEventListener('click', () => {
       this._navigateCard(-1);
     });
@@ -542,9 +450,6 @@ class CardAlbumUI {
     });
   }
 
-  /**
-   * Navigate to previous or next card
-   */
   _navigateCard(direction) {
     const ownedIds = this._getOwnedCardIds();
     const currentIndex = ownedIds.indexOf(this._currentInspectId);
@@ -556,9 +461,6 @@ class CardAlbumUI {
     }
   }
 
-  /**
-   * Close card inspect modal
-   */
   _closeInspect() {
     if (!this.inspectModal) return;
 
@@ -567,7 +469,6 @@ class CardAlbumUI {
       destroyCard3D(card3d);
     }
 
-    // Remove event listeners
     if (this._inspectKeyHandler) {
       document.removeEventListener('keydown', this._inspectKeyHandler);
       this._inspectKeyHandler = null;
@@ -581,11 +482,7 @@ class CardAlbumUI {
     this.inspectModal.classList.remove('active');
   }
 
-  /**
-   * Show pack opening animation with rip effect
-   */
   _showPackOpening(cardId, isNew, count) {
-    // Create overlay if it doesn't exist
     let overlay = document.querySelector('.pack-opening-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -630,12 +527,10 @@ class CardAlbumUI {
     const closeBtn = overlay.querySelector('.pack-close-btn');
     const card3d = overlay.querySelector('#pack-card-3d');
 
-    // Click to open pack
     const openPack = () => {
       if (packContainer.classList.contains('opened')) return;
       packContainer.classList.add('opened');
 
-      // Initialize 3D effect on card after pack opens (wait for animation to complete)
       setTimeout(() => {
         if (card3d) {
           initCard3D(card3d);
@@ -645,26 +540,21 @@ class CardAlbumUI {
 
     packContainer.addEventListener('click', openPack);
 
-    // Close and cleanup
     const closeOverlay = () => {
-      // Cleanup 3D effect
       if (card3d) {
         destroyCard3D(card3d);
       }
       overlay.classList.remove('active');
-      // Remove overlay completely to prevent listener accumulation
       setTimeout(() => {
         overlay.remove();
       }, 300);
     };
 
-    // Close button
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       closeOverlay();
     });
 
-    // Close on backdrop click (only after opened)
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay && packContainer.classList.contains('opened')) {
         closeOverlay();
@@ -673,6 +563,5 @@ class CardAlbumUI {
   }
 }
 
-// Singleton instance
 export const cardAlbumUI = new CardAlbumUI();
 export { CARD_DATA, CARD_FILES };

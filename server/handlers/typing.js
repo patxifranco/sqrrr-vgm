@@ -1,43 +1,22 @@
-/**
- * Typing Game Socket Handlers (VS + Coop modes)
- *
- * Handles Tikitiki typing game multiplayer logic.
- * Extracted from server.js for modularity.
- */
-
 const fs = require('fs');
 const path = require('path');
 const { generateRoomCode, shuffleArray, log, warn } = require('../utils');
-
-// ==================== STATE ====================
 
 let _io = null;
 let _saveUser = null;
 let _getUser = null;
 
-// Typing game lobbies
 const typingLobbies = {};
 const typingCoopLobbies = {};
 
-// Word lists
 let typingWordsSinTildes = [];
 let typingWordsConTildes = [];
 
-// ==================== INITIALIZATION ====================
-
-/**
- * Initialize typing module with io reference and load words
- * @param {Object} io - Socket.IO server instance
- * @param {string} baseDir - Base directory for public folder
- */
 function init(io, baseDir) {
   _io = io;
   loadTypingWords(baseDir);
 }
 
-/**
- * Load typing words from JSON files
- */
 function loadTypingWords(baseDir) {
   try {
     typingWordsSinTildes = JSON.parse(
@@ -59,8 +38,6 @@ function loadTypingWords(baseDir) {
     typingWordsConTildes = [];
   }
 }
-
-// ==================== HELPER FUNCTIONS ====================
 
 function getTypingPlayerList(roomCode) {
   const lobby = typingLobbies[roomCode];
@@ -117,8 +94,6 @@ function getTypingCoopSpectatorList(roomCode) {
   }));
 }
 
-// ==================== VS MODE GAME FLOW ====================
-
 function startTypingCountdown(roomCode) {
   const io = _io;
   const lobby = typingLobbies[roomCode];
@@ -126,17 +101,14 @@ function startTypingCountdown(roomCode) {
 
   lobby.gameState = 'countdown';
 
-  // Generate words (use correct word set based on tildesMode)
   const wordSet = lobby.tildesMode ? typingWordsConTildes : typingWordsSinTildes;
   lobby.words = shuffleArray(wordSet).slice(0, 120);
 
-  // Reset player states
   Object.values(lobby.players).forEach(player => {
     player.progress = { charIndex: 0, wpm: 0, accuracy: 100, progress: 0 };
     player.result = null;
   });
 
-  // Countdown 3-2-1
   let count = 3;
   const players = getTypingPlayerList(roomCode);
   const spectators = getTypingSpectatorList(roomCode);
@@ -175,7 +147,6 @@ function startTypingGame(roomCode) {
     startTime: lobby.startTime
   });
 
-  // Set timeout to end round after 60 seconds
   setTimeout(() => {
     if (lobby.gameState === 'playing') {
       endTypingRound(roomCode);
@@ -194,7 +165,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
 
   const players = Object.entries(lobby.players);
 
-  // Sort by WPM (higher is better)
   const results = players.map(([id, player]) => ({
     id,
     name: player.name,
@@ -207,7 +177,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
 
   const winner = results[0];
 
-  // Send results to each player
   players.forEach(([socketId, player]) => {
     const myResult = results.find(r => r.id === socketId) || {
       wpm: 0,
@@ -225,7 +194,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
     });
   });
 
-  // Send results to spectators
   const spectators = Object.keys(lobby.spectators || {});
   spectators.forEach(spectatorId => {
     io.to(spectatorId).emit('typingRoundEnd', {
@@ -238,7 +206,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
     });
   });
 
-  // Update leaderboard if callback provided
   if (updateLeaderboard) {
     for (const [, player] of Object.entries(lobby.players)) {
       if (player.result && player.username) {
@@ -252,7 +219,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
     }
   }
 
-  // Award $qr coins based on WPM
   if (_saveUser && _getUser) {
     for (const [socketId, player] of Object.entries(lobby.players)) {
       if (player.username && player.result) {
@@ -276,7 +242,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
     }
   }
 
-  // Reset lobby for next match
   setTimeout(() => {
     if (typingLobbies[roomCode]) {
       typingLobbies[roomCode].gameState = 'waiting';
@@ -299,8 +264,6 @@ function endTypingRound(roomCode, updateLeaderboard = null) {
   log('TYPING', `VS game ended in room ${roomCode}. Winner: ${winner?.name || 'N/A'}`);
 }
 
-// ==================== COOP MODE GAME FLOW ====================
-
 function startTypingCoopCountdown(roomCode) {
   const io = _io;
   const lobby = typingCoopLobbies[roomCode];
@@ -308,7 +271,6 @@ function startTypingCoopCountdown(roomCode) {
 
   lobby.gameState = 'countdown';
 
-  // Generate words
   const wordSet = lobby.tildesMode ? typingWordsConTildes : typingWordsSinTildes;
   lobby.words = shuffleArray(wordSet).slice(0, 200);
   lobby.fullText = lobby.words.join(' ');
@@ -317,7 +279,6 @@ function startTypingCoopCountdown(roomCode) {
   lobby.totalWordsTyped = 0;
   lobby.currentTurnIndex = 0;
 
-  // Reset player states
   Object.values(lobby.players).forEach(player => {
     player.wordsTyped = 0;
     player.charsTyped = 0;
@@ -404,7 +365,6 @@ function endTypingCoopRound(roomCode) {
     results: results
   });
 
-  // Award $qr coins based on WPM (coop mode)
   if (_saveUser && _getUser) {
     for (const [socketId, player] of Object.entries(lobby.players)) {
       if (player.username) {
@@ -444,29 +404,17 @@ function endTypingCoopRound(roomCode) {
   log('TYPING', `Coop game ended in room ${roomCode}. Total words: ${teamStats.totalWords}`);
 }
 
-// ==================== SOCKET HANDLERS ====================
-
-/**
- * Setup socket handlers for a connection
- * @param {Object} io - Socket.IO server instance
- * @param {Object} socket - Socket.IO socket instance
- * @param {Object} context - Shared context { getUser, getLoggedInUsername, updateTypingLeaderboard }
- */
 function setupHandlers(io, socket, context) {
   const { getUser, getLoggedInUsername, updateTypingLeaderboard, saveUser } = context;
 
-  // Store references at module level for use in endTypingRound
   if (!_saveUser) _saveUser = saveUser;
   if (!_getUser) _getUser = getUser;
 
-  // Per-socket state
   let typingRoomCode = null;
   let isTypingSpectator = false;
   let typingCoopRoomCode = null;
   let isTypingCoop = false;
   let isTypingCoopSpectator = false;
-
-  // ==================== VS MODE HANDLERS ====================
 
   socket.on('typingJoinVs', (data) => {
     const loggedInUsername = getLoggedInUsername();
@@ -478,7 +426,6 @@ function setupHandlers(io, socket, context) {
     const user = getUser(loggedInUsername);
     const tildesMode = data?.tildesMode || false;
 
-    // Find an existing lobby with same tildes mode
     let foundLobby = null;
     for (const [code, lobby] of Object.entries(typingLobbies)) {
       if (lobby.tildesMode === tildesMode && lobby.gameState === 'waiting') {
@@ -487,7 +434,6 @@ function setupHandlers(io, socket, context) {
       }
     }
 
-    // Create new lobby if none found
     if (!foundLobby) {
       let code;
       do {
@@ -513,7 +459,6 @@ function setupHandlers(io, socket, context) {
     typingRoomCode = foundLobby;
     socket.join('typing-' + foundLobby);
 
-    // Join as spectator if game in progress
     if (lobby.gameState === 'playing' || lobby.gameState === 'countdown') {
       isTypingSpectator = true;
       lobby.spectators[socket.id] = {
@@ -538,7 +483,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Join as player
     isTypingSpectator = false;
     lobby.players[socket.id] = {
       name: user.username,
@@ -776,8 +720,6 @@ function setupHandlers(io, socket, context) {
     );
   });
 
-  // ==================== COOP MODE HANDLERS ====================
-
   socket.on('typingJoinCoop', (data) => {
     const loggedInUsername = getLoggedInUsername();
     if (!loggedInUsername) {
@@ -791,7 +733,6 @@ function setupHandlers(io, socket, context) {
     let foundLobby = null;
     let joinAsSpectator = false;
 
-    // Find waiting lobby
     for (const [code, lobby] of Object.entries(typingCoopLobbies)) {
       if (lobby.gameState === 'waiting' && lobby.tildesMode === tildesMode) {
         foundLobby = code;
@@ -799,7 +740,6 @@ function setupHandlers(io, socket, context) {
       }
     }
 
-    // Check for in-progress lobby to spectate
     if (!foundLobby) {
       for (const [code, lobby] of Object.entries(typingCoopLobbies)) {
         if ((lobby.gameState === 'playing' || lobby.gameState === 'countdown') && lobby.tildesMode === tildesMode) {
@@ -810,7 +750,6 @@ function setupHandlers(io, socket, context) {
       }
     }
 
-    // Create new lobby
     if (!foundLobby) {
       let code;
       do {
@@ -1127,7 +1066,6 @@ function setupHandlers(io, socket, context) {
     });
   });
 
-  // Return cleanup info for disconnect handling
   return {
     getTypingRoomCode: () => typingRoomCode,
     isTypingSpectator: () => isTypingSpectator,
@@ -1135,7 +1073,6 @@ function setupHandlers(io, socket, context) {
     isTypingCoop: () => isTypingCoop,
     isTypingCoopSpectator: () => isTypingCoopSpectator,
     handleDisconnect: () => {
-      // Clean up VS room
       if (typingRoomCode && typingLobbies[typingRoomCode]) {
         const lobby = typingLobbies[typingRoomCode];
         const wasHost = lobby.host === socket.id;
@@ -1178,7 +1115,6 @@ function setupHandlers(io, socket, context) {
         }
       }
 
-      // Clean up Coop room
       if (typingCoopRoomCode && typingCoopLobbies[typingCoopRoomCode]) {
         const cLobby = typingCoopLobbies[typingCoopRoomCode];
         const wasHost = cLobby.host === socket.id;

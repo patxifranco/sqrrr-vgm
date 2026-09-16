@@ -1,14 +1,3 @@
-/**
- * SQRRR Cards - Pokemon TCG Style Holographic Effects
- *
- * Features:
- * - 3D perspective transforms
- * - Rainbow holographic gradient overlay
- * - Shine/glare effect following mouse
- * - Album grid layout
- */
-
-/* ==================== CSS VARIABLES ==================== */
 :root {
   --card-width: 120px;
   --card-height: 168px;
@@ -16,7 +5,6 @@
   --card-transition: 0.15s ease-out;
 }
 
-/* ==================== CARD ALBUM MODAL ==================== */
 .card-album-window {
   width: 90vw;
   max-width: 900px;
@@ -69,7 +57,6 @@
   margin-left: 4px;
 }
 
-/* ==================== ALBUM GRID ==================== */
 .card-album-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
@@ -79,12 +66,10 @@
   flex: 1;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 
-  /* Hide XP-style scrollbar arrows, use thin modern scrollbar */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 
-/* Webkit scrollbar override for card album */
 .card-album-grid::-webkit-scrollbar {
   width: 8px;
 }
@@ -106,7 +91,6 @@
   display: none;
 }
 
-/* ==================== CARD SLOT ==================== */
 .card-slot {
   position: relative;
   width: var(--card-width);
@@ -120,7 +104,6 @@
   transform: scale(1.05);
 }
 
-/* Empty slot (card not owned) */
 .card-slot.empty {
   background: rgba(255, 255, 255, 0.05);
   border: 2px dashed rgba(255, 255, 255, 0.2);
@@ -142,7 +125,6 @@
   cursor: default;
 }
 
-/* Card image */
 .card-slot img {
   width: 100%;
   height: 100%;
@@ -150,7 +132,6 @@
   border-radius: var(--card-border-radius);
 }
 
-/* Duplicate count badge */
 .card-count-badge {
   position: absolute;
   bottom: 4px;
@@ -164,7 +145,6 @@
   pointer-events: none;
 }
 
-/* Card number */
 .card-number {
   position: absolute;
   top: 4px;
@@ -177,7 +157,6 @@
   pointer-events: none;
 }
 
-/* ==================== CARD INSPECT MODAL ==================== */
 #card-inspect-modal {
   background: rgba(0, 0, 0, 0.9);
 }
@@ -212,7 +191,6 @@
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* Card navigation arrows */
 .card-inspect-nav {
   display: flex;
   justify-content: center;
@@ -256,7 +234,6 @@
   transform: none;
 }
 
-/* ==================== 3D CARD WITH HOLO EFFECT ==================== */
 .card-3d {
   --pointer-x: 50%;
   --pointer-y: 50%;
@@ -283,7 +260,6 @@
   pointer-events: none;
 }
 
-/* Holographic rainbow gradient overlay */
 .card-3d.card-holo::after {
   content: '';
   position: absolute;
@@ -312,7 +288,6 @@
   z-index: 5;
 }
 
-/* Animated sparkle/glitter effect */
 .card-3d.card-holo::before {
   content: '';
   position: absolute;
@@ -338,7 +313,6 @@
   z-index: 4;
 }
 
-/* Shine/glare effect */
 .card-3d.card-shine .card-shine-overlay {
   position: absolute;
   inset: 0;
@@ -354,13 +328,9 @@
   z-index: 10;
 }
 
-/* Card name display - hidden by default */
 .card-inspect-name {
   display: none;
 }
-
-/* ==================== CARD ENTRANCE ANIMATION ==================== */
-/* Animation handled by JavaScript for proper 3D combination */
 
 @keyframes cardEntrance {
   0% {
@@ -373,7 +343,6 @@
   }
 }
 
-/* ==================== PACK OPENING ANIMATION ==================== */
 .pack-opening-overlay {
   position: fixed;
   inset: 0;
@@ -393,7 +362,6 @@
   pointer-events: auto;
 }
 
-/* Pack container */
 .pack-container {
   position: relative;
   width: 350px;
@@ -415,7 +383,6 @@
 
 .pack-container.opened .pack-card-inside {
   cursor: grab;
-  /* Override position:absolute to match card-inspect behavior */
   position: relative;
   inset: auto;
   width: 350px;
@@ -426,7 +393,6 @@
   cursor: grabbing;
 }
 
-/* The actual card inside (hidden initially) */
 .pack-card-inside {
   position: absolute;
   inset: 0;
@@ -434,13 +400,11 @@
   z-index: 1;
 }
 
-/* Override card-3d fixed dimensions when inside pack */
 .pack-card-inside.card-3d {
   width: 100%;
   height: 100%;
 }
 
-/* Badge shows above pack once opened */
 .pack-container.opened .pack-card-inside .pack-card-new {
   z-index: 20;
 }
@@ -462,12 +426,10 @@
   transition: opacity 0.5s ease, box-shadow 0.3s ease;
 }
 
-/* Holo card inside gets special glow */
 .pack-container.opened .pack-card-inside.card-holo img {
   box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 100, 255, 0.4);
 }
 
-/* Pack wrapper (the plastic pack) */
 .pack-wrapper {
   position: absolute;
   inset: 0;
@@ -475,7 +437,6 @@
   transform-style: preserve-3d;
 }
 
-/* Top half of pack that rips away */
 .pack-wrapper-top {
   position: absolute;
   top: 0;
@@ -496,7 +457,6 @@
   border-radius: 12px 12px 0 0;
 }
 
-/* Bottom half stays in place then fades */
 .pack-wrapper-bottom {
   position: absolute;
   bottom: 0;
@@ -516,7 +476,6 @@
   border-radius: 0 0 12px 12px;
 }
 
-/* Holo effect on pack wrapper */
 .pack-wrapper-holo::after {
   content: '';
   position: absolute;
@@ -546,7 +505,6 @@
   border-radius: 0 0 12px 12px;
 }
 
-/* Pack slides down when opened */
 .pack-container.opened .pack-wrapper {
   animation: packSlideDown 0.6s ease-out forwards;
 }
@@ -562,12 +520,10 @@
   }
 }
 
-/* Tear edge - hidden (not used with slide animation) */
 .pack-tear-edge {
   display: none;
 }
 
-/* Click to open hint */
 .pack-click-hint {
   position: absolute;
   bottom: -40px;
@@ -593,7 +549,6 @@
   100% { background-position: 0% 0%; }
 }
 
-/* New card badge - hidden initially */
 .pack-card-inside .pack-card-new {
   position: absolute;
   top: -30px;
@@ -610,7 +565,6 @@
   transition: none;
 }
 
-/* Badge appears when pack is opened */
 .pack-container.opened .pack-card-inside .pack-card-new {
   animation: newBadgeAppear 0.4s 0.3s ease-out forwards, newBadgePulse 0.5s 0.7s ease-in-out infinite alternate;
 }
@@ -660,7 +614,6 @@
   display: block;
 }
 
-/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   :root {
     --card-width: 90px;
@@ -693,7 +646,6 @@
   }
 }
 
-/* ==================== ALBUM BUTTON FOR HUB/GAMBA ==================== */
 .card-album-btn {
   display: flex;
   align-items: center;
@@ -704,13 +656,11 @@
   font-size: 18px;
 }
 
-/* Button in gamba screen */
 .slots-album-btn {
   margin-top: 10px;
   width: 100%;
 }
 
-/* ==================== SHOP MODAL ==================== */
 .shop-window {
   width: 400px;
   max-width: 90vw;
@@ -770,7 +720,6 @@
   color: #666;
 }
 
-/* ==================== WINDOWS-STYLE POPUP ==================== */
 .sqrrr-popup-overlay {
   position: fixed;
   inset: 0;

@@ -1,16 +1,3 @@
-/**
- * Slot Machine Component
- *
- * Reusable slot machine for standalone and popup modes.
- * Styled like classic "Slot Machine 98" cabinet.
- *
- * Controls:
- * - Press SPACE to start all reels spinning (smooth scroll down)
- * - Press SPACE again to stop reel 1
- * - Press SPACE again to stop reel 2
- * - Press SPACE again to stop reel 3
- */
-
 import { showCoinAnimation } from '../../ui/coin-animation.js';
 
 export class SlotMachine {
@@ -25,18 +12,14 @@ export class SlotMachine {
     this.debt = 0;
     this.numLines = 1;
 
-    // Keyboard control - can be disabled when popup loses focus
     this.keyboardEnabled = true;
 
-    // Spin state: 'idle' | 'spinning' | 'stopping'
     this.spinState = 'idle';
-    this.reelsStopped = 0; // 0, 1, 2, 3
-    this.pendingResult = null; // Store server result until all reels stop
+    this.reelsStopped = 0;
+    this.pendingResult = null;
 
-    // Symbol definitions (must match server)
     this.symbols = ['cherry', 'lemon', 'orange', 'grape', 'bell', 'bar', 'seven'];
 
-    // Symbol display (custom images from /gamba folder)
     this.symbolEmojis = {
       cherry: '<img src="gamba/omegalul.png" alt="cherry" class="slot-sym-img">',
       lemon: '<img src="gamba/cmonbluh.png" alt="lemon" class="slot-sym-img">',
@@ -50,7 +33,7 @@ export class SlotMachine {
     this.COST_PER_LINE = 10;
     this.SYMBOL_HEIGHT = 56;
     this.VISIBLE_ROWS = 3;
-    this.STRIP_LENGTH = 30; // Long strip for smooth looping
+    this.STRIP_LENGTH = 30;
 
     this.init();
   }
@@ -66,7 +49,6 @@ export class SlotMachine {
     return this.symbols[Math.floor(Math.random() * this.symbols.length)];
   }
 
-  // Generate a long strip of random symbols
   generateSpinStrip() {
     const strip = [];
     for (let i = 0; i < this.STRIP_LENGTH; i++) {
@@ -82,7 +64,6 @@ export class SlotMachine {
       ['seven', 'cherry', 'lemon']
     ];
 
-    // Only render the cabinet - window wrapper is provided externally
     this.container.innerHTML = `
       <div class="slot-cabinet">
         <div class="slot-top-bar">
@@ -176,15 +157,12 @@ export class SlotMachine {
   }
 
   bindEvents() {
-    // Spin button
     const spinBtn = this.container.querySelector('.slot-spin-btn');
     spinBtn.addEventListener('click', () => this.handleAction());
 
-    // Lever
     const lever = this.container.querySelector('.slot-lever');
     lever.addEventListener('click', () => this.handleAction());
 
-    // Line buttons
     this.container.querySelectorAll('.line-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         if (this.spinState !== 'idle') return;
@@ -197,21 +175,17 @@ export class SlotMachine {
       });
     });
 
-    // Loan button
     const loanBtn = this.container.querySelector('.loan-btn');
     loanBtn.addEventListener('click', () => {
       this.socket.emit('slotsRequestLoan', { numLines: this.numLines });
     });
 
-    // Leaderboard button
     const leaderboardBtn = this.container.querySelector('.slot-leaderboard-btn');
     leaderboardBtn.addEventListener('click', () => this.onLeaderboardClick());
 
-    // Album button
     const albumBtn = this.container.querySelector('.slot-album-btn');
     albumBtn.addEventListener('click', () => this.onAlbumClick());
 
-    // Space key handler - only responds when keyboard is enabled
     this.keyHandler = (e) => {
       if (e.code === 'Space' && this.keyboardEnabled && this.isVisible()) {
         e.preventDefault();
@@ -221,7 +195,6 @@ export class SlotMachine {
     document.addEventListener('keydown', this.keyHandler);
   }
 
-  // Main action handler - called on space or click
   handleAction() {
     if (this.spinState === 'idle') {
       this.startSpin();
@@ -246,7 +219,6 @@ export class SlotMachine {
   }
 
   updateLineMarkers() {
-    // Update dot markers
     const markers = this.container.querySelectorAll('.line-marker');
     markers.forEach(m => m.classList.remove('active'));
 
@@ -257,7 +229,6 @@ export class SlotMachine {
       this.container.querySelector('.line-bot')?.classList.add('active');
     }
 
-    // Update paylines
     const paylines = this.container.querySelectorAll('.payline');
     paylines.forEach(p => p.classList.remove('active'));
 
@@ -282,7 +253,6 @@ export class SlotMachine {
     });
 
     this.socket.on('slotsResult', ({ reels, winningLines, totalWin, coins, cost }) => {
-      // Store result - will be used when player stops each reel
       this.pendingResult = { reels, winningLines, totalWin };
       this.coins = coins;
       this.updateDisplay();
@@ -320,42 +290,34 @@ export class SlotMachine {
     this.reelsStopped = 0;
     this.pendingResult = null;
 
-    // Animate lever
     const lever = this.container.querySelector('.slot-lever');
     lever.classList.add('pulled');
     setTimeout(() => lever.classList.remove('pulled'), 300);
 
-    // Start ALL reels spinning at the same time with scrolling strips
     this.container.querySelectorAll('.slot-reel').forEach((reel, index) => {
       const strip = reel.querySelector('.slot-strip');
 
-      // Generate a long strip of symbols for smooth scrolling
       const stripSymbols = this.generateSpinStrip();
 
-      // Build the strip HTML - symbols scroll from top to bottom
       strip.innerHTML = stripSymbols.map(sym => `
         <div class="slot-symbol">${this.symbolEmojis[sym]}</div>
       `).join('');
 
-      // Position at top of strip
       const totalHeight = stripSymbols.length * this.SYMBOL_HEIGHT;
       const visibleHeight = this.VISIBLE_ROWS * this.SYMBOL_HEIGHT;
       strip.style.transform = `translateY(-${totalHeight - visibleHeight}px)`;
 
-      // Force reflow
       strip.offsetHeight;
 
-      // Add spinning class for CSS animation
       strip.classList.add('spinning');
     });
 
-    // Send spin request to server
     this.socket.emit('slotsSpin', { numLines: this.numLines });
   }
 
   stopNextReel() {
     if (this.reelsStopped >= 3) return;
-    if (!this.pendingResult) return; // Wait for server result
+    if (!this.pendingResult) return;
 
     const reelIndex = this.reelsStopped;
     const reel = this.container.querySelector(`.slot-reel[data-reel="${reelIndex}"]`);
@@ -363,18 +325,14 @@ export class SlotMachine {
 
     const strip = reel.querySelector('.slot-strip');
 
-    // Stop the CSS animation
     strip.classList.remove('spinning');
 
-    // Get final symbols for this reel from server result
     const finalSymbols = this.pendingResult.reels[reelIndex];
 
-    // Rebuild strip with just the final 3 symbols
     strip.innerHTML = finalSymbols.map((sym, rowIndex) => `
       <div class="slot-symbol" data-row="${rowIndex}">${this.symbolEmojis[sym]}</div>
     `).join('');
 
-    // Reset position and add push-down animation
     strip.style.transform = 'translateY(0)';
     strip.classList.add('stopping');
 
@@ -385,7 +343,6 @@ export class SlotMachine {
     this.reelsStopped++;
     this.spinState = 'stopping';
 
-    // Check if all reels stopped
     if (this.reelsStopped >= 3) {
       setTimeout(() => {
         this.finishSpin();
@@ -427,7 +384,6 @@ export class SlotMachine {
   showWinAnimation(amount) {
     if (amount <= 0) return;
 
-    // Show popup in slot machine
     const anim = document.createElement('div');
     anim.className = 'slot-win-popup';
     anim.textContent = `+${amount} $qr`;
@@ -435,7 +391,6 @@ export class SlotMachine {
 
     setTimeout(() => anim.remove(), 1500);
 
-    // Also show cursor-following coin animation
     showCoinAnimation(amount);
   }
 

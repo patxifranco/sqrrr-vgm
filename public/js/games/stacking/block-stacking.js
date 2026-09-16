@@ -1,35 +1,24 @@
-/**
- * Block Stacking Game
- *
- * Arcade stacker gambling game.
- * - 7 columns x 10 rows grid
- * - Blocks scroll horizontally, player clicks/SPACE to place
- * - Blocks must align with row below or they're lost
- * - Prize rows at top: Bronze (row 8), Silver (row 9), Gold (row 10)
- */
-
 const COLS = 7;
 const ROWS = 10;
 const GAME_COST = 100;
 
 const PRIZES = {
-  bronze: { row: 7, amount: 250 },  // Row 8 (0-indexed = 7)
-  silver: { row: 8, amount: 500 },  // Row 9
-  gold: { row: 9, amount: 1000 }    // Row 10
+  bronze: { row: 7, amount: 250 },
+  silver: { row: 8, amount: 500 },
+  gold: { row: 9, amount: 1000 }
 };
 
-// Speed progression (ms per move) - smooth curve
 const SPEEDS = [
-  105,            // Row 0
-  95,             // Row 1
-  84,             // Row 2
-  74,             // Row 3
-  64,             // Row 4
-  56,             // Row 5
-  49,             // Row 6
-  43,             // Row 7 (Bronce)
-  39,             // Row 8 (Plata)
-  36              // Row 9 (Oro)
+  105,
+  95,
+  84,
+  74,
+  64,
+  56,
+  49,
+  43,
+  39,
+  36
 ];
 
 export class BlockStackingGame {
@@ -38,38 +27,32 @@ export class BlockStackingGame {
     this.socket = options.socket;
     this.onCoinsUpdate = options.onCoinsUpdate || (() => {});
 
-    // Game state
-    this.grid = [];           // 7x10 array (placed blocks)
-    this.currentRow = 0;      // Current row being placed
-    this.currentBlocks = [];  // Current scrolling block positions (column indices)
-    this.blockWidth = 3;      // Current block line width
-    this.scrollPos = 0;       // Current X position (leftmost block)
-    this.scrollDir = 1;       // 1 = right, -1 = left
-    this.gameState = 'idle';  // 'idle' | 'playing' | 'paused' | 'gameover'
+    this.grid = [];
+    this.currentRow = 0;
+    this.currentBlocks = [];
+    this.blockWidth = 3;
+    this.scrollPos = 0;
+    this.scrollDir = 1;
+    this.gameState = 'idle';
     this.coins = 0;
     this.tickInterval = null;
-    this.popupSelection = 0;  // 0 = continue, 1 = cash out
+    this.popupSelection = 0;
 
-    // DOM elements
     this.gridEl = null;
     this.playBtn = null;
     this.cells = [];
     this.popupOverlay = null;
 
-    // Bound handlers
     this._handleKeyDown = this._handleKeyDown.bind(this);
     this._handleClick = this._handleClick.bind(this);
     this._handleTouchStart = this._handleTouchStart.bind(this);
     this._handleTouchEnd = this._handleTouchEnd.bind(this);
 
-    // Keyboard enabled state (for popup focus)
     this.keyboardEnabled = true;
 
-    // Touch state: prevent placing multiple blocks while holding
-    this._touchActive = false;  // True while finger is down
-    this._lastTouchTime = 0;    // Timestamp of last touch (for blocking delayed clicks)
+    this._touchActive = false;
+    this._lastTouchTime = 0;
 
-    // Placement cooldown: prevents ALL rapid spam (touch, click, keyboard)
     this._lastPlaceTime = 0;
   }
 
@@ -82,7 +65,6 @@ export class BlockStackingGame {
     this._render();
     this._setupEventListeners();
 
-    // Request initial balance
     this.socket.emit('stackingGetBalance');
   }
 
@@ -104,7 +86,6 @@ export class BlockStackingGame {
       this._updatePlayButton();
     });
 
-    // Loan received (shared with slots)
     this.socket.on('slotsLoanReceived', (data) => {
       this.coins = data.coins;
       this._updateCoinsDisplay();
@@ -166,13 +147,11 @@ export class BlockStackingGame {
     this.popupOverlay = this.container.querySelector('.stacking-popup-overlay');
     this.loanOverlay = this.container.querySelector('.stacking-loan-overlay');
 
-    // Loan button handler
     const loanBtn = this.container.querySelector('.loan-btn');
     loanBtn.addEventListener('click', () => {
       this.socket.emit('slotsRequestLoan', { requiredAmount: GAME_COST });
     });
 
-    // Create grid cells (bottom to top for visual, but stored top to bottom in array)
     this.cells = [];
     for (let row = ROWS - 1; row >= 0; row--) {
       for (let col = 0; col < COLS; col++) {
@@ -181,7 +160,6 @@ export class BlockStackingGame {
         cell.dataset.row = row;
         cell.dataset.col = col;
 
-        // Add prize row classes
         if (row === PRIZES.bronze.row) cell.classList.add('bronze-row');
         if (row === PRIZES.silver.row) cell.classList.add('silver-row');
         if (row === PRIZES.gold.row) cell.classList.add('gold-row');
@@ -198,38 +176,29 @@ export class BlockStackingGame {
     this.playBtn.addEventListener('click', () => this._startGame());
     document.addEventListener('keydown', this._handleKeyDown);
     this.container.addEventListener('click', this._handleClick);
-    // Touch start for instant response on mobile (fires before click)
     this.container.addEventListener('touchstart', this._handleTouchStart, { passive: true });
-    // Touch end to reset touch state (allows next touch to place)
     this.container.addEventListener('touchend', this._handleTouchEnd, { passive: true });
   }
 
   _handleKeyDown(e) {
-    // Ignore keyboard if disabled (popup unfocused)
     if (!this.keyboardEnabled) return;
 
     if (e.code === 'Space') {
       e.preventDefault();
-      // Check if loan popup is visible
       if (this.loanOverlay && this.loanOverlay.style.display === 'flex') {
         this.socket.emit('slotsRequestLoan', { requiredAmount: GAME_COST });
         return;
       }
       if (this.gameState === 'idle') {
-        // Start game with SPACE
         this._startGame();
       } else if (this.gameState === 'playing') {
-        // Place blocks with SPACE
         this._placeBlocks();
       } else if (this.gameState === 'paused') {
-        // Confirm popup selection with SPACE
         this._confirmPopupSelection();
       } else if (this.gameState === 'gameover') {
-        // Dismiss game over with SPACE
         this._dismissGameOver();
       }
     } else if (this.gameState === 'paused') {
-      // Popup navigation
       if (e.code === 'ArrowUp' || e.code === 'KeyW') {
         e.preventDefault();
         this._movePopupSelection(-1);
@@ -241,13 +210,10 @@ export class BlockStackingGame {
   }
 
   _handleTouchStart(e) {
-    // Record touch time for blocking delayed click events
     this._lastTouchTime = Date.now();
 
-    // Handle touch immediately for instant mobile response
     if (this.gameState === 'playing') {
       if (!e.target.closest('.stacking-play-btn')) {
-        // Only place if not already touching (prevents spam while holding)
         if (!this._touchActive) {
           this._touchActive = true;
           this._placeBlocks();
@@ -273,23 +239,17 @@ export class BlockStackingGame {
   }
 
   _handleTouchEnd(e) {
-    // Reset touch active state when finger is lifted
-    // This allows the next touch to place a block
     this._touchActive = false;
   }
 
   _handleClick(e) {
-    // Skip if touch was recent (prevents double action on mobile)
-    // Click events can fire up to 500ms after touch on some devices
     if (Date.now() - this._lastTouchTime < 500) return;
 
     if (this.gameState === 'playing') {
-      // Click anywhere (except play button) to place blocks
       if (!e.target.closest('.stacking-play-btn')) {
         this._placeBlocks();
       }
     } else if (this.gameState === 'paused') {
-      // Click on popup options
       const option = e.target.closest('.stacking-popup-option');
       if (option) {
         const action = option.dataset.action;
@@ -302,7 +262,6 @@ export class BlockStackingGame {
         this._confirmPopupSelection();
       }
     } else if (this.gameState === 'gameover') {
-      // Click anywhere to dismiss game over
       if (!e.target.closest('.stacking-play-btn')) {
         this._dismissGameOver();
       }
@@ -315,12 +274,10 @@ export class BlockStackingGame {
     this.gameState = 'starting';
     this._updatePlayButton();
 
-    // Request server to start game (deduct coins)
     this.socket.emit('stackingStart');
   }
 
   _startGameLoop() {
-    // Reset game state
     this.grid = [];
     for (let row = 0; row < ROWS; row++) {
       this.grid[row] = [];
@@ -330,7 +287,7 @@ export class BlockStackingGame {
     this.scrollPos = 0;
     this.scrollDir = 1;
     this.gameState = 'playing';
-    this._touchActive = false;  // Reset touch state for new game
+    this._touchActive = false;
 
     this._clearGrid();
     this._updatePlayButton();
@@ -339,7 +296,6 @@ export class BlockStackingGame {
   }
 
   _spawnBlocks() {
-    // Spawn blocks at current row
     this.currentBlocks = [];
     for (let i = 0; i < this.blockWidth; i++) {
       this.currentBlocks.push(this.scrollPos + i);
@@ -349,16 +305,13 @@ export class BlockStackingGame {
   _tick() {
     if (this.gameState !== 'playing') return;
 
-    // Check if next move would go out of bounds - if so, reverse direction FIRST
     const nextPos = this.scrollPos + this.scrollDir;
     if (nextPos < 0 || nextPos + this.blockWidth > COLS) {
       this.scrollDir *= -1;
     }
 
-    // Now move
     this.scrollPos += this.scrollDir;
 
-    // Update current block positions
     this.currentBlocks = [];
     for (let i = 0; i < this.blockWidth; i++) {
       const col = this.scrollPos + i;
@@ -369,7 +322,6 @@ export class BlockStackingGame {
 
     this._renderGrid();
 
-    // Schedule next tick
     const speed = SPEEDS[Math.min(this.currentRow, SPEEDS.length - 1)];
     this.tickInterval = setTimeout(() => this._tick(), speed);
   }
@@ -377,15 +329,12 @@ export class BlockStackingGame {
   _placeBlocks() {
     if (this.gameState !== 'playing') return;
 
-    // Cooldown: minimum 120ms between placements (prevents accidental spam)
     const now = Date.now();
     if (now - this._lastPlaceTime < 120) return;
     this._lastPlaceTime = now;
 
-    // Stop the tick
     clearTimeout(this.tickInterval);
 
-    // Clear active blocks first
     for (const col of this.currentBlocks) {
       if (col >= 0 && col < COLS) {
         this.cells[this.currentRow][col].classList.remove('active');
@@ -393,38 +342,30 @@ export class BlockStackingGame {
     }
 
     if (this.currentRow === 0) {
-      // First row - just place wherever
       this.grid[0] = [...this.currentBlocks];
-      // Mark as placed
       for (const col of this.currentBlocks) {
         this.cells[0][col].classList.add('placed');
       }
     } else {
-      // Check overlap with row below
       const below = this.grid[this.currentRow - 1];
       const overlap = this.currentBlocks.filter(col => below.includes(col));
 
       if (overlap.length === 0) {
-        // Total miss - game over!
         this._gameOver(false);
         return;
       }
 
-      // Only keep overlapping blocks
       this.grid[this.currentRow] = overlap;
       this.blockWidth = overlap.length;
 
-      // Mark overlapping blocks as placed
       for (const col of overlap) {
         this.cells[this.currentRow][col].classList.add('placed');
       }
     }
 
-    // Clear tracking for next row
     this._prevActiveRow = undefined;
     this._prevActiveBlocks = null;
 
-    // Check if reached prize row
     if (this.currentRow >= PRIZES.bronze.row) {
       this._checkPrize();
     } else {
@@ -436,12 +377,10 @@ export class BlockStackingGame {
     this.currentRow++;
 
     if (this.currentRow >= ROWS) {
-      // Should not happen (gold is at row 9)
       this._gameOver(true, 'gold');
       return;
     }
 
-    // Random start position - prevents spam clicking exploit
     this.scrollDir = Math.random() < 0.5 ? 1 : -1;
     this.scrollPos = Math.floor(Math.random() * (COLS - this.blockWidth + 1));
 
@@ -454,7 +393,6 @@ export class BlockStackingGame {
     let prizeAmount = 0;
 
     if (this.currentRow === PRIZES.gold.row) {
-      // Gold = max prize, instant win!
       this._gameOver(true, 'gold');
       return;
     } else if (this.currentRow === PRIZES.silver.row) {
@@ -466,7 +404,6 @@ export class BlockStackingGame {
     }
 
     if (prizeLevel) {
-      // Show continue/quit popup for bronze/silver
       this._showPopup(prizeLevel, prizeAmount);
     }
   }
@@ -485,20 +422,18 @@ export class BlockStackingGame {
     this.popupOverlay.querySelector('.prize-amount').textContent = `${prizeAmount} $qr`;
     this.popupOverlay.querySelector('.cashout-amount').textContent = prizeAmount;
 
-    // Hide continue option for gold (already at top)
     const continueOption = this.popupOverlay.querySelector('[data-action="continue"]');
     if (prizeLevel === 'gold') {
       continueOption.style.display = 'none';
-      this.popupSelection = 0; // Select the only visible option (cashout is now index 0)
+      this.popupSelection = 0;
     } else {
       continueOption.style.display = 'block';
-      this.popupSelection = 0; // Default to continue
+      this.popupSelection = 0;
     }
 
     this._updatePopupSelection();
     this.popupOverlay.classList.add('active');
 
-    // Store current prize info
     this._currentPrize = { level: prizeLevel, amount: prizeAmount };
   }
 
@@ -526,7 +461,6 @@ export class BlockStackingGame {
   }
 
   _updatePopupSelection() {
-    // Only consider visible options
     const options = this.popupOverlay.querySelectorAll('.stacking-popup-option:not([style*="display: none"])');
     options.forEach((opt, idx) => {
       opt.classList.toggle('selected', idx === this.popupSelection);
@@ -555,12 +489,10 @@ export class BlockStackingGame {
     clearTimeout(this.tickInterval);
 
     if (won && prizeLevel) {
-      // Request server to award prize
       this.socket.emit('stackingWin', { prizeLevel });
       const isGold = prizeLevel === 'gold';
       this._showGameOverMessage(true, PRIZES[prizeLevel].amount, isGold);
     } else {
-      // Notify server of loss
       this.socket.emit('stackingLose');
       this._showGameOverMessage(false, 0);
     }
@@ -583,7 +515,6 @@ export class BlockStackingGame {
 
     this.container.appendChild(msgEl);
 
-    // Add click handler for gold continue button
     if (isGold) {
       const continueBtn = msgEl.querySelector('.stacking-continue-btn');
       continueBtn?.addEventListener('click', () => this._dismissGameOver());
@@ -604,9 +535,7 @@ export class BlockStackingGame {
   }
 
   _renderGrid() {
-    // Optimized: Only update cells that changed since last render
 
-    // Clear previous active blocks (if any)
     if (this._prevActiveRow !== undefined && this._prevActiveBlocks) {
       for (const col of this._prevActiveBlocks) {
         if (col >= 0 && col < COLS && this.cells[this._prevActiveRow]) {
@@ -615,14 +544,12 @@ export class BlockStackingGame {
       }
     }
 
-    // Render current scrolling blocks
     if (this.gameState === 'playing') {
       for (const col of this.currentBlocks) {
         if (col >= 0 && col < COLS) {
           this.cells[this.currentRow][col].classList.add('active');
         }
       }
-      // Store for next render
       this._prevActiveRow = this.currentRow;
       this._prevActiveBlocks = [...this.currentBlocks];
     } else {
@@ -631,7 +558,6 @@ export class BlockStackingGame {
     }
   }
 
-  // Called when a row is placed - updates placed blocks
   _renderPlacedBlocks() {
     for (let row = 0; row < ROWS; row++) {
       if (this.grid[row]) {
@@ -648,7 +574,6 @@ export class BlockStackingGame {
         this.cells[row][col].classList.remove('active', 'placed');
       }
     }
-    // Reset tracking
     this._prevActiveRow = undefined;
     this._prevActiveBlocks = null;
   }
@@ -667,7 +592,6 @@ export class BlockStackingGame {
   }
 
   _updateCoinsDisplay() {
-    // Look for coins display in popup window first (VGM mode), then globally (standalone)
     const popupWindow = this.container.closest('.slot-popup-window');
     const coinsEl = popupWindow
       ? popupWindow.querySelector('#stacking-coins')
@@ -684,7 +608,6 @@ export class BlockStackingGame {
     this.container.removeEventListener('touchstart', this._handleTouchStart);
     this.container.removeEventListener('touchend', this._handleTouchEnd);
 
-    // Remove socket listeners
     this.socket.off('stackingBalance');
     this.socket.off('stackingStarted');
     this.socket.off('stackingInsufficientFunds');

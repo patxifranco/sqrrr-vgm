@@ -1,11 +1,4 @@
-/**
- * Windows 7 Aero Theme Overrides
- * Applied when body.theme-aero is active
- */
-
-/* ==================== AERO BASE STYLES ==================== */
 body.theme-aero {
-  /* Update CSS variables for Aero colors */
   --xp-bg: #f0f0f0;
   --xp-bg-dark: #e5e5e5;
   --xp-border-light: rgba(255, 255, 255, 0.8);
@@ -13,14 +6,11 @@ body.theme-aero {
   --msn-sidebar: #4a90d9;
   --msn-sidebar-light: #6cb0f0;
 
-  /* Aero uses Segoe UI font */
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
-  /* Aero wallpaper */
   background-image: url('../windows-aero.jpg') !important;
 }
 
-/* ==================== GLASS EFFECT FOR WINDOWS ==================== */
 body.theme-aero .window {
   background: rgba(220, 235, 255, 0.75);
   backdrop-filter: blur(20px);
@@ -33,7 +23,6 @@ body.theme-aero .window {
     inset 0 0 60px rgba(255, 255, 255, 0.1);
 }
 
-/* ==================== TITLE BAR - VIBRANT BLUE ==================== */
 body.theme-aero .title-bar {
   background: linear-gradient(180deg,
     #4a9eff 0%,
@@ -121,7 +110,6 @@ body.theme-aero .title-bar-controls button:active {
     rgba(0, 0, 0, 0.05) 100%);
 }
 
-/* Close button red on hover */
 body.theme-aero .title-bar-controls button[aria-label="Close"]:hover {
   background: linear-gradient(180deg,
     #f06548 0%,
@@ -130,7 +118,6 @@ body.theme-aero .title-bar-controls button[aria-label="Close"]:hover {
   border-color: rgba(100, 0, 0, 0.5);
 }
 
-/* ==================== WINDOW BODY ==================== */
 body.theme-aero .window-body {
   background: rgba(240, 245, 255, 0.95);
   margin: 0;
@@ -138,7 +125,6 @@ body.theme-aero .window-body {
   border-radius: 0 0 5px 5px;
 }
 
-/* ==================== STATUS BAR FIX ==================== */
 body.theme-aero .status-bar,
 body.theme-aero [class*="status-bar"] {
   background: linear-gradient(180deg, #eff4fc 0%, #d8e4f0 100%);
@@ -159,7 +145,6 @@ body.theme-aero .status-bar-field {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* ==================== SELECT DROPDOWN FIX ==================== */
 body.theme-aero select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -193,7 +178,6 @@ body.theme-aero select:focus {
   box-shadow: 0 0 3px rgba(74, 158, 255, 0.5);
 }
 
-/* ==================== THEME SELECTOR SPECIFIC ==================== */
 body.theme-aero .theme-selector {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -211,7 +195,6 @@ body.theme-aero .theme-selector {
   height: 20px;
 }
 
-/* ==================== BUTTONS ==================== */
 body.theme-aero button,
 body.theme-aero .xp-btn {
   background: linear-gradient(180deg,
@@ -244,7 +227,6 @@ body.theme-aero .xp-btn:active {
     #add3f5 100%);
 }
 
-/* ==================== INPUT FIELDS ==================== */
 body.theme-aero input[type="text"],
 body.theme-aero input[type="password"],
 body.theme-aero textarea {
@@ -263,7 +245,6 @@ body.theme-aero textarea:focus {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 3px rgba(74, 158, 255, 0.5);
 }
 
-/* ==================== PROGRESS BARS ==================== */
 body.theme-aero progress {
   background: #e6e6e6;
   border: 1px solid #bcbcbc;
@@ -292,7 +273,6 @@ body.theme-aero progress::-moz-progress-bar {
   border-radius: 2px;
 }
 
-/* ==================== MSN CHAT WINDOW ==================== */
 body.theme-aero .msn-chat-window {
   background: rgba(220, 235, 255, 0.85);
   backdrop-filter: blur(15px);
@@ -318,7 +298,6 @@ body.theme-aero .msn-input-container {
   background: rgba(240, 245, 255, 0.95);
 }
 
-/* ==================== DRAWING / PAINT WINDOW ==================== */
 body.theme-aero .xp-paint {
   background: rgba(220, 235, 255, 0.85);
   backdrop-filter: blur(15px);
@@ -347,13 +326,11 @@ body.theme-aero .xp-toolbox {
   border-radius: 0;
 }
 
-/* Tool buttons - MATCH XP EXACTLY */
 body.theme-aero .xp-tool-grid {
   background: #ECE9D8 !important;
 }
 
 body.theme-aero .xp-tool-btn {
-  /* Match XP exactly - no gradients, no border-radius */
   background: #ECE9D8 !important;
   border: 1px solid transparent !important;
   border-radius: 0 !important;
@@ -397,7 +374,6 @@ body.theme-aero .xp-color.selected {
   box-shadow: 0 0 0 2px #4a9eff, 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* ==================== TYPING GAME ==================== */
 body.theme-aero .typing-window,
 body.theme-aero .typing-menu-window {
   background: rgba(220, 235, 255, 0.85);
@@ -405,21 +381,18 @@ body.theme-aero .typing-menu-window {
   -webkit-backdrop-filter: blur(15px);
 }
 
-/* ==================== LOGIN SCREEN ==================== */
 body.theme-aero .login-window {
   background: rgba(220, 235, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* ==================== HUB SCREEN ==================== */
 body.theme-aero .hub-window {
   background: rgba(220, 235, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* ==================== FIELDSETS ==================== */
 body.theme-aero fieldset {
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid #bcbcbc;
@@ -434,7 +407,6 @@ body.theme-aero legend {
   font-size: 12px;
 }
 
-/* ==================== TABS ==================== */
 body.theme-aero [role="tablist"] {
   background: transparent;
 }
@@ -450,7 +422,6 @@ body.theme-aero [role="tab"][aria-selected="true"] {
   border-bottom-color: transparent;
 }
 
-/* ==================== SCROLLBARS ==================== */
 body.theme-aero ::-webkit-scrollbar {
   width: 17px;
   height: 17px;
@@ -482,7 +453,6 @@ body.theme-aero ::-webkit-scrollbar-button {
   border: 1px solid #a0a0a0;
 }
 
-/* ==================== FALLBACK FOR OLDER BROWSERS ==================== */
 @supports not (backdrop-filter: blur(10px)) {
   body.theme-aero .window,
   body.theme-aero .msn-chat-window,
@@ -493,11 +463,6 @@ body.theme-aero ::-webkit-scrollbar-button {
   }
 }
 
-/* ==================== EXCLUDE FELLOWSHIP & ARC RAIDERS ==================== */
-/* IMPORTANT: These rules MUST be at the END to override all generic Aero styles */
-/* These screens keep their dark theme regardless of Aero selection */
-
-/* Reset font for entire screens */
 body.theme-aero #fellowship-menu-screen,
 body.theme-aero #fellowship-choice-screen,
 body.theme-aero #fellowship-talent-screen,
@@ -507,8 +472,6 @@ body.theme-aero #arcraiders-screen {
   font-family: inherit !important;
 }
 
-/* Fellowship window classes - override Aero glass completely */
-/* Use multiple selector patterns for maximum specificity */
 body.theme-aero .fellowship-menu-window,
 body.theme-aero .fellowship-gear-window,
 body.theme-aero .fellowship-choice-window,
@@ -531,7 +494,6 @@ body.theme-aero .window.arcraiders-window {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Also target by screen ID + .window for safety */
 body.theme-aero #fellowship-menu-screen .window,
 body.theme-aero #fellowship-choice-screen .window,
 body.theme-aero #fellowship-talent-screen .window,
@@ -548,7 +510,6 @@ body.theme-aero #arcraiders-screen .window {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Override any ::before or ::after pseudo-elements from 7.css */
 body.theme-aero #fellowship-menu-screen .window::before,
 body.theme-aero #fellowship-menu-screen .window::after,
 body.theme-aero #fellowship-choice-screen .window::before,
@@ -565,7 +526,6 @@ body.theme-aero #arcraiders-screen .window::after {
   content: none !important;
 }
 
-/* Window body - keep dark and transparent */
 body.theme-aero #fellowship-menu-screen .window-body,
 body.theme-aero #fellowship-choice-screen .window-body,
 body.theme-aero #fellowship-talent-screen .window-body,
@@ -578,7 +538,6 @@ body.theme-aero .arcraiders-dark-theme {
   border-radius: 0 !important;
 }
 
-/* Title bars - keep dark */
 body.theme-aero #fellowship-menu-screen .title-bar,
 body.theme-aero #fellowship-choice-screen .title-bar,
 body.theme-aero #fellowship-talent-screen .title-bar,
@@ -601,7 +560,6 @@ body.theme-aero #arcraiders-screen .title-bar-text {
   text-shadow: none !important;
 }
 
-/* Title bar controls */
 body.theme-aero #fellowship-menu-screen .title-bar-controls button,
 body.theme-aero #fellowship-choice-screen .title-bar-controls button,
 body.theme-aero #fellowship-talent-screen .title-bar-controls button,
@@ -612,7 +570,6 @@ body.theme-aero #arcraiders-screen .title-bar-controls button {
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-/* All buttons inside these screens */
 body.theme-aero #fellowship-menu-screen button,
 body.theme-aero #fellowship-choice-screen button,
 body.theme-aero #fellowship-talent-screen button,
@@ -645,7 +602,6 @@ body.theme-aero #arcraiders-screen button:active {
   background: rgba(255, 255, 255, 0.15) !important;
 }
 
-/* Fellowship-specific elements that need dark theme preserved */
 body.theme-aero .fellowship-slot {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -710,7 +666,6 @@ body.theme-aero .fellowship-dungeon-btn:hover {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(59, 130, 246, 0.4)) !important;
 }
 
-/* Fellowship character buttons */
 body.theme-aero .fellowship-char-btn {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 2px solid rgba(255, 255, 255, 0.1) !important;
@@ -726,7 +681,6 @@ body.theme-aero .fellowship-char-name {
   color: #fff !important;
 }
 
-/* Fellowship dungeon list */
 body.theme-aero .fellowship-dungeon-list {
   background: transparent !important;
 }
@@ -758,7 +712,6 @@ body.theme-aero .fellowship-dungeon-item-stats {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* Fellowship tooltips */
 body.theme-aero .fellowship-tooltip {
   background: #1a1f2e !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -773,7 +726,6 @@ body.theme-aero .fellowship-tooltip-stats {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Fellowship talent screen */
 body.theme-aero .fellowship-talent-tree {
   background: transparent !important;
 }
@@ -791,7 +743,6 @@ body.theme-aero .fellowship-talent-points {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Fellowship choice screen */
 body.theme-aero .fellowship-choice-header {
   color: #fff !important;
 }
@@ -815,7 +766,6 @@ body.theme-aero .fellowship-choice-btn:hover {
   border-color: rgba(139, 92, 246, 0.5) !important;
 }
 
-/* Arc Raiders specific */
 body.theme-aero .arcraiders-header {
   background: transparent !important;
   color: #fff !important;
@@ -859,7 +809,6 @@ body.theme-aero .arcraiders-category-points {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Select dropdowns - keep dark */
 body.theme-aero #fellowship-menu-screen select,
 body.theme-aero #fellowship-choice-screen select,
 body.theme-aero #fellowship-talent-screen select,
@@ -885,7 +834,6 @@ body.theme-aero #arcraiders-screen select:hover {
   border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Input fields - keep dark */
 body.theme-aero #fellowship-menu-screen input,
 body.theme-aero #fellowship-choice-screen input,
 body.theme-aero #fellowship-talent-screen input,
@@ -899,7 +847,6 @@ body.theme-aero #arcraiders-screen input {
   box-shadow: none !important;
 }
 
-/* Fieldsets - keep dark */
 body.theme-aero #fellowship-menu-screen fieldset,
 body.theme-aero #fellowship-choice-screen fieldset,
 body.theme-aero #fellowship-talent-screen fieldset,
@@ -921,7 +868,6 @@ body.theme-aero #arcraiders-screen legend {
   color: #fff !important;
 }
 
-/* Progress bars - keep dark */
 body.theme-aero #fellowship-menu-screen progress,
 body.theme-aero #fellowship-choice-screen progress,
 body.theme-aero #fellowship-talent-screen progress,

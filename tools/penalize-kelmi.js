@@ -1,18 +1,7 @@
-/**
- * One-time exploit penalty script for Kelmi
- *
- * This script deducts exploited coins from Kelmi and adds them to his debt.
- * Run with: node tools/penalize-kelmi.js
- *
- * Requires MONGODB_URI environment variable or uses default localhost.
- */
-
 const mongoose = require('mongoose');
 
-// MongoDB connection - use same as server.js
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/sqrrr';
 
-// User Schema (must match server.js)
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -40,9 +29,8 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Configuration
 const TARGET_USERNAME = 'kelmi';
-const COINS_TO_LEAVE = 0; // Leave him with 0 coins
+const COINS_TO_LEAVE = 0;
 
 async function penalizeKelmi() {
   console.log('\n========================================');
@@ -50,12 +38,10 @@ async function penalizeKelmi() {
   console.log('========================================\n');
 
   try {
-    // Connect to MongoDB
     console.log('Connecting to MongoDB...');
     await mongoose.connect(MONGODB_URI);
     console.log('Connected successfully.\n');
 
-    // Find Kelmi (case-insensitive)
     const user = await User.findOne({
       username: { $regex: new RegExp(`^${TARGET_USERNAME}$`, 'i') }
     });
@@ -65,7 +51,6 @@ async function penalizeKelmi() {
       return;
     }
 
-    // Current state
     const currentCoins = user.coins ?? 0;
     const currentDebt = user.debt ?? 0;
 
@@ -76,7 +61,6 @@ async function penalizeKelmi() {
     console.log(`  Exploit Penalty Applied: ${user.exploitPenaltyApplied ?? false}`);
     console.log('');
 
-    // Calculate penalty
     const penaltyAmount = currentCoins - COINS_TO_LEAVE;
 
     if (penaltyAmount <= 0) {
@@ -84,21 +68,18 @@ async function penalizeKelmi() {
       return;
     }
 
-    // Apply penalty
     console.log('APPLYING PENALTY:');
     console.log(`  Deducting: ${penaltyAmount.toLocaleString()} $qr`);
     console.log(`  Adding to debt: ${penaltyAmount.toLocaleString()} $qr`);
     console.log(`  Remaining coins: ${COINS_TO_LEAVE.toLocaleString()} $qr`);
     console.log('');
 
-    // Update user
     user.coins = COINS_TO_LEAVE;
     user.debt = currentDebt + penaltyAmount;
     user.exploitPenaltyApplied = true;
 
     await user.save();
 
-    // Verify
     const verifyUser = await User.findOne({
       username: { $regex: new RegExp(`^${TARGET_USERNAME}$`, 'i') }
     });
@@ -123,5 +104,4 @@ async function penalizeKelmi() {
   }
 }
 
-// Run the script
 penalizeKelmi();

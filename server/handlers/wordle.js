@@ -1,25 +1,11 @@
-/**
- * SQRRRDLE Game Socket Handlers
- *
- * Daily word guessing game with $qr currency rewards.
- * - Rewards: 5000 coins for first 3 tries, 1000 coins after
- * - Progress syncs across devices via MongoDB
- * - Prevents duplicate completions per 24 hours
- */
-
 const fs = require('fs');
 const path = require('path');
 
-// Per-user transaction locks to prevent race conditions
 const userLocks = new Map();
 
-// Word list for daily word selection (same as frontend) - 5 and 6 letter words
 const WORDS = [
-  // Friends (Custom) - 5 letters
   'GARSI', 'KINUS', 'MOMIN', 'JESUS', 'KELMI', 'ASIER',
 
-  // ===== 5-LETTER WORDS =====
-  // LOL Champions (5 letters)
   'TEEMO', 'VAYNE', 'RIVEN', 'BRAND', 'NASUS', 'YASUO', 'SENNA', 'KAYLE',
   'TALON', 'DIANA', 'LEONA', 'JANNA', 'ANNIE', 'FIORA', 'JAYCE', 'AKALI',
   'KARMA', 'ZIGGS', 'QUINN', 'BRAUM', 'SYLAS', 'YUUMI', 'GAREN', 'VIEGO',
@@ -27,91 +13,68 @@ const WORDS = [
   'CORKI', 'AMUMU', 'GALIO', 'IVERN', 'MILIO', 'NEEKO', 'NILAH', 'RAKAN',
   'XAYAH', 'NASUS', 'VEIGAR',
 
-  // Overwatch (5 letters)
   'GENJI', 'HANZO', 'MERCY', 'ZARYA', 'SIGMA', 'LUCIO', 'ORISA', 'MOIRA',
 
-  // Nintendo (5 letters)
   'MARIO', 'LUIGI', 'ZELDA', 'KIRBY', 'WARIO', 'PEACH', 'YOSHI', 'SAMUS',
   'GANON', 'KOOPA', 'DAISY', 'DIDDY', 'FALCO', 'SHULK', 'MARTH', 'ROBIN',
   'CHROM', 'LUCAS', 'EPONA', 'MIDNA', 'MIPHA', 'DARUK', 'SIDON',
 
-  // Pokemon (5 letters)
   'PICHU', 'EEVEE', 'DITTO', 'ZUBAT', 'RALTS', 'SHINX', 'LUXIO', 'ZORUA',
   'LUGIA', 'ENTEI', 'ABSOL', 'ARBOK', 'EKANS', 'ABRA',
 
-  // Sonic (5 letters)
   'SONIC', 'TAILS', 'ROUGE', 'BLAZE', 'METAL', 'KNUCKLES',
 
-  // Final Fantasy (5 letters)
   'CLOUD', 'TIDUS', 'AURON', 'AERIS', 'SQUALL',
 
-  // Street Fighter / Fighting Games (5 letters)
   'GUILE', 'CAMMY', 'SAGAT', 'BISON', 'AKUMA', 'IBUKI', 'KARIN',
   'SONYA', 'ERMAC', 'ASUKA', 'ALISA', 'BRYAN',
 
-  // Other Famous Game Characters (5 letters)
   'SNAKE', 'CRASH', 'SPYRO', 'DANTE', 'STEVE', 'JOKER', 'ELLIE',
   'CHIEF', 'QUIET', 'SOLID', 'LARA',
 
-  // Game Names (5 letters)
   'HADES', 'BRAWL', 'SMASH', 'LIMBO', 'FORZA', 'GEARS', 'FABLE',
   'OKAMI', 'STRAY', 'TUNIC', 'BRAID', 'ISAAC', 'AMONG',
 
-  // Gaming Terms (5 letters)
   'COMBO', 'SPAWN', 'BONUS', 'LEVEL', 'ARMOR', 'SKILL', 'LOBBY',
   'KILLS', 'SWORD', 'MAGIC', 'HEALS', 'MAINS', 'PATCH', 'RANKS', 'STATS',
   'BUILD', 'FLASH', 'GHOST', 'SMITE', 'BARON', 'DRAKE', 'NEXUS', 'GAMER',
   'TOWER', 'CARRY', 'CHAMP', 'ITEMS', 'RESET',
 
-  // ===== 6-LETTER WORDS =====
-  // LOL Champions (6 letters)
   'THRESH', 'VIKTOR', 'ANIVIA', 'ZILEAN', 'SINGED', 'RAMMUS', 'GRAVES',
   'IRELIA', 'EZREAL', 'SORAKA', 'DRAVEN', 'RENGAR', 'RUMBLE', 'KENNEN',
   'TWITCH', 'VEIGAR', 'XERATH', 'KASSADIN',
 
-  // Overwatch (6 letters)
   'TRACER', 'REAPER', 'SOMBRA', 'PHARAH', 'TORBJORN',
 
-  // Nintendo (6 letters)
   'BOWSER', 'FALCON', 'TINGLE', 'URBOSA', 'REVALI', 'OLIMAR', 'PIKMIN',
   'BYLETH', 'MYTHRA', 'RIDLEY',
 
-  // Pokemon (6 letters)
   'GENGAR', 'MEWTWO', 'ARCEUS', 'VULPIX', 'MUDKIP', 'GASTLY', 'MEOWTH',
   'LAPRAS', 'CELEBI', 'KYOGRE', 'DIALGA', 'PALKIA', 'WOBBUFFET',
 
-  // Final Fantasy / JRPG (6 letters)
   'NOCTIS', 'SEPHIROTH',
 
-  // Street Fighter / Fighting Games (6 letters)
   'BLANKA', 'BALROG', 'SAKURA', 'RASHID', 'JOHNNY', 'KITANA', 'BARAKA',
   'KAZUYA', 'RAIDEN',
 
-  // Other Famous Game Characters (6 letters)
   'KRATOS', 'NATHAN', 'TREVOR', 'ARTHUR', 'GERALT', 'OCELOT', 'LIQUID',
   'MASTER', 'CORTANA',
 
-  // Game Names (6 letters)
   'PORTAL', 'TETRIS', 'SKYRIM', 'DIABLO', 'SEKIRO', 'HITMAN', 'ROBLOX',
   'RAYMAN', 'TEKKEN', 'LEAGUE', 'YAKUZA', 'HOLLOW', 'ROCKET', 'INSIDE',
   'TARKOV', 'ANTHEM',
 
-  // Gaming Terms (6 letters)
   'DAMAGE', 'SHIELD', 'HEALTH', 'MINION', 'CREEPS', 'RANKED', 'JUNGLE',
 ];
 
-// Filter to only valid 5 and 6 letter words
 const WORDS_CLEAN = WORDS.filter(w => w.length === 5 || w.length === 6);
 
-// Extended valid guesses - load from txt files + legacy fallback
 const VALID_GUESSES = new Set([...WORDS_CLEAN]);
 
-// Load words from txt files at startup
 function loadDictionaryFiles() {
   const wordsDir = path.join(__dirname, '..', '..', 'public', 'js', 'games', 'wordle');
 
   try {
-    // Load 5-letter words
     const file5 = path.join(wordsDir, 'words_es_en_5_ascii_combined.txt');
     if (fs.existsSync(file5)) {
       const content = fs.readFileSync(file5, 'utf8');
@@ -120,7 +83,6 @@ function loadDictionaryFiles() {
       console.log(`[WORDLE] Loaded ${words.length} 5-letter words from txt file`);
     }
 
-    // Load 6-letter words
     const file6 = path.join(wordsDir, 'words_es_en_6_ascii_combined.txt');
     if (fs.existsSync(file6)) {
       const content = fs.readFileSync(file6, 'utf8');
@@ -135,12 +97,9 @@ function loadDictionaryFiles() {
   }
 }
 
-// Load dictionary at module load time
 loadDictionaryFiles();
 
-// Legacy fallback words (kept for redundancy)
 const LEGACY_WORDS = [
-  // ===== 5-LETTER ENGLISH WORDS =====
   'ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT',
   'AFTER', 'AGAIN', 'AGENT', 'AGREE', 'AHEAD', 'ALARM', 'ALBUM', 'ALERT',
   'ALIKE', 'ALIVE', 'ALLOW', 'ALONE', 'ALONG', 'ALTER', 'AMONG', 'ANGER',
@@ -322,7 +281,6 @@ const LEGACY_WORDS = [
   'WORST', 'WORTH', 'WOULD', 'WOUND', 'WOVEN', 'WRAPS', 'WRATH', 'WRECK',
   'WREST', 'WRIST', 'WRITE', 'WRONG', 'WROTE', 'YACHT', 'YEARS', 'YEAST',
   'YIELD', 'YOUNG', 'YOURS', 'YOUTH', 'ZEBRA', 'ZESTY', 'ZONES',
-  // ===== 5-LETTER SPANISH WORDS =====
   'ABAJO', 'ABRIL', 'ABRIR', 'ACABA', 'ACASO', 'ACERO', 'ACIDO', 'ACTOS',
   'ACTUA', 'ACTOR', 'ACUTE', 'ADIOS', 'ADOBE', 'AFINA', 'AGUAS', 'AHORA',
   'AIRES', 'AJENO', 'AJUAR', 'ALBUM', 'ALDEA', 'ALEJA', 'ALGOS', 'ALGUN',
@@ -492,7 +450,6 @@ const LEGACY_WORDS = [
   'YEDRA', 'YEGUA', 'YEMAS', 'YENDO', 'YERNO', 'YERRO', 'YESOS', 'YOGUR',
   'YOYOS', 'ZAFAR', 'ZAGAS', 'ZANJA', 'ZARES', 'ZARPA', 'ZARZA', 'ZONAS',
   'ZONDA', 'ZORRO', 'ZUECO', 'ZUMBA', 'ZUMOS', 'ZURDA', 'ZURDO', 'ZURRA',
-  // ===== 6-LETTER ENGLISH WORDS =====
   'ACCEPT', 'ACCESS', 'ACROSS', 'ACTION', 'ACTIVE', 'ACTUAL', 'ADVICE',
   'ADVISE', 'AFFAIR', 'AFFECT', 'AFFORD', 'AFRAID', 'AGENCY', 'AGENDA',
   'ALMOST', 'ALWAYS', 'AMOUNT', 'ANIMAL', 'ANNUAL', 'ANSWER', 'ANYONE',
@@ -655,7 +612,6 @@ const LEGACY_WORDS = [
   'WISHES', 'WITHIN', 'WIZARD', 'WOLVES', 'WONDER', 'WOODEN', 'WORKED',
   'WORKER', 'WORLDS', 'WORTHY', 'WOUNDS', 'WRITER', 'WRITES', 'YELLOW',
   'YIELDS', 'ZOMBIE', 'ZONING',
-  // ===== 6-LETTER SPANISH WORDS =====
   'ABARCA', 'ABIERTO', 'ABORTO', 'ABRAZO', 'ABUELO',
   'ABUELA', 'ACCESO', 'ACEITE', 'ACERCA', 'ACTIVA', 'ACTIVO', 'ACTRIZ',
   'ACUDIR', 'ADEMAS', 'ADONDE', 'ADULTO', 'AGENDA', 'AGOSTO',
@@ -778,11 +734,9 @@ const LEGACY_WORDS = [
   'VIRTUD', 'VISITA', 'VISTAS', 'VISUAL', 'VUELTAS', 'ZONAS'
 ];
 
-// Add legacy words to VALID_GUESSES as fallback
 LEGACY_WORDS.forEach(w => VALID_GUESSES.add(w));
 
 function getSpainDate() {
-  // Always use Madrid timezone for consistent daily reset at midnight Spain time
   const spain = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
   const [year, month, day] = spain.split('-').map(Number);
   return { year, month, day };
@@ -796,22 +750,18 @@ function getTodayKey() {
 function getDailyWord() {
   const { year, month, day } = getSpainDate();
   let seed = year * 10000 + month * 100 + day;
-  // Scramble seed to avoid sequential word selection (must match frontend)
   seed = ((seed * 1103515245 + 12345) >>> 0) % 2147483648;
   const idx = seed % WORDS_CLEAN.length;
   return WORDS_CLEAN[idx];
 }
 
-// ==================== INITIALIZATION ====================
 function init(io) {
   console.log('SQRRRDLE handler initialized');
 }
 
-// ==================== SOCKET HANDLERS ====================
 function setupHandlers(io, socket, context) {
   const { getUser, saveUser, getLoggedInUsername } = context;
 
-  // Get current game state for the user (syncs across devices)
   socket.on('sqrrrdle:getState', () => {
     const username = getLoggedInUsername();
     if (!username) {
@@ -825,7 +775,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Initialize sqrrrdle stats if not present
     if (!user.sqrrrdle) {
       user.sqrrrdle = {
         wordsGuessed: 0,
@@ -840,8 +789,6 @@ function setupHandlers(io, socket, context) {
 
     const todayKey = getTodayKey();
 
-    // Reset if it's a different day (or if currentDayKey was never set)
-    // This ensures old guesses from previous days are always cleared
     if (user.sqrrrdle.currentDayKey !== todayKey) {
       user.sqrrrdle.currentDayGuesses = [];
       user.sqrrrdle.currentDayStatus = 'playing';
@@ -862,7 +809,6 @@ function setupHandlers(io, socket, context) {
     });
   });
 
-  // Submit a guess
   socket.on('sqrrrdle:guess', (data) => {
     const username = getLoggedInUsername();
     if (!username) {
@@ -870,7 +816,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Prevent race condition
     if (userLocks.get(username)) {
       socket.emit('sqrrrdle:error', { message: 'Procesando operación anterior...' });
       return;
@@ -890,13 +835,11 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Validate word is in our dictionary
     if (!VALID_GUESSES.has(guess)) {
       socket.emit('sqrrrdle:error', { message: 'Palabra no válida' });
       return;
     }
 
-    // Initialize sqrrrdle stats if not present
     if (!user.sqrrrdle) {
       user.sqrrrdle = {
         wordsGuessed: 0,
@@ -911,30 +854,25 @@ function setupHandlers(io, socket, context) {
 
     const todayKey = getTodayKey();
 
-    // Reset if it's a different day (or if currentDayKey was never set)
     if (user.sqrrrdle.currentDayKey !== todayKey) {
       user.sqrrrdle.currentDayGuesses = [];
       user.sqrrrdle.currentDayStatus = 'playing';
       user.sqrrrdle.currentDayKey = todayKey;
     }
 
-    // Check if already completed today
     if (user.sqrrrdle.currentDayStatus === 'won' || user.sqrrrdle.currentDayStatus === 'lost') {
       socket.emit('sqrrrdle:error', { message: 'Ya completaste el SQRRRDLE de hoy' });
       return;
     }
 
-    // Check if too many guesses
     if ((user.sqrrrdle.currentDayGuesses || []).length >= 6) {
       socket.emit('sqrrrdle:error', { message: 'Ya usaste todos tus intentos' });
       return;
     }
 
-    // Lock user during transaction
     userLocks.set(username, true);
 
     try {
-      // Add guess to list
       user.sqrrrdle.currentDayGuesses = user.sqrrrdle.currentDayGuesses || [];
       user.sqrrrdle.currentDayGuesses.push(guess);
       user.sqrrrdle.totalTries = (user.sqrrrdle.totalTries || 0) + 1;
@@ -946,13 +884,10 @@ function setupHandlers(io, socket, context) {
       let payout = 0;
 
       if (isCorrect) {
-        // Calculate payout: 5000 for first 3 tries, 1000 after
         payout = attempts <= 3 ? 5000 : 1000;
 
-        // Award payout
         user.coins = (user.coins ?? 1000) + payout;
 
-        // Update stats
         user.sqrrrdle.wordsGuessed = (user.sqrrrdle.wordsGuessed || 0) + 1;
         user.sqrrrdle.totalCoins = (user.sqrrrdle.totalCoins || 0) + payout;
         user.sqrrrdle.lastCompletedDate = todayKey;
@@ -960,7 +895,6 @@ function setupHandlers(io, socket, context) {
 
         console.log(`[SQRRRDLE] ${username} ganó en ${attempts} intentos. Recompensa: ${payout}. Balance: ${user.coins}`);
       } else if (isGameOver) {
-        // Lost - mark as completed with no reward
         user.sqrrrdle.lastCompletedDate = todayKey;
         user.sqrrrdle.currentDayStatus = 'lost';
 
@@ -969,7 +903,6 @@ function setupHandlers(io, socket, context) {
 
       saveUser(username);
 
-      // Send response
       socket.emit('sqrrrdle:guessResult', {
         guess,
         isCorrect,
@@ -981,7 +914,6 @@ function setupHandlers(io, socket, context) {
         status: user.sqrrrdle.currentDayStatus
       });
 
-      // Also emit general coin update if payout
       if (payout > 0) {
         socket.emit('user:coins', {
           coins: user.coins
@@ -992,7 +924,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Player won wordle - legacy endpoint (kept for backward compatibility)
   socket.on('wordle:win', (data) => {
     const username = getLoggedInUsername();
     if (!username) {
@@ -1000,7 +931,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Prevent race condition
     if (userLocks.get(username)) {
       socket.emit('wordle:error', { message: 'Procesando operación anterior...' });
       return;
@@ -1018,7 +948,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Initialize sqrrrdle stats if not present
     if (!user.sqrrrdle) {
       user.sqrrrdle = {
         wordsGuessed: 0,
@@ -1032,23 +961,18 @@ function setupHandlers(io, socket, context) {
 
     const todayKey = getTodayKey();
 
-    // Check if already completed today
     if (user.sqrrrdle.lastCompletedDate === todayKey) {
       socket.emit('wordle:error', { message: 'Ya jugaste hoy' });
       return;
     }
 
-    // Lock user during transaction
     userLocks.set(username, true);
 
     try {
-      // Calculate payout: 5000 for first 3 tries, 1000 after
       const payout = attempts <= 3 ? 5000 : 1000;
 
-      // Award payout
       user.coins = (user.coins ?? 1000) + payout;
 
-      // Track sqrrrdle stats
       user.sqrrrdle.wordsGuessed = (user.sqrrrdle.wordsGuessed || 0) + 1;
       user.sqrrrdle.totalTries = (user.sqrrrdle.totalTries || 0) + attempts;
       user.sqrrrdle.totalCoins = (user.sqrrrdle.totalCoins || 0) + payout;
@@ -1064,7 +988,6 @@ function setupHandlers(io, socket, context) {
         coins: user.coins
       });
 
-      // Also emit general coin update
       socket.emit('user:coins', {
         coins: user.coins
       });
@@ -1073,10 +996,8 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Cleanup function
   return {
     handleDisconnect: () => {
-      // No cleanup needed for sqrrrdle
     }
   };
 }

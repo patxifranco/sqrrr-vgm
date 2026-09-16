@@ -1,7 +1,3 @@
-// Smoke test for the tierlist socket flow. Run against a local in-memory server:
-//   PORT=3999 node server.js   (in another terminal)
-//   node tools/tierlist-smoke.js [http://localhost:3999]
-// Drives three logged-in clients through join, search, album load, playback, cursors, votes, verdict, move, trash.
 const assert = require('assert');
 const fs = require('fs');
 const os = require('os');
@@ -51,7 +47,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlMode', { mode: 'music' }); const [, sm] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
   assert.equal(sm.mode, 'music'); assert.equal(sm.album, null);
 
-  b.emit('tlSearch', { q: 'minecraft' }); await silence(b, 'tlSearchResults');           // non-host ignored
+  b.emit('tlSearch', { q: 'minecraft' }); await silence(b, 'tlSearchResults');
   a.emit('tlSearch', { q: 'minecraft' }); const [res] = await Promise.all([once(a, 'tlSearchResults'), once(b, 'tlSearchResults')]);
   assert(res.results.some(r => r.source === 'kh' && r.slug === 'minecraft'), 'search or slug fallback failed (gated=' + res.gated + ')');
   if (res.youtube) {
@@ -67,7 +63,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
   a.emit('tlSelect', { songId: 1 });
   const [ld, , p2] = await Promise.all([once(b, 'tlLoading'), once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
-  assert.deepEqual(ld, { on: true });                                          // everyone sees CARGANDO while the url resolves
+  assert.deepEqual(ld, { on: true });
   assert.equal(p2.currentId, 1); assert(/vgmtreasurechest\.com\/.+\.mp3$/.test(p2.mp3)); assert(p2.playback.playing);
 
   const px = await fetch(URL + '/tierlist/audio?u=' + encodeURIComponent(p2.mp3), { headers: { range: 'bytes=0-99' } });
@@ -76,7 +72,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
   a.emit('tlPlayback', { playing: false, position: 42.5 }); const p3 = await once(b, 'tlPlayback');
   assert(!p3.playback.playing); assert.equal(p3.playback.position, 42.5);
-  b.emit('tlPlayback', { playing: true, position: 0 }); await silence(a, 'tlPlayback');   // non-host ignored
+  b.emit('tlPlayback', { playing: true, position: 0 }); await silence(a, 'tlPlayback');
 
   a.emit('tlCursor', { x: 0.5, y: 0.25, drag: { id: 1, gx: 10, gy: 20, rot: -12.5 } }); const c = await once(b, 'tlCursor');
   assert.equal(c.username, 'REASON'); assert.equal(c.x, 0.5); assert.deepEqual(c.drag, { id: 1, gx: 10, gy: 20, rot: -12.5 });

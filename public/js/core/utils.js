@@ -1,15 +1,3 @@
-/**
- * Shared utility functions
- *
- * These functions were previously duplicated across game.js, typing.js, and drawing.js.
- * Now centralized here for consistency and maintainability.
- */
-
-/**
- * Escape HTML special characters to prevent XSS
- * @param {string} text - Text to escape
- * @returns {string} Escaped text safe for innerHTML
- */
 export function escapeHtml(text) {
   if (typeof text !== 'string') return '';
   const div = document.createElement('div');
@@ -17,11 +5,6 @@ export function escapeHtml(text) {
   return div.innerHTML;
 }
 
-/**
- * Shuffle an array using Fisher-Yates algorithm
- * @param {Array} array - Array to shuffle
- * @returns {Array} New shuffled array (does not mutate original)
- */
 export function shuffleArray(array) {
   const result = [...array];
   for (let i = result.length - 1; i > 0; i--) {
@@ -31,21 +14,10 @@ export function shuffleArray(array) {
   return result;
 }
 
-/**
- * Format milliseconds as seconds with decimals
- * @param {number} ms - Milliseconds
- * @param {number} [decimals=2] - Number of decimal places
- * @returns {string} Formatted time (e.g., "5.23s")
- */
 export function formatTime(ms, decimals = 2) {
   return (ms / 1000).toFixed(decimals) + 's';
 }
 
-/**
- * Format milliseconds as MM:SS or M:SS
- * @param {number} ms - Milliseconds
- * @returns {string} Formatted time (e.g., "1:30")
- */
 export function formatMinutesSeconds(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
@@ -53,12 +25,6 @@ export function formatMinutesSeconds(ms) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-/**
- * Debounce a function - delays execution until after wait period of no calls
- * @param {Function} fn - Function to debounce
- * @param {number} delay - Delay in milliseconds
- * @returns {Function} Debounced function
- */
 export function debounce(fn, delay) {
   let timeout;
   return function (...args) {
@@ -67,12 +33,6 @@ export function debounce(fn, delay) {
   };
 }
 
-/**
- * Throttle a function - limits execution to once per time period
- * @param {Function} fn - Function to throttle
- * @param {number} limit - Minimum time between calls in milliseconds
- * @returns {Function} Throttled function
- */
 export function throttle(fn, limit) {
   let inThrottle;
   return function (...args) {
@@ -84,11 +44,6 @@ export function throttle(fn, limit) {
   };
 }
 
-/**
- * Generate a random room code
- * @param {number} [length=4] - Code length
- * @returns {string} Uppercase alphanumeric code
- */
 export function generateRoomCode(length = 4) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
@@ -98,22 +53,10 @@ export function generateRoomCode(length = 4) {
   return result;
 }
 
-/**
- * Clamp a number between min and max
- * @param {number} value - Value to clamp
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @returns {number} Clamped value
- */
 export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-/**
- * Get rank class based on position (for leaderboards)
- * @param {number} index - 0-based position
- * @returns {string} CSS class name
- */
 export function getRankClass(index) {
   if (index === 0) return 'gold';
   if (index === 1) return 'silver';
@@ -121,31 +64,16 @@ export function getRankClass(index) {
   return '';
 }
 
-/**
- * Format a number with ordinal suffix (1st, 2nd, 3rd, etc.)
- * @param {number} n - Number
- * @returns {string} Number with ordinal
- */
 export function ordinal(n) {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-/**
- * Wait for a specified duration (Promise-based setTimeout)
- * @param {number} ms - Milliseconds to wait
- * @returns {Promise<void>}
- */
 export function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Check if an element is visible in the viewport
- * @param {HTMLElement} element - Element to check
- * @returns {boolean}
- */
 export function isElementVisible(element) {
   if (!element) return false;
   const rect = element.getBoundingClientRect();
@@ -157,40 +85,20 @@ export function isElementVisible(element) {
   );
 }
 
-/**
- * Scroll element into view with smooth animation
- * @param {HTMLElement} element - Element to scroll to
- * @param {Object} [options] - Scroll options
- */
 export function scrollIntoView(element, options = { behavior: 'smooth', block: 'nearest' }) {
   if (element && typeof element.scrollIntoView === 'function') {
     element.scrollIntoView(options);
   }
 }
 
-/**
- * Parse a query string into an object
- * @param {string} [queryString=window.location.search] - Query string to parse
- * @returns {Object} Key-value pairs
- */
 export function parseQueryString(queryString = window.location.search) {
   return Object.fromEntries(new URLSearchParams(queryString));
 }
 
-/**
- * Deep clone an object (simple implementation using JSON)
- * @param {*} obj - Object to clone
- * @returns {*} Cloned object
- */
 export function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-/**
- * Check if value is a non-null object
- * @param {*} value
- * @returns {boolean}
- */
 export function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

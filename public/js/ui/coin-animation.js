@@ -1,24 +1,11 @@
-/**
- * Coin Animation Module
- *
- * Shows floating +$qr animations when coins are earned.
- */
-
-// Track cursor position for animations
 let cursorX = window.innerWidth / 2;
 let cursorY = 100;
 
-// Update cursor position
 document.addEventListener('mousemove', (e) => {
   cursorX = e.clientX;
   cursorY = e.clientY;
 });
 
-/**
- * Show a floating coin animation
- * @param {number} amount - Amount of coins earned
- * @param {Object} options - Optional position override
- */
 export function showCoinAnimation(amount, options = {}) {
   if (amount <= 0) return;
 
@@ -29,13 +16,11 @@ export function showCoinAnimation(amount, options = {}) {
   anim.className = 'coin-float-animation';
   anim.textContent = `+${amount} $qr`;
 
-  // Position near cursor (offset slightly up and right)
   anim.style.left = (x + 10) + 'px';
   anim.style.top = (y - 20) + 'px';
 
   document.body.appendChild(anim);
 
-  // Remove after animation completes
   setTimeout(() => {
     if (anim.parentNode) {
       anim.remove();
@@ -43,11 +28,6 @@ export function showCoinAnimation(amount, options = {}) {
   }, 1500);
 }
 
-/**
- * Show multiple coin animations in sequence
- * @param {number} amount - Total amount
- * @param {number} count - Number of animations
- */
 export function showCoinAnimationBurst(amount, count = 3) {
   const perAnimation = Math.ceil(amount / count);
 

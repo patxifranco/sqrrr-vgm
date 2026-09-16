@@ -1,11 +1,7 @@
-/* ==================== SQRRR - XP.css ENHANCED STYLES ==================== */
-
 * {
   box-sizing: border-box;
 }
 
-/* ==================== XP.CSS CHECKBOX FIX ==================== */
-/* Ensure XP.css checkbox styling is applied */
 input[type="checkbox"] {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -54,8 +50,6 @@ input[type="checkbox"]:active + label::before {
   background: var(--xp-bg);
 }
 
-/* ==================== XP.CSS RANGE SLIDER FIX ==================== */
-/* Ensure XP.css range slider styling is applied */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -68,7 +62,6 @@ input[type="range"]:focus {
   outline: none;
 }
 
-/* WebKit Track */
 input[type="range"]::-webkit-slider-runnable-track {
   width: 100%;
   height: 2px;
@@ -76,7 +69,6 @@ input[type="range"]::-webkit-slider-runnable-track {
   box-shadow: 1px 0 0 #fff, 1px 1px 0 #fff, 0 1px 0 #fff, -1px 0 0 var(--xp-border-dark), -1px -1px 0 var(--xp-border-dark), 0 -1px 0 var(--xp-border-dark), -2px 0 0 var(--xp-border-medium), -2px -2px 0 var(--xp-border-medium), 0 -2px 0 var(--xp-border-medium);
 }
 
-/* WebKit Thumb */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 21px;
@@ -86,7 +78,6 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
 }
 
-/* Firefox Track */
 input[type="range"]::-moz-range-track {
   width: 100%;
   height: 2px;
@@ -94,7 +85,6 @@ input[type="range"]::-moz-range-track {
   box-shadow: 1px 0 0 #fff, 1px 1px 0 #fff, 0 1px 0 #fff, -1px 0 0 var(--xp-border-dark), -1px -1px 0 var(--xp-border-dark), 0 -1px 0 var(--xp-border-dark), -2px 0 0 var(--xp-border-medium), -2px -2px 0 var(--xp-border-medium), 0 -2px 0 var(--xp-border-medium);
 }
 
-/* Firefox Thumb */
 input[type="range"]::-moz-range-thumb {
   height: 21px;
   width: 11px;
@@ -117,7 +107,6 @@ body {
   overflow: hidden;
 }
 
-/* ==================== SCREEN CONTAINERS ==================== */
 .screen-container {
   display: none;
   justify-content: center;
@@ -133,7 +122,6 @@ body {
   display: flex;
 }
 
-/* ==================== GLOBAL MOBILE FIX ==================== */
 @media (max-width: 768px) {
   body {
     overflow: auto;
@@ -161,7 +149,6 @@ body {
     padding-bottom: 20px;
   }
 
-  /* All windows should be max-width on mobile */
   .window {
     width: 100% !important;
     max-width: 100% !important;
@@ -169,15 +156,12 @@ body {
     box-sizing: border-box;
   }
 
-  /* Window body should scroll if needed */
   .window-body {
     max-height: none;
     overflow-y: auto;
   }
 }
 
-/* ==================== WINDOW SIZING ==================== */
-/* All sizes increased ~15% for better visibility */
 .login-window {
   width: 390px;
 }
@@ -218,7 +202,6 @@ body {
   width: 400px;
 }
 
-/* ==================== LOGIN SCREEN ==================== */
 .login-content {
   text-align: center;
   padding: 10px;
@@ -266,7 +249,6 @@ body {
   min-height: 16px;
 }
 
-/* ==================== HUB SCREEN ==================== */
 .hub-content {
   padding: 10px;
 }
@@ -320,7 +302,6 @@ body {
   display: inline-block;
 }
 
-/* 2-column grid for activity buttons */
 .hub-activities-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -358,7 +339,6 @@ body {
   width: 100%;
 }
 
-/* ==================== MENU SCREEN ==================== */
 .menu-header {
   display: flex;
   justify-content: space-between;
@@ -425,7 +405,6 @@ body {
   margin: 15px 0;
 }
 
-/* ==================== LOBBY SCREEN ==================== */
 .room-code-display {
   text-align: center;
   padding: 12px;
@@ -489,13 +468,11 @@ body {
   font-size: 13px;
 }
 
-/* Section field-row spacing */
 section.field-row {
   margin-top: 11px;
   padding: 0 8px 8px;
 }
 
-/* ==================== GAME SCREEN ==================== */
 .game-screen-container .game-window {
   position: relative;
 }
@@ -544,7 +521,6 @@ section.field-row {
   padding: 0;
 }
 
-/* MSN Chat Header - "To: SQRRR" */
 .msn-chat-header {
   padding: 4px 8px;
   background: var(--color-gray-50);
@@ -580,7 +556,6 @@ section.field-row {
   border-top: 1px solid var(--color-gray-500);
 }
 
-/* MSN Format Toolbar - like Block | Font | Emoticons */
 .msn-format-bar {
   display: flex;
   align-items: center;
@@ -654,14 +629,12 @@ section.field-row {
   vertical-align: middle;
 }
 
-/* Nudge button icon */
 .msn-toolbar-nudge-icon {
   width: 36px;
   height: 36px;
   display: block;
 }
 
-/* MSN Nudge shake animation */
 @keyframes msn-shake {
   0%, 100% { transform: translate(0, 0); }
   10% { transform: translate(-8px, -4px); }
@@ -679,7 +652,6 @@ section.field-row {
   animation: msn-shake 0.5s ease-in-out;
 }
 
-/* Volume control in toolbar */
 .volume-control {
   display: flex;
   align-items: center;
@@ -692,7 +664,6 @@ section.field-row {
   height: 16px;
 }
 
-/* Emoticon popup */
 .emoticon-popup {
   position: absolute;
   bottom: 100%;
@@ -725,7 +696,6 @@ section.field-row {
   background: var(--xp-highlight);
 }
 
-/* Inline chat emoticons */
 .chat-emoticon {
   width: 19px;
   height: 19px;
@@ -770,7 +740,6 @@ section.field-row {
   margin-top: 8px;
 }
 
-/* MSN Input Row - input field + Send button on same row */
 .msn-input-row {
   display: flex;
   align-items: stretch;
@@ -800,7 +769,6 @@ section.field-row {
   background: var(--msn-sidebar);
 }
 
-/* MSN Sidebar Header */
 .msn-sidebar-header {
   background: linear-gradient(180deg, var(--msn-gradient-start) 0%, var(--msn-gradient-end) 100%);
   color: white;
@@ -811,7 +779,6 @@ section.field-row {
   text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
 }
 
-/* MSN Sidebar Content */
 .msn-sidebar-content {
   flex: 1;
   overflow-y: auto;
@@ -861,7 +828,6 @@ section.field-row {
   margin-left: 4px;
 }
 
-/* MSN Sidebar User Display */
 .msn-sidebar-user {
   padding: 12px;
   background: var(--msn-gradient-start);
@@ -897,7 +863,6 @@ section.field-row {
   object-fit: cover;
 }
 
-/* Resize handles */
 .resize-handle {
   position: absolute;
   z-index: 10;
@@ -912,7 +877,6 @@ section.field-row {
 .resize-se { bottom: -4px; right: -4px; width: 12px; height: 12px; cursor: nwse-resize; }
 .resize-sw { bottom: -4px; left: -4px; width: 12px; height: 12px; cursor: nesw-resize; }
 
-/* ==================== ROUND END SCREEN ==================== */
 .answer-reveal {
   padding: 10px;
 }
@@ -937,7 +901,6 @@ section.field-row {
   font-size: 14px;
 }
 
-/* ==================== MODALS ==================== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -955,7 +918,6 @@ section.field-row {
   display: flex;
 }
 
-/* ==================== PROFILE ==================== */
 .profile-header {
   text-align: center;
   padding: 15px;
@@ -1003,7 +965,6 @@ section.field-row {
   color: var(--color-gray-600);
 }
 
-/* ==================== PLAYER POPUP ==================== */
 .popup-profile-header {
   display: flex;
   align-items: center;
@@ -1048,7 +1009,6 @@ section.field-row {
   font-size: 11px;
 }
 
-/* ==================== CHAT MESSAGE STYLING ==================== */
 .chat-msg {
   margin-bottom: 6px;
   line-height: 1.4;
@@ -1057,7 +1017,6 @@ section.field-row {
   word-break: break-word;
 }
 
-/* ==================== START VGM BUTTON ==================== */
 .start-vgm-container {
   display: flex;
   justify-content: center;
@@ -1088,7 +1047,6 @@ section.field-row {
   color: var(--color-black);
 }
 
-/* Rainbow text for correct guesses */
 @keyframes rainbow {
   0% { color: #ff0000; }
   14% { color: #ff7f00; }
@@ -1127,13 +1085,11 @@ section.field-row {
   font-size: 18px;
 }
 
-/* Regular correct guess (non-supersonic) */
 .correct-guess-msg {
   font-weight: bold;
   color: #006600;
 }
 
-/* Gold scrolling effect for records */
 @keyframes goldScroll {
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
@@ -1151,12 +1107,10 @@ section.field-row {
   animation: goldScroll 2s linear infinite;
 }
 
-/* Countdown styling */
 .countdown-text {
   font-weight: bold;
 }
 
-/* Wave text effect */
 @keyframes wave-letter {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
@@ -1167,7 +1121,6 @@ section.field-row {
   animation: wave-letter 0.6s ease-in-out infinite;
 }
 
-/* Hint display */
 .hint-display {
   font-family: 'Courier New', monospace;
   letter-spacing: 3px;
@@ -1182,14 +1135,12 @@ section.field-row {
   white-space: pre-wrap;
 }
 
-/* Player streak */
 .player-streak {
   font-size: 9px;
   color: var(--color-accent);
   font-weight: bold;
 }
 
-/* ==================== ANIMATIONS ==================== */
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -1209,7 +1160,6 @@ section.field-row {
   animation: shake 0.2s ease-in-out;
 }
 
-/* ==================== FILE TRANSFER (dynamic chat element) ==================== */
 .msn-file-transfer {
   display: flex;
   align-items: center;
@@ -1254,7 +1204,6 @@ section.field-row {
   background: #00cc00;
 }
 
-/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .game-window {
     width: 100% !important;
@@ -1277,14 +1226,10 @@ section.field-row {
   }
 }
 
-/* ==================== TYPING GAME (TIKITIKI) ==================== */
-
-/* Typing accent color */
 .typing-accent {
   color: #00aa00;
 }
 
-/* Typing window sizes */
 .typing-menu-window {
   width: 400px;
 }
@@ -1295,7 +1240,6 @@ section.field-row {
   position: relative;
 }
 
-/* Lobby header with Volver button */
 .typing-lobby-header {
   display: flex;
   justify-content: flex-start;
@@ -1304,7 +1248,6 @@ section.field-row {
   background: var(--color-gray-100);
 }
 
-/* Tab-style Volver button for game screen */
 .typing-back-tab {
   position: absolute;
   top: -22px;
@@ -1323,7 +1266,6 @@ section.field-row {
   background: var(--xp-bg-dark);
 }
 
-/* Lobby controls - Empezar centered, Espectar right */
 .typing-lobby-controls {
   display: flex;
   justify-content: center;
@@ -1359,7 +1301,6 @@ section.field-row {
   width: 575px;
 }
 
-/* Tildes mode toggle */
 .typing-tildes-toggle {
   display: flex;
   gap: 0;
@@ -1395,7 +1336,6 @@ section.field-row {
   background: var(--xp-bg-hover);
 }
 
-/* Tildes indicator in lobby */
 .typing-tildes-indicator {
   font-size: 12px;
   color: var(--color-gray-600);
@@ -1403,7 +1343,6 @@ section.field-row {
   font-style: italic;
 }
 
-/* Typing menu buttons */
 .typing-menu-buttons {
   display: flex;
   gap: 15px;
@@ -1421,7 +1360,6 @@ section.field-row {
   opacity: 0.5;
 }
 
-/* Interactive keyboard display in menu */
 .typing-keyboard {
   display: flex;
   flex-direction: column;
@@ -1465,7 +1403,6 @@ section.field-row {
   width: 160px;
 }
 
-/* Typing game body */
 .typing-game-body {
   display: flex;
   flex-direction: column;
@@ -1474,7 +1411,6 @@ section.field-row {
   height: 100%;
 }
 
-/* Stats bar */
 .typing-stats-bar {
   display: flex;
   justify-content: space-around;
@@ -1500,7 +1436,6 @@ section.field-row {
   text-transform: uppercase;
 }
 
-/* Lobby status */
 .typing-lobby-status {
   text-align: center;
   padding: 15px;
@@ -1509,7 +1444,6 @@ section.field-row {
   font-size: 16px;
 }
 
-/* Lobby players container */
 .typing-players-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -1521,7 +1455,6 @@ section.field-row {
   margin-bottom: 10px;
 }
 
-/* Lobby player item */
 .typing-lobby-player {
   display: flex;
   flex-direction: column;
@@ -1551,7 +1484,6 @@ section.field-row {
   word-break: break-word;
 }
 
-/* Spectators container in lobby */
 .typing-spectators-container {
   margin-bottom: 10px;
 }
@@ -1571,7 +1503,6 @@ section.field-row {
   color: var(--color-gray-600);
 }
 
-/* Game players container - grid layout */
 .typing-game-players {
   display: grid;
   gap: 8px;
@@ -1580,7 +1511,6 @@ section.field-row {
   grid-template-columns: 1fr;
 }
 
-/* Grid columns based on player count */
 .typing-game-players.cols-2 {
   grid-template-columns: repeat(2, 1fr);
 }
@@ -1589,7 +1519,6 @@ section.field-row {
   grid-template-columns: repeat(3, 1fr);
 }
 
-/* Spectators panel in game */
 .typing-game-spectators {
   padding: 5px 10px;
   background: var(--color-gray-100);
@@ -1618,7 +1547,6 @@ section.field-row {
   color: #555;
 }
 
-/* Individual player box */
 .typing-player-box {
   display: flex;
   align-items: stretch;
@@ -1629,7 +1557,6 @@ section.field-row {
   max-height: 200px;
 }
 
-/* Solo mode - player box fills available space */
 .solo-mode .typing-player-box {
   max-height: none;
 }
@@ -1642,7 +1569,6 @@ section.field-row {
   height: auto;
 }
 
-/* Solo controls */
 .typing-solo-controls {
   display: flex;
   justify-content: center;
@@ -1659,7 +1585,6 @@ section.field-row {
   font-weight: bold;
 }
 
-/* Countdown display in typing text area */
 .typing-countdown-display {
   display: flex;
   align-items: center;
@@ -1671,7 +1596,6 @@ section.field-row {
   font-family: Consolas, monospace;
 }
 
-/* Player info sidebar */
 .typing-player-info {
   display: flex;
   flex-direction: column;
@@ -1707,7 +1631,6 @@ section.field-row {
   font-weight: bold;
 }
 
-/* Text area in player box */
 .typing-player-text {
   flex: 1;
   padding: 10px 15px;
@@ -1724,7 +1647,6 @@ section.field-row {
   background: #fffff8;
 }
 
-/* Character states */
 .typing-char {
   transition: color 0.05s, background 0.05s;
 }
@@ -1751,12 +1673,10 @@ section.field-row {
   background: var(--color-error-bg);
 }
 
-/* Random characters before reveal */
 .typing-char.scrambled {
   color: #aaa;
 }
 
-/* Countdown in text box */
 .typing-countdown-text {
   display: flex;
   justify-content: center;
@@ -1783,7 +1703,6 @@ section.field-row {
   }
 }
 
-/* Results screen */
 .typing-results-vs {
   display: flex;
   justify-content: center;
@@ -1837,8 +1756,6 @@ section.field-row {
   font-weight: bold;
   color: var(--color-gray-400);
 }
-
-/* ==================== CO-OP MODE ==================== */
 
 .coop-mode .typing-game-body {
   height: calc(100% - 25px);
@@ -1962,7 +1879,6 @@ section.field-row {
   color: var(--color-gray-600);
 }
 
-/* Co-op results */
 .coop-team-stats {
   display: flex;
   justify-content: center;
@@ -2009,7 +1925,6 @@ section.field-row {
   color: #28a745;
 }
 
-/* Turn switch markers in text */
 .coop-turn-marker {
   display: inline-flex;
   align-items: center;
@@ -2039,7 +1954,6 @@ section.field-row {
   display: none;
 }
 
-/* Final stats grid */
 .typing-final-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2065,7 +1979,6 @@ section.field-row {
   color: var(--color-gray-600);
 }
 
-/* Results ranking */
 .typing-results-ranking {
   margin-bottom: 15px;
 }
@@ -2126,13 +2039,11 @@ section.field-row {
   color: var(--color-primary);
 }
 
-/* Player highlight (own box) */
 .typing-player-box.is-self {
   border-color: var(--color-primary);
   box-shadow: 0 0 5px rgba(0, 84, 227, 0.3);
 }
 
-/* Waiting slot */
 .typing-player-box.waiting {
   background: var(--color-gray-50);
   border-style: dashed;
@@ -2146,11 +2057,7 @@ section.field-row {
   font-style: italic;
 }
 
-/* ==================== MOBILE RESPONSIVE ==================== */
-
-/* Tablet breakpoint - 768px and below */
 @media (max-width: 768px) {
-  /* Typing windows - full width */
   .typing-menu-window,
   .typing-lobby-window,
   .typing-game-window,
@@ -2159,7 +2066,6 @@ section.field-row {
     max-width: 100vw !important;
   }
 
-  /* Login, Hub, Menu windows */
   .login-window,
   .hub-window,
   .menu-window,
@@ -2171,9 +2077,7 @@ section.field-row {
   }
 }
 
-/* Phone breakpoint - 480px and below */
 @media (max-width: 480px) {
-  /* All windows full width but scrollable */
   .window {
     width: 100% !important;
     max-width: 100vw !important;
@@ -2186,7 +2090,6 @@ section.field-row {
     left: auto !important;
   }
 
-  /* Screen containers - allow scrolling */
   .screen-container {
     padding: 0;
     min-height: 100vh;
@@ -2199,18 +2102,15 @@ section.field-row {
     padding-bottom: 0;
   }
 
-  /* Window body scrolls internally */
   .window-body {
     max-height: none;
     overflow-y: auto;
   }
 
-  /* Title bar - hide decorative controls */
   .title-bar-controls {
     display: none;
   }
 
-  /* VGM Game layout - stack vertically */
   .game-main {
     flex-direction: column;
   }
@@ -2234,7 +2134,6 @@ section.field-row {
     max-height: 80px;
   }
 
-  /* Stats grid - 2 columns on phone */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 5px;
@@ -2248,7 +2147,6 @@ section.field-row {
     font-size: 16px;
   }
 
-  /* Typing game - responsive layout */
   .typing-game-body {
     padding: 5px;
   }
@@ -2272,7 +2170,6 @@ section.field-row {
     font-size: 10px;
   }
 
-  /* Solo controls - adjust for mobile */
   .typing-solo-controls {
     flex-direction: column;
     gap: 10px;
@@ -2296,13 +2193,11 @@ section.field-row {
     min-width: auto;
   }
 
-  /* Player text area */
   .typing-player-text {
     font-size: 14px;
     padding: 8px;
   }
 
-  /* Player info sidebar - smaller */
   .typing-player-info {
     min-width: 60px;
     padding: 5px;
@@ -2321,7 +2216,6 @@ section.field-row {
     font-size: 11px;
   }
 
-  /* Lobby screen */
   .typing-lobby-status {
     padding: 10px;
   }
@@ -2357,7 +2251,6 @@ section.field-row {
     min-width: auto;
   }
 
-  /* Results screen */
   .typing-final-stats {
     flex-wrap: wrap;
     gap: 10px;
@@ -2367,18 +2260,15 @@ section.field-row {
     min-width: 80px;
   }
 
-  /* Larger touch targets */
   button {
     min-height: 44px;
     font-size: 14px;
   }
 
-  /* Menu form buttons */
   .menu-form button {
     width: 100%;
   }
 
-  /* Chat input area */
   .chat-input-container {
     padding: 5px;
   }
@@ -2387,17 +2277,14 @@ section.field-row {
     font-size: 14px;
   }
 
-  /* Chat messages */
   .chat-messages {
     font-size: 12px;
   }
 
-  /* Hub screen */
   .hub-activity-btn {
     width: 100%;
   }
 
-  /* Player popup - full width */
   .player-popup {
     width: 90% !important;
     max-width: 300px;
@@ -2405,28 +2292,24 @@ section.field-row {
     transform: translateX(-50%);
   }
 
-  /* Profile modal - full screen */
   .profile-window {
     width: 100% !important;
     height: 100% !important;
     max-height: 100vh !important;
   }
 
-  /* Emoticon popup */
   .emoticon-popup {
     width: 90%;
     left: 5%;
     right: 5%;
   }
 
-  /* Login screen */
   .login-window {
     width: 100% !important;
     height: auto !important;
     min-height: auto !important;
   }
 
-  /* Typing menu */
   .typing-menu-buttons {
     flex-direction: column;
   }
@@ -2436,9 +2319,6 @@ section.field-row {
   }
 }
 
-/* ==================== FELLOWSHIP BiS TRACKER ==================== */
-
-/* Fellowship background for all Fellowship screens */
 #fellowship-menu-screen,
 #fellowship-choice-screen,
 #fellowship-gear-screen,
@@ -2447,7 +2327,6 @@ section.field-row {
   background: url('fellowship/fellowshipbg.png') center center / cover no-repeat fixed;
 }
 
-/* Window sizes */
 .fellowship-menu-window {
   width: 520px;
 }
@@ -2457,7 +2336,6 @@ section.field-row {
   min-height: 575px;
 }
 
-/* Dark theme for Fellowship (inside XP window) */
 .fellowship-dark-theme {
   background: linear-gradient(135deg, #0f1419, #1a1f2e 50%, #1e2432);
   color: #e8eaed;
@@ -2486,7 +2364,6 @@ section.field-row {
   border-color: #06b6d4;
 }
 
-/* Title section */
 .fellowship-title {
   text-align: center;
   margin-bottom: 25px;
@@ -2507,7 +2384,6 @@ section.field-row {
   font-size: 13px;
 }
 
-/* Character selection buttons */
 .fellowship-characters {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2533,7 +2409,6 @@ section.field-row {
   transform: translateY(-2px);
 }
 
-/* Character portrait images */
 .fellowship-char-portrait {
   width: 80px;
   height: 80px;
@@ -2563,7 +2438,6 @@ section.field-row {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Por Mazmorras button */
 .fellowship-dungeon-btn-container {
   margin-top: 20px;
   text-align: center;
@@ -2587,7 +2461,6 @@ section.field-row {
   transform: translateY(-2px);
 }
 
-/* Gear screen header */
 .fellowship-gear-header {
   display: flex;
   justify-content: space-between;
@@ -2633,7 +2506,6 @@ section.field-row {
   font-size: 18px;
 }
 
-/* Gear layout */
 .fellowship-gear-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2646,7 +2518,6 @@ section.field-row {
   gap: 8px;
 }
 
-/* Individual gear slot */
 .fellowship-slot {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2713,7 +2584,6 @@ section.field-row {
   margin-top: 2px;
 }
 
-/* Tooltip */
 .fellowship-tooltip {
   position: fixed;
   background: linear-gradient(135deg, #1a1f2e, #0f1419);
@@ -2794,7 +2664,6 @@ section.field-row {
   font-weight: 500;
 }
 
-/* Item slot icons based on type */
 .fellowship-item-icon.head { background: rgba(139, 92, 246, 0.2); }
 .fellowship-item-icon.neck { background: rgba(217, 70, 239, 0.2); border-color: #d946ef; }
 .fellowship-item-icon.shoulders { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
@@ -2808,7 +2677,6 @@ section.field-row {
 .fellowship-item-icon.relic { background: rgba(168, 85, 247, 0.2); border-color: #a855f7; }
 .fellowship-item-icon.weapon { background: rgba(239, 68, 68, 0.3); border-color: #ef4444; }
 
-/* Slot type icons */
 .slot-icon-head::before { content: "🪖"; }
 .slot-icon-neck::before { content: "📿"; }
 .slot-icon-shoulders::before { content: "🦺"; }
@@ -2822,7 +2690,6 @@ section.field-row {
 .slot-icon-relic::before { content: "🔮"; }
 .slot-icon-weapon::before { content: "⚔️"; }
 
-/* Dungeon screen */
 .fellowship-dungeon-window {
   width: 575px;
   max-height: 80vh;
@@ -2972,7 +2839,6 @@ section.field-row {
   border-radius: 3px;
 }
 
-/* Legendary item styling - orange bold */
 .fellowship-item-name.legendary {
   color: #ff8c00;
   font-weight: bold;
@@ -2990,7 +2856,6 @@ section.field-row {
   text-shadow: 0 0 8px rgba(255, 140, 0, 0.5);
 }
 
-/* Tooltip effect section (for legendaries/weapons) */
 .fellowship-tooltip-effect {
   margin-top: 10px;
   padding-top: 10px;
@@ -3011,7 +2876,6 @@ section.field-row {
   font-style: italic;
 }
 
-/* Dungeon description in tooltip */
 .fellowship-tooltip-dungeon-desc {
   color: #9ca3af;
   font-size: 11px;
@@ -3019,7 +2883,6 @@ section.field-row {
   margin-top: 2px;
 }
 
-/* Dungeon header elements */
 .fellowship-dungeon-name {
   font-weight: bold;
   color: #06b6d4;
@@ -3040,8 +2903,6 @@ section.field-row {
   border-radius: 10px;
 }
 
-
-/* Por Mazmorras button in gear screen */
 .fellowship-gear-dungeon-btn-container {
   margin-top: 20px;
   text-align: center;
@@ -3049,7 +2910,6 @@ section.field-row {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ==================== CHARACTER CHOICE SCREEN ==================== */
 .fellowship-choice-window {
   width: 460px;
 }
@@ -3123,7 +2983,6 @@ section.field-row {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ==================== TALENT SCREEN ==================== */
 .fellowship-talent-window {
   width: 690px;
   max-height: 90vh;
@@ -3224,7 +3083,6 @@ section.field-row {
   font-weight: bold;
 }
 
-/* Talent Tree - Dark theme like method.gg */
 .fellowship-talent-tree {
   display: flex;
   flex-direction: column;
@@ -3318,7 +3176,6 @@ section.field-row {
   color: #6b7280;
 }
 
-/* Talent tooltip */
 .fellowship-tooltip-name.active {
   color: #06b6d4;
 }
@@ -3329,7 +3186,6 @@ section.field-row {
   margin-top: 5px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .fellowship-menu-window,
   .fellowship-gear-window,
@@ -3427,7 +3283,6 @@ section.field-row {
     font-size: 12px;
   }
 
-  /* Fellowship dungeon screen */
   .fellowship-dungeon-list {
     gap: 8px;
   }
@@ -3485,20 +3340,12 @@ section.field-row {
   }
 }
 
-/* ==================== TALENT EDIT MODE ==================== */
-/* Hidden by default - can be enabled for admin/dev use */
 .talent-edit-controls {
   display: none;
   gap: 8px;
   margin: 10px 0;
   flex-wrap: wrap;
 }
-
-/* Uncomment to show edit mode controls:
-.talent-edit-controls {
-  display: flex;
-}
-*/
 
 .talent-edit-btn {
   padding: 6px 14px;
@@ -3557,7 +3404,6 @@ section.field-row {
   border-color: #4d4d5d;
 }
 
-/* Edit mode visual indicators */
 .fellowship-talent-tree.edit-mode {
   border: 2px dashed #f97316;
 }
@@ -3583,7 +3429,6 @@ section.field-row {
   display: none;
 }
 
-/* Export modal */
 .talent-export-modal {
   display: none;
   position: fixed;
@@ -3636,9 +3481,6 @@ section.field-row {
   justify-content: flex-end;
 }
 
-/* ==================== ARC RAIDERS SKILL TREE ==================== */
-
-/* Change body background when Arc Raiders screen is active */
 body:has(#arcraiders-screen.active) {
   background-image: url('arcraiders/arcraidersbg.png');
   background-size: cover;
@@ -3770,7 +3612,6 @@ body:has(#arcraiders-screen.active) {
   z-index: 2;
 }
 
-/* Category labels inside tree */
 .arcraiders-category-label {
   position: absolute;
   display: flex;
@@ -3856,7 +3697,6 @@ body:has(#arcraiders-screen.active) {
   font-size: 14px;
 }
 
-/* Active node - has some points allocated (outline with category color) */
 .arcraiders-node.active {
   border-color: var(--category-color, #fff);
   background: #1a1a2e;
@@ -3866,7 +3706,6 @@ body:has(#arcraiders-screen.active) {
   color: var(--category-color, #fff);
 }
 
-/* Maxed node - all points allocated (filled with category color) */
 .arcraiders-node.maxed {
   border-color: var(--category-color, #fff);
   background: var(--category-color, #fff);
@@ -3878,7 +3717,6 @@ body:has(#arcraiders-screen.active) {
   text-shadow: none;
 }
 
-/* Available node - prerequisites met but no points */
 .arcraiders-node.available {
   border-color: #60626f;
   background: #1a1a2e;
@@ -3897,7 +3735,6 @@ body:has(#arcraiders-screen.active) {
   color: var(--category-color, #fff);
 }
 
-/* Locked node - prerequisites not met */
 .arcraiders-node.locked {
   opacity: 0.4;
   cursor: not-allowed;
@@ -3913,7 +3750,6 @@ body:has(#arcraiders-screen.active) {
   opacity: 0.5;
 }
 
-/* Category-specific maxed colors */
 .arcraiders-node[data-category="CONDITIONING"].maxed {
   background: #1bff7b;
   border-color: #1bff7b;
@@ -3932,7 +3768,6 @@ body:has(#arcraiders-screen.active) {
   box-shadow: 0 0 12px #f6011080;
 }
 
-/* Drag mode styles */
 .arcraiders-tree-container.drag-mode {
   background: repeating-linear-gradient(
     0deg,
@@ -3979,7 +3814,6 @@ body:has(#arcraiders-screen.active) {
   white-space: nowrap;
 }
 
-/* Editable node in edit mode */
 .arcraiders-node.editable {
   cursor: pointer;
 }
@@ -3988,13 +3822,11 @@ body:has(#arcraiders-screen.active) {
   transform: translate(-50%, -50%) scale(1.1);
 }
 
-/* Arc edit controls */
 .arc-edit-controls {
   display: flex;
   align-items: center;
 }
 
-/* Arc export modal */
 .arc-export-modal {
   display: none;
   position: fixed;
@@ -4042,7 +3874,6 @@ body:has(#arcraiders-screen.active) {
   justify-content: flex-end;
 }
 
-/* Tooltip */
 .arcraiders-tooltip {
   position: fixed;
   background: rgba(15, 20, 30, 0.98);
@@ -4080,7 +3911,6 @@ body:has(#arcraiders-screen.active) {
   font-style: italic;
 }
 
-/* ==================== ARC RAIDERS MOBILE RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .arcraiders-window {
     width: 100% !important;
@@ -4174,7 +4004,6 @@ body:has(#arcraiders-screen.active) {
     bottom: 5%;
   }
 
-  /* Hide edit controls on mobile for cleaner UI */
   #arc-edit-controls {
     display: none;
   }
@@ -4238,7 +4067,6 @@ body:has(#arcraiders-screen.active) {
   }
 }
 
-/* ==================== TYPING INDICATOR ==================== */
 .typing-indicator {
   padding: 4px 8px;
   font-size: 11px;
@@ -4257,7 +4085,6 @@ body:has(#arcraiders-screen.active) {
   50% { opacity: 1; }
 }
 
-/* ==================== HUB HEADER ROW ==================== */
 .hub-header-row {
   display: flex;
   align-items: flex-start;
@@ -4269,7 +4096,6 @@ body:has(#arcraiders-screen.active) {
   margin-bottom: 0;
 }
 
-/* ==================== LEADERBOARD BUTTON ==================== */
 .leaderboard-btn {
   background: var(--xp-bg);
   border: 2px solid;
@@ -4306,7 +4132,6 @@ body:has(#arcraiders-screen.active) {
   align-items: center;
 }
 
-/* ==================== THEME SELECTOR IN TITLE BAR ==================== */
 .title-bar {
   display: flex;
   align-items: center;
@@ -4338,7 +4163,6 @@ body:has(#arcraiders-screen.active) {
   padding: 4px 8px;
 }
 
-/* XP theme title bar selector */
 body.theme-xp .title-bar .theme-selector {
   background: #d4d0c8;
   border: 1px solid;
@@ -4346,7 +4170,6 @@ body.theme-xp .title-bar .theme-selector {
   box-shadow: inset 1px 1px 0 #dfdfdf;
 }
 
-/* ==================== LEADERBOARD MODAL ==================== */
 .leaderboard-window {
   width: 480px;
   max-height: 80vh;
@@ -4464,7 +4287,6 @@ body.theme-xp .title-bar .theme-selector {
   font-style: italic;
 }
 
-/* Typing leaderboard specific */
 .leaderboard-typing-stats {
   display: flex;
   gap: 8px;
@@ -4485,9 +4307,6 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 10px;
 }
 
-/* ==================== DRAWING GAME STYLES ==================== */
-
-/* Drawing Menu */
 .drawing-menu-window {
   width: 400px;
   min-height: 300px;
@@ -4544,7 +4363,6 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 14px;
 }
 
-/* Drawing Lobby */
 .drawing-lobby-window {
   width: 400px;
 }
@@ -4702,7 +4520,6 @@ body.theme-xp .title-bar .theme-selector {
   margin-top: 15px;
 }
 
-/* Empezar button - disabled state (greyed out for non-hosts or < 3 players) */
 #drawing-start-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -4715,11 +4532,6 @@ body.theme-xp .title-bar .theme-selector {
   background: #d4d0c8;
 }
 
-/* ========================================
-   SQRRRILLO - XP Paint Style Drawing Game
-   ======================================== */
-
-/* Main Window */
 .drawing-game-window.xp-paint {
   width: 1100px;
   max-width: 98vw;
@@ -4730,7 +4542,6 @@ body.theme-xp .title-bar .theme-selector {
   overflow: hidden;
 }
 
-/* XP Menu Bar */
 .xp-menubar {
   display: flex;
   padding: 2px 4px;
@@ -4754,7 +4565,6 @@ body.theme-xp .title-bar .theme-selector {
   text-decoration: none;
 }
 
-/* Main Body */
 .xp-paint-body {
   display: flex;
   flex: 1;
@@ -4762,7 +4572,6 @@ body.theme-xp .title-bar .theme-selector {
   min-height: 0;
 }
 
-/* Left Toolbox */
 .xp-toolbox {
   width: 44px;
   min-width: 44px;
@@ -4832,7 +4641,6 @@ body.theme-xp .title-bar .theme-selector {
   cursor: not-allowed;
 }
 
-/* Size Options */
 .xp-size-options {
   margin-top: 4px;
   border: 1px solid var(--color-gray-500);
@@ -4871,7 +4679,6 @@ body.theme-xp .title-bar .theme-selector {
   border-radius: 0;
 }
 
-/* Canvas Area */
 .xp-canvas-area {
   flex: 1;
   display: flex;
@@ -4881,7 +4688,6 @@ body.theme-xp .title-bar .theme-selector {
   min-width: 0;
 }
 
-/* Word Bar */
 .xp-word-bar {
   display: flex;
   align-items: center;
@@ -4930,7 +4736,6 @@ body.theme-xp .title-bar .theme-selector {
   50% { opacity: 0.5; }
 }
 
-/* Canvas Wrapper */
 .xp-canvas-wrapper {
   flex: 1;
   position: relative;
@@ -4951,10 +4756,9 @@ body.theme-xp .title-bar .theme-selector {
   border: 2px solid;
   border-color: #404040 #fff #fff #404040;
   cursor: crosshair;
-  touch-action: none; /* Prevent scroll/zoom while drawing on mobile */
+  touch-action: none;
 }
 
-/* Word Selection Overlay */
 .xp-word-selection {
   position: absolute;
   top: 0;
@@ -5032,7 +4836,6 @@ body.theme-xp .title-bar .theme-selector {
   margin: 0;
 }
 
-/* Turn End Overlay */
 .xp-turn-end {
   position: absolute;
   top: 0;
@@ -5066,7 +4869,6 @@ body.theme-xp .title-bar .theme-selector {
   color: #00FF00;
 }
 
-/* Right Sidebar */
 .xp-game-sidebar {
   width: 200px;
   background: #ECE9D8;
@@ -5077,7 +4879,6 @@ body.theme-xp .title-bar .theme-selector {
   gap: 4px;
 }
 
-/* Player List (VGM style) */
 .xp-player-list {
   flex: 1;
   background: var(--color-white);
@@ -5159,7 +4960,6 @@ body.theme-xp .title-bar .theme-selector {
   background: #FFFFC0;
 }
 
-/* Chat Area */
 .xp-chat-area {
   height: 260px;
   display: flex;
@@ -5214,7 +5014,6 @@ body.theme-xp .title-bar .theme-selector {
   background: #FFFFD0;
 }
 
-/* Color Palette Bar - XP Paint Style */
 .xp-palette-bar {
   display: flex;
   align-items: center;
@@ -5293,7 +5092,6 @@ body.theme-xp .title-bar .theme-selector {
   border-color: #fff var(--xp-border-dark) var(--xp-border-dark) #fff;
 }
 
-/* Status Bar */
 .xp-status-bar {
   background: #ECE9D8;
   font-size: 11px;
@@ -5304,7 +5102,6 @@ body.theme-xp .title-bar .theme-selector {
   padding: 2px 8px;
 }
 
-/* Drawing Results */
 .drawing-results-window {
   width: 450px;
   min-height: 350px;
@@ -5361,7 +5158,6 @@ body.theme-xp .title-bar .theme-selector {
   color: #0066CC;
 }
 
-/* Responsive */
 @media (max-width: 1050px) {
   .drawing-game-window.xp-paint {
     width: 98vw;
@@ -5413,10 +5209,6 @@ body.theme-xp .title-bar .theme-selector {
   }
 }
 
-/* ==================== SLOT MACHINE STYLES ==================== */
-/* Compact cabinet style inspired by Slot Machine 98 */
-
-/* Container */
 .slots-window {
   max-width: 580px;
   margin: 0 auto;
@@ -5436,7 +5228,6 @@ body.theme-xp .title-bar .theme-selector {
   flex-shrink: 0;
 }
 
-/* Facto quotes container */
 .slots-facto-container {
   display: flex;
   align-items: center;
@@ -5468,7 +5259,6 @@ body.theme-xp .title-bar .theme-selector {
   padding: 12px;
 }
 
-/* Cabinet Container */
 .slot-cabinet {
   background: linear-gradient(180deg, #4a1a4a 0%, #2d0d2d 50%, #1a0a1a 100%);
   border: 4px solid #8B4513;
@@ -5478,12 +5268,10 @@ body.theme-xp .title-bar .theme-selector {
   box-shadow: inset 0 0 30px rgba(0,0,0,0.5), 0 6px 20px rgba(0,0,0,0.4);
 }
 
-/* Slot cabinet fixed width */
 .slot-cabinet {
   width: 580px;
 }
 
-/* Top Bar */
 .slot-top-bar {
   display: flex;
   justify-content: space-between;
@@ -5515,14 +5303,12 @@ body.theme-xp .title-bar .theme-selector {
   gap: 6px;
 }
 
-/* Body - Payout Panel + Reels + Lever */
 .slot-body {
   display: flex;
   padding: 12px;
   gap: 10px;
 }
 
-/* Payout Panel (left side) */
 .slot-payout-panel {
   background: linear-gradient(180deg, #1a0a1a 0%, #0d050d 100%);
   border: 2px solid #444;
@@ -5568,14 +5354,12 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 12px;
 }
 
-/* Main Area (reels) */
 .slot-main {
   display: flex;
   flex: 1;
   gap: 10px;
 }
 
-/* Reels Frame */
 .slot-reels-frame {
   background: linear-gradient(180deg, #1a1a3a 0%, #0d0d1a 100%);
   border: 3px solid #FFD700;
@@ -5585,7 +5369,6 @@ body.theme-xp .title-bar .theme-selector {
   flex: 1;
 }
 
-/* Paylines - behind reels */
 .slot-paylines {
   position: absolute;
   top: 10px;
@@ -5602,7 +5385,6 @@ body.theme-xp .title-bar .theme-selector {
   transition: all 0.2s ease;
 }
 
-/* Horizontal paylines - extend left to start from dot centers */
 .payline-top,
 .payline-mid,
 .payline-bot {
@@ -5612,12 +5394,10 @@ body.theme-xp .title-bar .theme-selector {
   transform: translateY(-50%);
 }
 
-/* Same positions as dots: 28px, 84px, 140px from container top */
 .payline-top { top: 28px; }
 .payline-mid { top: 84px; }
 .payline-bot { top: 140px; }
 
-/* Diagonal paylines - X shape through corners */
 .payline-diag1,
 .payline-diag2 {
   position: absolute;
@@ -5641,12 +5421,10 @@ body.theme-xp .title-bar .theme-selector {
   transition: all 0.2s ease;
 }
 
-/* Top-left to bottom-right */
 .payline-diag1::before {
   transform: translateY(-50%) rotate(26deg);
 }
 
-/* Top-right to bottom-left */
 .payline-diag2::before {
   transform: translateY(-50%) rotate(-26deg);
 }
@@ -5657,7 +5435,6 @@ body.theme-xp .title-bar .theme-selector {
   box-shadow: 0 0 8px #FFD700, 0 0 16px rgba(255, 215, 0, 0.5);
 }
 
-/* Active horizontal paylines glow (not diagonals - they use ::before) */
 .payline-top.active,
 .payline-mid.active,
 .payline-bot.active {
@@ -5678,7 +5455,7 @@ body.theme-xp .title-bar .theme-selector {
   border-radius: 3px;
   overflow: hidden;
   border: 2px solid #666;
-  height: 168px; /* 56px * 3 rows */
+  height: 168px;
   position: relative;
 }
 
@@ -5720,17 +5497,15 @@ body.theme-xp .title-bar .theme-selector {
   50% { box-shadow: inset 0 0 20px #FFD700; }
 }
 
-/* Spinning - continuous scroll down animation */
 .slot-strip.spinning {
   animation: reelScroll 0.6s linear infinite;
 }
 
 @keyframes reelScroll {
-  0% { transform: translateY(-1512px); } /* 30 symbols - 3 visible = 27 × 56px */
+  0% { transform: translateY(-1512px); }
   100% { transform: translateY(0px); }
 }
 
-/* Stopping - push down bounce animation */
 .slot-strip.stopping {
   animation: pushDown 0.25s ease-out;
 }
@@ -5741,7 +5516,6 @@ body.theme-xp .title-bar .theme-selector {
   100% { transform: translateY(0px); }
 }
 
-/* Line Markers */
 .slot-line-markers {
   position: absolute;
   left: 2px;
@@ -5761,17 +5535,15 @@ body.theme-xp .title-bar .theme-selector {
   transform: translateY(-50%);
 }
 
-/* Position each dot at center of its row (56px per row, plus 10px top padding) */
-.line-marker.line-top { top: calc(10px + 28px); }   /* padding + 56/2 */
-.line-marker.line-mid { top: calc(10px + 84px); }   /* padding + 56 + 56/2 */
-.line-marker.line-bot { top: calc(10px + 140px); }  /* padding + 56*2 + 56/2 */
+.line-marker.line-top { top: calc(10px + 28px); }
+.line-marker.line-mid { top: calc(10px + 84px); }
+.line-marker.line-bot { top: calc(10px + 140px); }
 
 .line-marker.active {
   background: #FFD700;
   box-shadow: 0 0 6px #FFD700;
 }
 
-/* Lever Area */
 .slot-lever-area {
   display: flex;
   align-items: center;
@@ -5821,7 +5593,6 @@ body.theme-xp .title-bar .theme-selector {
   height: 95px;
 }
 
-/* Controls */
 .slot-controls {
   display: flex;
   align-items: center;
@@ -5887,7 +5658,6 @@ body.theme-xp .title-bar .theme-selector {
   transform: scale(0.95);
 }
 
-/* Footer */
 .slot-footer {
   display: flex;
   justify-content: space-between;
@@ -5906,7 +5676,6 @@ body.theme-xp .title-bar .theme-selector {
   color: #666;
 }
 
-/* Win Popup */
 .slot-win-popup {
   position: absolute;
   top: 50%;
@@ -5927,7 +5696,6 @@ body.theme-xp .title-bar .theme-selector {
   100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
 
-/* Loan Overlay */
 .slot-loan-overlay {
   position: absolute;
   top: 0;
@@ -5967,7 +5735,6 @@ body.theme-xp .title-bar .theme-selector {
   background: linear-gradient(180deg, #0088ee 0%, #0055aa 100%);
 }
 
-/* Leaderboard Button in Slot Machine */
 .slot-leaderboard-btn {
   background: linear-gradient(180deg, #888 0%, #555 100%);
   border: 2px solid #333;
@@ -5993,7 +5760,6 @@ body.theme-xp .title-bar .theme-selector {
   fill: #fff;
 }
 
-/* Shop/Album Button in Slot Machine */
 .slot-album-btn {
   background: linear-gradient(180deg, #c9a227 0%, #8B6914 100%);
   border: 2px solid #5c4d10;
@@ -6018,7 +5784,6 @@ body.theme-xp .title-bar .theme-selector {
   transform: scale(0.95);
 }
 
-/* Shop Button */
 .slot-shop-btn {
   background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
   border: 2px solid #8B6914;
@@ -6039,7 +5804,6 @@ body.theme-xp .title-bar .theme-selector {
   transform: scale(0.95);
 }
 
-/* Shop Overlay */
 .slot-shop-overlay {
   position: absolute;
   top: 0;
@@ -6070,7 +5834,6 @@ body.theme-xp .title-bar .theme-selector {
   margin: 0;
 }
 
-/* Popup Window */
 .slot-popup-window {
   box-shadow: 0 5px 25px rgba(0,0,0,0.5);
 }
@@ -6092,7 +5855,6 @@ body.theme-xp .title-bar .theme-selector {
   background: #1a0a1a;
 }
 
-/* Popup Toggle Button */
 .slot-popup-btn {
   background: transparent;
   border: none;
@@ -6111,7 +5873,6 @@ body.theme-xp .title-bar .theme-selector {
   transform: scale(0.95);
 }
 
-/* ==================== GAMBA MENU (in popup) ==================== */
 .gamba-menu-body {
   padding: 20px !important;
   background: linear-gradient(180deg, #1a0a2e 0%, #0d0515 100%);
@@ -6167,7 +5928,6 @@ body.theme-xp .title-bar .theme-selector {
   font-weight: bold;
 }
 
-/* ==================== LOAN COLLECTION POPUP ==================== */
 .loan-collection-overlay {
   position: fixed;
   top: 0;
@@ -6237,7 +5997,6 @@ body.theme-xp .title-bar .theme-selector {
   cursor: pointer;
 }
 
-/* ==================== STACKING POPUP ==================== */
 .stacking-popup-body {
   padding: 0 !important;
   background: #1a0a2e;
@@ -6252,7 +6011,6 @@ body.theme-xp .title-bar .theme-selector {
   padding-top: 15px;
 }
 
-/* Coin Float Animation */
 .coin-float-animation {
   position: fixed;
   font-size: 16px;
@@ -6271,7 +6029,6 @@ body.theme-xp .title-bar .theme-selector {
   100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
 }
 
-/* Global Coins Display (optional header element) */
 .global-coin-display {
   display: inline-flex;
   align-items: center;
@@ -6289,7 +6046,6 @@ body.theme-xp .title-bar .theme-selector {
   color: #FFD700;
 }
 
-/* ==================== GAMBA MENU ==================== */
 .gamba-menu-window {
   width: 340px;
 }
@@ -6348,7 +6104,6 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 12px;
 }
 
-/* ==================== STACKING GAME ==================== */
 .stacking-window {
   width: 480px;
   min-height: 680px;
@@ -6384,7 +6139,6 @@ body.theme-xp .title-bar .theme-selector {
   position: relative;
 }
 
-/* Stacking Grid - square cells */
 .stacking-grid {
   display: grid;
   grid-template-columns: repeat(7, 38px);
@@ -6414,7 +6168,6 @@ body.theme-xp .title-bar .theme-selector {
   box-shadow: 0 0 4px #4444ff;
 }
 
-/* Prize rows */
 .stacking-cell.bronze-row {
   border-color: #cd7f32;
 }
@@ -6442,7 +6195,6 @@ body.theme-xp .title-bar .theme-selector {
   box-shadow: 0 0 8px #ffd700;
 }
 
-/* Game area with grid and markers */
 .stacking-game-area {
   display: flex;
   align-items: flex-start;
@@ -6450,18 +6202,16 @@ body.theme-xp .title-bar .theme-selector {
   gap: 8px;
 }
 
-/* Spacer on left side to balance prize markers on right */
 .stacking-spacer {
   width: 55px;
 }
 
-/* Prize markers to the right of grid */
 .stacking-prize-markers {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   width: 55px;
-  padding-top: 9px; /* Align with top of grid cells (6px padding + 3px border) */
+  padding-top: 9px;
 }
 
 .stacking-prize-marker {
@@ -6470,7 +6220,7 @@ body.theme-xp .title-bar .theme-selector {
   gap: 4px;
   font-size: 12px;
   font-weight: bold;
-  height: 41px; /* Cell height (38px) + gap (3px) */
+  height: 41px;
 }
 
 .stacking-prize-marker.gold {
@@ -6493,7 +6243,6 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 14px;
 }
 
-/* Play button */
 .stacking-play-btn {
   margin-top: 16px;
   padding: 12px 32px;
@@ -6524,7 +6273,6 @@ body.theme-xp .title-bar .theme-selector {
   transform: none;
 }
 
-/* Game instructions */
 .stacking-instructions {
   color: #888;
   font-size: 12px;
@@ -6532,7 +6280,6 @@ body.theme-xp .title-bar .theme-selector {
   text-align: center;
 }
 
-/* Continue/Quit Popup */
 .stacking-popup-overlay {
   position: absolute;
   top: 0;
@@ -6611,7 +6358,6 @@ body.theme-xp .title-bar .theme-selector {
   margin-top: 16px;
 }
 
-/* Game over message */
 .stacking-game-over {
   position: absolute;
   top: 50%;
@@ -6640,7 +6386,6 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 16px;
 }
 
-/* Gold victory special styling */
 .stacking-game-over.gold-win {
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 165, 0, 0.95));
   border: 3px solid #ffd700;
@@ -6683,7 +6428,6 @@ body.theme-xp .title-bar .theme-selector {
   transform: scale(1.05);
 }
 
-/* Stacking Loan Overlay */
 .stacking-loan-overlay {
   position: absolute;
   top: 0;
@@ -6697,7 +6441,6 @@ body.theme-xp .title-bar .theme-selector {
   z-index: 100;
 }
 
-/* ==================== FISHING GAME ==================== */
 .fishing-window {
   width: 480px;
   min-height: 680px;
@@ -6834,7 +6577,6 @@ body.theme-xp .title-bar .theme-selector {
   z-index: 100;
 }
 
-/* Mobile responsive */
 @media (max-width: 500px) {
   .fishing-window {
     width: 100%;
@@ -6853,8 +6595,6 @@ body.theme-xp .title-bar .theme-selector {
   }
 }
 
-/* ==================== MINIGOLF STYLES ==================== */
-
 .minigolf-window {
   width: 900px;
   max-width: 100vw;
@@ -6869,7 +6609,6 @@ body.theme-xp .title-bar .theme-selector {
   min-height: 550px;
 }
 
-/* Lobby Styles */
 .minigolf-lobby {
   padding: 20px;
   display: flex;
@@ -6995,7 +6734,6 @@ body.theme-xp .title-bar .theme-selector {
   background: #4169E1;
 }
 
-/* Game Canvas */
 .minigolf-game {
   position: absolute;
   top: 0;
@@ -7006,7 +6744,6 @@ body.theme-xp .title-bar .theme-selector {
   overflow: hidden;
 }
 
-/* Fullscreen mode - borderless, hide all UI chrome */
 .minigolf-game:fullscreen {
   width: 100vw !important;
   height: 100vh !important;
@@ -7043,7 +6780,6 @@ body.theme-xp .title-bar .theme-selector {
   cursor: none;
 }
 
-/* Pause Overlay */
 .minigolf-pause-overlay {
   position: absolute;
   top: 0;
@@ -7087,7 +6823,6 @@ body.theme-xp .title-bar .theme-selector {
   font-weight: bold;
 }
 
-/* Power Bar */
 .minigolf-power-bar {
   position: absolute;
   right: 30px;
@@ -7112,7 +6847,6 @@ body.theme-xp .title-bar .theme-selector {
   transition: height 0.03s linear;
 }
 
-/* Instructions */
 .minigolf-instructions {
   position: absolute;
   bottom: 20px;
@@ -7133,7 +6867,6 @@ body.theme-xp .title-bar .theme-selector {
   opacity: 0;
 }
 
-/* Scoreboard */
 .minigolf-scoreboard {
   position: absolute;
   top: 10px;
@@ -7179,7 +6912,6 @@ body.theme-xp .title-bar .theme-selector {
   color: #FFD700;
 }
 
-/* Loading Screen */
 .minigolf-loading {
   display: flex;
   flex-direction: column;
@@ -7211,7 +6943,6 @@ body.theme-xp .title-bar .theme-selector {
   transition: width 0.1s;
 }
 
-/* Results Screen */
 .minigolf-results {
   display: flex;
   flex-direction: column;
@@ -7290,7 +7021,6 @@ body.theme-xp .title-bar .theme-selector {
   background: #1a6b1a;
 }
 
-/* Hole Transition Overlay */
 .minigolf-hole-overlay {
   position: absolute;
   top: 0;
@@ -7364,7 +7094,6 @@ body.theme-xp .title-bar .theme-selector {
   font-size: 14px;
 }
 
-/* Hole In One Animation */
 .minigolf-hole-in-one {
   position: absolute;
   top: 50%;
@@ -7386,7 +7115,6 @@ body.theme-xp .title-bar .theme-selector {
   100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
 
-/* Mobile responsive */
 @media (max-width: 600px) {
   .minigolf-window {
     width: 100%;

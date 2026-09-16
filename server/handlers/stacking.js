@@ -1,12 +1,3 @@
-/**
- * Block Stacking Game Socket Handlers
- *
- * Arcade stacker gambling game with $qr currency.
- * - Cost: 100 coins per game
- * - Payouts: Bronze 250, Silver 500, Gold 1000
- */
-
-// ==================== CONSTANTS ====================
 const GAME_COST = 100;
 const PRIZES = {
   bronze: 250,
@@ -16,20 +7,16 @@ const PRIZES = {
 
 let _io = null;
 
-// Per-user transaction locks to prevent race conditions
 const userLocks = new Map();
 
-// ==================== INITIALIZATION ====================
 function init(io) {
   _io = io;
   console.log('Stacking handler initialized');
 }
 
-// ==================== SOCKET HANDLERS ====================
 function setupHandlers(io, socket, context) {
   const { getUser, saveUser, getLoggedInUsername } = context;
 
-  // Get user's balance
   socket.on('stackingGetBalance', () => {
     const username = getLoggedInUsername();
     if (!username) {
@@ -48,7 +35,6 @@ function setupHandlers(io, socket, context) {
     });
   });
 
-  // Start a new game (deduct cost)
   socket.on('stackingStart', () => {
     const username = getLoggedInUsername();
     if (!username) {
@@ -56,7 +42,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Prevent race condition
     if (userLocks.get(username)) {
       socket.emit('stackingError', { message: 'Procesando operacion anterior...' });
       return;
@@ -68,7 +53,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Check if user has enough coins
     if ((user.coins ?? 0) < GAME_COST) {
       socket.emit('stackingInsufficientFunds', {
         coins: user.coins ?? 0,
@@ -77,11 +61,9 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Lock user during transaction
     userLocks.set(username, true);
 
     try {
-      // Deduct cost
       user.coins = (user.coins ?? 1000) - GAME_COST;
       saveUser(username);
 
@@ -95,7 +77,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Player won (award payout)
   socket.on('stackingWin', (data) => {
     const username = getLoggedInUsername();
     if (!username) {
@@ -103,7 +84,6 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Prevent race condition
     if (userLocks.get(username)) {
       socket.emit('stackingError', { message: 'Procesando operacion anterior...' });
       return;
@@ -123,11 +103,9 @@ function setupHandlers(io, socket, context) {
       return;
     }
 
-    // Lock user during transaction
     userLocks.set(username, true);
 
     try {
-      // Award payout
       user.coins = (user.coins ?? 0) + payout;
       saveUser(username);
 
@@ -143,7 +121,6 @@ function setupHandlers(io, socket, context) {
     }
   });
 
-  // Player lost (no payout, just acknowledge)
   socket.on('stackingLose', () => {
     const username = getLoggedInUsername();
     if (!username) return;
@@ -158,10 +135,8 @@ function setupHandlers(io, socket, context) {
     });
   });
 
-  // Cleanup function
   return {
     handleDisconnect: () => {
-      // No cleanup needed for stacking
     }
   };
 }

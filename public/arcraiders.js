@@ -1,18 +1,10 @@
-// Arc Raiders Skill Tree Builder
-// Data source: https://github.com/RaidTheory/arcraiders-data
-
-// Category colors
 const CATEGORY_COLORS = {
   CONDITIONING: '#1bff7b',
   MOBILITY: '#ffd008',
   SURVIVAL: '#f60110'
 };
 
-// Custom layout positions matching the reference image exactly
-// Format: { x: percentage from left, y: percentage from top }
-// Based on careful analysis of the in-game skill tree layout
 const CUSTOM_POSITIONS = {
-  // ============ MOBILITY ============
   'mob_1': { x: 50, y: 76 },
   'mob_2l': { x: 44, y: 66 },
   'mob_2r': { x: 56, y: 66 },
@@ -29,7 +21,6 @@ const CUSTOM_POSITIONS = {
   'mob_7l': { x: 46, y: 10 },
   'mob_7r': { x: 54, y: 10 },
 
-  // ============ CONDITIONING ============
   'cond_1': { x: 44, y: 88 },
   'cond_2l': { x: 34, y: 84 },
   'cond_2r': { x: 38, y: 76 },
@@ -46,7 +37,6 @@ const CUSTOM_POSITIONS = {
   'cond_7l': { x: 12, y: 44 },
   'cond_7r': { x: 18, y: 32 },
 
-  // ============ SURVIVAL ============
   'surv_1': { x: 58, y: 88 },
   'surv_2l': { x: 66, y: 74 },
   'surv_2r': { x: 66, y: 86 },
@@ -64,70 +54,63 @@ const CUSTOM_POSITIONS = {
   'surv_7r': { x: 90, y: 36 },
 };
 
-// Emoji icons for skills (placeholders based on skill type)
 const SKILL_EMOJIS = {
-  // Conditioning - green themed
-  'cond_1': '\u{1F6E1}',      // Shield - root
-  'cond_2l': '\u{1F4A5}',     // Explosion
-  'cond_2r': '\u{1F91B}',     // Fist
-  'cond_3l': '\u{26A1}',      // Lightning
-  'cond_3r': '\u{1F511}',     // Key
-  'cond_4l': '\u{2764}',      // Heart (major)
-  'cond_4r': '\u{1F3C3}',     // Running (major)
-  'cond_5c': '\u{1F49A}',     // Green heart - center merge
-  'cond_5l': '\u{1F4AA}',     // Muscle
-  'cond_5r': '\u{1F9F1}',     // Brick
-  'cond_6c': '\u{2728}',      // Sparkles - center
-  'cond_6l': '\u{1F9B5}',     // Leg
-  'cond_6r': '\u{1F3CB}',     // Weightlifter
-  'cond_7l': '\u{1F44A}',     // Punch (capstone)
-  'cond_7r': '\u{1F91C}',     // Right Hook (capstone)
+  'cond_1': '\u{1F6E1}',
+  'cond_2l': '\u{1F4A5}',
+  'cond_2r': '\u{1F91B}',
+  'cond_3l': '\u{26A1}',
+  'cond_3r': '\u{1F511}',
+  'cond_4l': '\u{2764}',
+  'cond_4r': '\u{1F3C3}',
+  'cond_5c': '\u{1F49A}',
+  'cond_5l': '\u{1F4AA}',
+  'cond_5r': '\u{1F9F1}',
+  'cond_6c': '\u{2728}',
+  'cond_6l': '\u{1F9B5}',
+  'cond_6r': '\u{1F3CB}',
+  'cond_7l': '\u{1F44A}',
+  'cond_7r': '\u{1F91C}',
 
-  // Mobility - yellow themed
-  'mob_1': '\u{1F9D7}',       // Climbing - root
-  'mob_2l': '\u{1F3C3}',      // Running
-  'mob_2r': '\u{1F4A8}',      // Dash
-  'mob_3l': '\u{27A1}',       // Arrow
-  'mob_3r': '\u{1F97E}',      // Boot
-  'mob_4l': '\u{1F680}',      // Rocket (major)
-  'mob_4r': '\u{1F308}',      // Rainbow (major)
-  'mob_5c': '\u{1F4AB}',      // Dizzy - center merge (big node)
-  'mob_5l': '\u{1F3AF}',      // Target
-  'mob_5r': '\u{21A9}',       // Return arrow
-  'mob_6c': '\u{1F31F}',      // Glowing star - center
-  'mob_6l': '\u{1F525}',      // Fire
-  'mob_6r': '\u{1F6B4}',      // Cycling
-  'mob_7l': '\u{2B06}',       // Up Arrow (capstone)
-  'mob_7r': '\u{1F3C4}',      // Surfing (capstone)
+  'mob_1': '\u{1F9D7}',
+  'mob_2l': '\u{1F3C3}',
+  'mob_2r': '\u{1F4A8}',
+  'mob_3l': '\u{27A1}',
+  'mob_3r': '\u{1F97E}',
+  'mob_4l': '\u{1F680}',
+  'mob_4r': '\u{1F308}',
+  'mob_5c': '\u{1F4AB}',
+  'mob_5l': '\u{1F3AF}',
+  'mob_5r': '\u{21A9}',
+  'mob_6c': '\u{1F31F}',
+  'mob_6l': '\u{1F525}',
+  'mob_6r': '\u{1F6B4}',
+  'mob_7l': '\u{2B06}',
+  'mob_7r': '\u{1F3C4}',
 
-  // Survival - red themed
-  'surv_1': '\u{1F9CE}',      // Kneeling - root
-  'surv_2l': '\u{1F6E0}',     // Tools
-  'surv_2r': '\u{1F50D}',     // Magnifier
-  'surv_3l': '\u{1F510}',     // Lock
-  'surv_3r': '\u{1F4E6}',     // Package
-  'surv_4l': '\u{1F4A3}',     // Bomb (major)
-  'surv_4r': '\u{1F392}',     // Backpack (major)
-  'surv_5c': '\u{2764}',      // Red heart - center merge
-  'surv_5l': '\u{1F4E1}',     // Antenna
-  'surv_5r': '\u{1F9F0}',     // Toolbox
-  'surv_6c': '\u{1F4A2}',     // Anger - center
-  'surv_6l': '\u{1F575}',     // Detective
-  'surv_6r': '\u{1F4B0}',     // Money
-  'surv_7l': '\u{1F47B}',     // Ghost (capstone)
-  'surv_7r': '\u{1F48E}',     // Gem (capstone)
+  'surv_1': '\u{1F9CE}',
+  'surv_2l': '\u{1F6E0}',
+  'surv_2r': '\u{1F50D}',
+  'surv_3l': '\u{1F510}',
+  'surv_3r': '\u{1F4E6}',
+  'surv_4l': '\u{1F4A3}',
+  'surv_4r': '\u{1F392}',
+  'surv_5c': '\u{2764}',
+  'surv_5l': '\u{1F4E1}',
+  'surv_5r': '\u{1F9F0}',
+  'surv_6c': '\u{1F4A2}',
+  'surv_6l': '\u{1F575}',
+  'surv_6r': '\u{1F4B0}',
+  'surv_7l': '\u{1F47B}',
+  'surv_7r': '\u{1F48E}',
 };
 
-// Default emoji for skills not in the map
-const DEFAULT_EMOJI = '\u{2B50}'; // Star
+const DEFAULT_EMOJI = '\u{2B50}';
 
-// Skill data will be loaded from JSON
 let skillNodes = [];
-let currentBuild = {}; // { skillId: pointsAllocated }
+let currentBuild = {};
 let arcRaidersTooltip;
 let arcRaidersScreen;
 
-// Default build - loaded when screen opens
 const DEFAULT_BUILD = {
   "cond_1": 5,
   "mob_1": 5,
@@ -155,17 +138,14 @@ const DEFAULT_BUILD = {
   "mob_5l": 1
 };
 
-// Edit mode state
 let arcEditMode = false;
-let arcEditModeBuild = {}; // Temporary build being edited
+let arcEditModeBuild = {};
 
-// Debug drag mode
 let dragModeEnabled = false;
 let draggedNode = null;
 let dragOffset = { x: 0, y: 0 };
-let modifiedPositions = {}; // Track changes during drag mode
+let modifiedPositions = {};
 
-// Initialize
 async function initArcRaiders() {
   console.log('Initializing Arc Raiders...');
   arcRaidersScreen = document.getElementById('arcraiders-screen');
@@ -173,7 +153,6 @@ async function initArcRaiders() {
 
   console.log('arcRaidersScreen:', arcRaidersScreen);
 
-  // Load skill data
   try {
     const response = await fetch('arcraiders/skillNodes.json');
     if (!response.ok) {
@@ -186,7 +165,6 @@ async function initArcRaiders() {
     return;
   }
 
-  // Setup event listeners
   const arcRaidersBtn = document.getElementById('arcraiders-btn');
   if (arcRaidersBtn) {
     arcRaidersBtn.addEventListener('click', showArcRaidersScreen);
@@ -202,25 +180,19 @@ async function initArcRaiders() {
     resetBtn.addEventListener('click', resetBuild);
   }
 
-  // Add drag mode toggle button
   setupDragModeButton();
 
-  // Add edit mode controls
   setupArcEditModeControls();
 
-  // Load default build
   currentBuild = { ...DEFAULT_BUILD };
 
-  // Render the skill tree
   renderSkillTree();
 }
 
-// Setup drag mode button
 function setupDragModeButton() {
   const header = document.querySelector('.arcraiders-header');
   if (!header) return;
 
-  // Check if button already exists
   if (document.getElementById('arcraiders-drag-btn')) return;
 
   const dragBtn = document.createElement('button');
@@ -234,7 +206,6 @@ function setupDragModeButton() {
   header.appendChild(dragBtn);
 }
 
-// Toggle drag mode
 function toggleDragMode() {
   dragModeEnabled = !dragModeEnabled;
   const dragBtn = document.getElementById('arcraiders-drag-btn');
@@ -244,7 +215,6 @@ function toggleDragMode() {
     dragBtn.textContent = 'Exit Edit (see console)';
     dragBtn.style.background = '#f60110';
     container.classList.add('drag-mode');
-    // Copy current positions to modified (only if empty - preserve previous edits)
     if (Object.keys(modifiedPositions).length === 0) {
       modifiedPositions = JSON.parse(JSON.stringify(CUSTOM_POSITIONS));
     }
@@ -256,20 +226,16 @@ function toggleDragMode() {
     dragBtn.style.background = '#444';
     container.classList.remove('drag-mode');
     exportPositions();
-    // DON'T clear modifiedPositions - keep them for display
   }
 
-  // Re-render to apply drag handlers
   renderSkillTree();
 }
 
-// Export positions to console
 function exportPositions() {
   console.log('=== EXPORTED POSITIONS ===');
   console.log('Copy and paste this into CUSTOM_POSITIONS:');
   console.log('');
 
-  // Group by category for readability
   const categories = ['mob', 'cond', 'surv'];
   const categoryNames = ['MOBILITY', 'CONDITIONING', 'SURVIVAL'];
 
@@ -329,14 +295,12 @@ function renderSkillTree() {
 
   const build = getActiveBuild();
 
-  // Create nodes using custom positions
   skillNodes.forEach(skill => {
     const node = document.createElement('div');
     node.className = 'arcraiders-node';
     node.dataset.skillId = skill.id;
     node.dataset.category = skill.category;
 
-    // Get position - use modified positions if they exist (preserves drag edits), otherwise use CUSTOM_POSITIONS
     const hasModifiedPositions = Object.keys(modifiedPositions).length > 0;
     const positionsSource = hasModifiedPositions ? modifiedPositions : CUSTOM_POSITIONS;
     const customPos = positionsSource[skill.id];
@@ -346,7 +310,6 @@ function renderSkillTree() {
       xPercent = customPos.x;
       yPercent = customPos.y;
     } else {
-      // Fallback for any unmapped skills - place based on category
       const catOffset = skill.category === 'CONDITIONING' ? 0 :
                        skill.category === 'MOBILITY' ? 33 : 66;
       xPercent = catOffset + 15;
@@ -356,16 +319,13 @@ function renderSkillTree() {
     node.style.left = `${xPercent}%`;
     node.style.top = `${yPercent}%`;
 
-    // Get color based on category
     const color = CATEGORY_COLORS[skill.category] || '#ffffff';
     node.style.setProperty('--category-color', color);
 
-    // Major nodes are larger
     if (skill.isMajor) {
       node.classList.add('major');
     }
 
-    // In drag mode, show the skill ID for easier identification
     if (dragModeEnabled) {
       node.innerHTML = `
         <div class="node-icon"></div>
@@ -373,14 +333,12 @@ function renderSkillTree() {
       `;
       node.classList.add('draggable');
     } else {
-      // Show points display (current/max)
       const points = build[skill.id] || 0;
       node.innerHTML = `
         <div class="node-points">${points}/${skill.maxPoints}</div>
       `;
     }
 
-    // Event listeners - different behavior in drag mode
     if (dragModeEnabled) {
       node.addEventListener('mousedown', (e) => startDrag(skill.id, node, e));
     } else {
@@ -394,11 +352,9 @@ function renderSkillTree() {
     nodesContainer.appendChild(node);
   });
 
-  // Initial render
   updateAllNodes();
   updatePointsDisplay();
 
-  // Render connections after nodes are positioned
   setTimeout(renderConnections, 100);
 }
 
@@ -409,13 +365,11 @@ function renderConnections() {
 
   if (!svg || !container) return;
 
-  // Set SVG size to match container
   const rect = container.getBoundingClientRect();
   svg.setAttribute('width', rect.width);
   svg.setAttribute('height', rect.height);
   svg.innerHTML = '';
 
-  // Create connections based on prerequisites
   skillNodes.forEach(skill => {
     if (skill.prerequisiteNodeIds && skill.prerequisiteNodeIds.length > 0) {
       skill.prerequisiteNodeIds.forEach(prereqId => {
@@ -432,13 +386,11 @@ function renderConnections() {
           const x2 = toRect.left + toRect.width / 2 - containerRect.left;
           const y2 = toRect.top + toRect.height / 2 - containerRect.top;
 
-          // Determine if connection is active (both nodes have points)
           const build = getActiveBuild();
           const fromPoints = build[prereqId] || 0;
           const toPoints = build[skill.id] || 0;
           const isActive = fromPoints > 0 && toPoints > 0;
 
-          // Get color based on category
           const color = CATEGORY_COLORS[skill.category] || '#ffffff';
 
           const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -456,7 +408,6 @@ function renderConnections() {
     }
   });
 
-  // Add decorative lines from outside screen to root nodes
   const rootNodes = ['cond_1', 'mob_1', 'surv_1'];
   const build = getActiveBuild();
 
@@ -470,20 +421,16 @@ function renderConnections() {
     const nodeX = nodeRect.left + nodeRect.width / 2 - containerRect.left;
     const nodeY = nodeRect.top + nodeRect.height / 2 - containerRect.top;
 
-    // Determine category and color
     const skill = skillNodes.find(s => s.id === rootId);
     const category = skill ? skill.category : 'MOBILITY';
     const color = CATEGORY_COLORS[category] || '#ffffff';
     const hasPoints = (build[rootId] || 0) > 0;
 
-    // Create curved path from bottom of screen to root node
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
-    // Start point at bottom, curve up to node
-    const startY = rect.height + 50; // Below screen
+    const startY = rect.height + 50;
     const startX = nodeX;
 
-    // Create a smooth curve
     const controlY = nodeY + (startY - nodeY) * 0.5;
     const d = `M ${startX} ${startY} Q ${startX} ${controlY} ${nodeX} ${nodeY}`;
 
@@ -497,7 +444,6 @@ function renderConnections() {
   });
 }
 
-// Get the active build (arcEditModeBuild in edit mode, currentBuild otherwise)
 function getActiveBuild() {
   return arcEditMode ? arcEditModeBuild : currentBuild;
 }
@@ -505,29 +451,24 @@ function getActiveBuild() {
 function handleNodeClick(skill, e) {
   e.preventDefault();
 
-  // Only allow editing in edit mode
   if (!arcEditMode) return;
 
   const build = getActiveBuild();
   const points = build[skill.id] || 0;
 
-  // Check if prerequisites are met
   if (!arePrerequisitesMet(skill)) {
     return;
   }
 
-  // Check if we can add more points
   if (points >= skill.maxPoints) {
     return;
   }
 
-  // Check total points limit
   const totalPoints = Object.values(build).reduce((sum, pts) => sum + pts, 0);
   if (totalPoints >= 75) {
     return;
   }
 
-  // Add point
   build[skill.id] = points + 1;
 
   updateAllNodes();
@@ -538,14 +479,12 @@ function handleNodeClick(skill, e) {
 function handleNodeRightClick(skill, e) {
   e.preventDefault();
 
-  // Only allow editing in edit mode
   if (!arcEditMode) return;
 
   const build = getActiveBuild();
   const points = build[skill.id] || 0;
 
   if (points > 0) {
-    // Check if any skills depend on this one
     const canRemove = canRemovePoint(skill);
     if (!canRemove) {
       return;
@@ -568,7 +507,6 @@ function arePrerequisitesMet(skill) {
   }
 
   const build = getActiveBuild();
-  // Use OR logic - only need ONE prerequisite to be met (matches actual game behavior)
   return skill.prerequisiteNodeIds.some(prereqId => {
     const prereqPoints = build[prereqId] || 0;
     return prereqPoints > 0;
@@ -576,13 +514,11 @@ function arePrerequisitesMet(skill) {
 }
 
 function canRemovePoint(skill) {
-  // Check if removing a point would break any dependent skills
   const build = getActiveBuild();
   const dependentSkills = skillNodes.filter(s =>
     s.prerequisiteNodeIds && s.prerequisiteNodeIds.includes(skill.id)
   );
 
-  // If we're at 1 point and have dependents with points, can't remove
   const points = build[skill.id] || 0;
   if (points <= 1) {
     return dependentSkills.every(dep => {
@@ -607,7 +543,6 @@ function updateAllNodes() {
     const prereqsMet = arePrerequisitesMet(skill);
     const isMaxed = points >= skill.maxPoints;
 
-    // Update classes - CSS handles all styling
     node.classList.remove('active', 'available', 'locked', 'maxed');
     if (points > 0) {
       if (isMaxed) {
@@ -621,13 +556,11 @@ function updateAllNodes() {
       node.classList.add('locked');
     }
 
-    // Update points display
     const pointsDisplay = node.querySelector('.node-points');
     if (pointsDisplay) {
       pointsDisplay.textContent = `${points}/${skill.maxPoints}`;
     }
 
-    // Add editable class in edit mode
     if (arcEditMode) {
       node.classList.add('editable');
     } else {
@@ -640,7 +573,6 @@ function updatePointsDisplay() {
   const build = getActiveBuild();
   const totalPoints = Object.values(build).reduce((sum, pts) => sum + pts, 0);
 
-  // Calculate per-category points
   let condPoints = 0, mobPoints = 0, survPoints = 0;
 
   Object.keys(build).forEach(skillId => {
@@ -660,7 +592,6 @@ function updatePointsDisplay() {
   document.getElementById('mob-points').textContent = mobPoints;
   document.getElementById('surv-points').textContent = survPoints;
 
-  // Also update the tree labels
   const condTreePts = document.getElementById('cond-tree-points');
   const mobTreePts = document.getElementById('mob-tree-points');
   const survTreePts = document.getElementById('surv-tree-points');
@@ -701,7 +632,6 @@ function moveTooltip(e) {
   let x = e.clientX + padding;
   let y = e.clientY + padding;
 
-  // Keep tooltip on screen
   if (x + tooltipRect.width > window.innerWidth) {
     x = e.clientX - tooltipRect.width - padding;
   }
@@ -713,14 +643,12 @@ function moveTooltip(e) {
   arcRaidersTooltip.style.top = `${y}px`;
 }
 
-// Handle window resize
 window.addEventListener('resize', () => {
   if (arcRaidersScreen && arcRaidersScreen.classList.contains('active')) {
     renderConnections();
   }
 });
 
-// ============ DRAG MODE FUNCTIONS ============
 function startDrag(skillId, node, e) {
   if (!dragModeEnabled) return;
   e.preventDefault();
@@ -741,8 +669,7 @@ function startDrag(skillId, node, e) {
   node.style.cursor = 'grabbing';
 }
 
-// Snap grid size in percentage (roughly 50px at typical screen size)
-const SNAP_GRID = 2; // 2% snap grid
+const SNAP_GRID = 2;
 
 function onDrag(e) {
   if (!draggedNode) return;
@@ -750,29 +677,23 @@ function onDrag(e) {
   const container = document.getElementById('arcraiders-tree-container');
   const containerRect = container.getBoundingClientRect();
 
-  // Calculate new position as percentage
   const x = e.clientX - containerRect.left - dragOffset.x;
   const y = e.clientY - containerRect.top - dragOffset.y;
 
   let xPercent = (x / containerRect.width) * 100;
   let yPercent = (y / containerRect.height) * 100;
 
-  // Snap to grid
   xPercent = Math.round(xPercent / SNAP_GRID) * SNAP_GRID;
   yPercent = Math.round(yPercent / SNAP_GRID) * SNAP_GRID;
 
-  // Clamp to container bounds
   const clampedX = Math.max(2, Math.min(98, xPercent));
   const clampedY = Math.max(2, Math.min(98, yPercent));
 
-  // Update visual position
   draggedNode.element.style.left = `${clampedX}%`;
   draggedNode.element.style.top = `${clampedY}%`;
 
-  // Update stored position
   modifiedPositions[draggedNode.skillId] = { x: clampedX, y: clampedY };
 
-  // Update connections in real-time
   renderConnections();
 }
 
@@ -787,12 +708,10 @@ function endDrag() {
   document.removeEventListener('mouseup', endDrag);
 }
 
-// ============ EDIT MODE FUNCTIONS ============
 function setupArcEditModeControls() {
   const header = document.querySelector('.arcraiders-header');
   if (!header) return;
 
-  // Check if controls already exist
   let controlsContainer = document.getElementById('arc-edit-controls');
   if (!controlsContainer) {
     controlsContainer = document.createElement('div');
@@ -818,16 +737,13 @@ function renderArcEditControls() {
     ` : ''}
   `;
 
-  // Setup event listeners
   const toggleBtn = document.getElementById('arc-edit-toggle');
   if (toggleBtn) {
     toggleBtn.onclick = () => {
       arcEditMode = !arcEditMode;
       if (arcEditMode) {
-        // Enter edit mode - copy current build
         arcEditModeBuild = { ...currentBuild };
       } else {
-        // Exit edit mode - save changes
         currentBuild = { ...arcEditModeBuild };
         arcEditModeBuild = {};
       }
@@ -856,14 +772,12 @@ function renderArcEditControls() {
 }
 
 function exportArcBuild() {
-  // Save current edit first
   if (arcEditMode) {
     currentBuild = { ...arcEditModeBuild };
   }
 
   const buildsJson = JSON.stringify(currentBuild, null, 2);
 
-  // Create modal to show the JSON
   let modal = document.getElementById('arc-export-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -904,5 +818,4 @@ function exportArcBuild() {
   };
 }
 
-// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', initArcRaiders);

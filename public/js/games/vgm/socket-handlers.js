@@ -1,35 +1,14 @@
-/**
- * VGM Socket Handlers Module - All VGM-scoped socket event handlers
- *
- * Handles:
- * - Lobby/room events (lobbyCreated, lobbyJoined, vgmJoined)
- * - Player list updates
- * - Round lifecycle (roundStart, roundEnd, roundComplete)
- * - Guessing (guessResult, correctGuess, closeGuess)
- * - Hints (hintResult, playerUsedHint)
- * - Chat (gameChatMessage, sqrrrMessage, chatHistory)
- * - Game features (nudge, extend, easter eggs)
- */
-
 import { socketManager, audioManager, escapeHtml } from '../../core/index.js';
 
-// Module state
 let deps = null;
 let countdownMessages = {};
 
-/**
- * Initialize socket handlers with dependencies
- * @param {Object} dependencies - All required dependencies
- */
 function init(dependencies) {
   deps = dependencies;
   countdownMessages = {};
   setupHandlers();
 }
 
-/**
- * Setup all VGM-scoped socket event handlers
- */
 function setupHandlers() {
   const {
     socket,
@@ -42,21 +21,18 @@ function setupHandlers() {
     playNotifySound
   } = deps;
 
-  // Lobby created
   socketManager.on('lobbyCreated', ({ roomCode, playerName }) => {
     state.setRoom(roomCode);
     ui.setRoomCode(roomCode);
     ui.showScreen('lobby');
   }, 'vgm');
 
-  // Lobby joined
   socketManager.on('lobbyJoined', ({ roomCode, playerName }) => {
     state.setRoom(roomCode);
     ui.setRoomCode(roomCode);
     ui.showScreen('lobby');
   }, 'vgm');
 
-  // VGM joined - go straight to game screen (single global lobby)
   socketManager.on('vgmJoined', ({
     roomCode,
     playerName,
@@ -75,7 +51,6 @@ function setupHandlers() {
     ui.resetRoundState();
     ui.showScreen('game');
 
-    // If round is active, sync with it
     if (isRoundActive && currentAudioToken) {
       state.setRoundActive(true);
       ui.setRoundNumber(currentRoundNum);
@@ -100,7 +75,6 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Player list update
   socketManager.on('playerList', (players) => {
     const lastCount = state.getLastPlayerCount();
     if (players.length > lastCount && lastCount > 0) {
@@ -117,12 +91,10 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Chat message (lobby)
   socketManager.on('chatMessage', ({ system, message }) => {
     ui.addLobbyChatMessage(message, system);
   }, 'vgm');
 
-  // Round start
   socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
     log.info(`Round ${num} starting`);
     ui.resetRoundState();
@@ -142,7 +114,6 @@ function setupHandlers() {
     ui.focusGuessInput();
   }, 'vgm');
 
-  // Guess result
   socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
     if (correct) {
       const time = timeElapsed || timer.getElapsedSeconds();
@@ -165,12 +136,9 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Round complete - everyone guessed
   socketManager.on('roundComplete', () => {
-    // Input stays enabled for chat
   }, 'vgm');
 
-  // Someone guessed correctly
   socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) => {
     if (state.getCurrentUsername() && playerName !== state.getCurrentUsername()) {
       const time = timeElapsed || timer.getElapsedSeconds();
@@ -182,7 +150,6 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Hint result
   socketManager.on('hintResult', ({ success, hint, hintPoints: newPoints, reason }) => {
     if (success) {
       state.setHintPoints(newPoints);
@@ -194,14 +161,12 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Someone used a hint
   socketManager.on('playerUsedHint', ({ playerName }) => {
     if (state.getCurrentUsername() && playerName !== state.getCurrentUsername()) {
       chat.addMsnMessage('', `${playerName} used a hint`, true);
     }
   }, 'vgm');
 
-  // Round end
   socketManager.on('roundEnd', ({ correctGame, correctSong, players }) => {
     log.info('Round ended', { correctGame, correctSong });
     timer.stop();
@@ -216,7 +181,6 @@ function setupHandlers() {
     ui.setStartButtonEnabled(true);
   }, 'vgm');
 
-  // SQRRR messages (auto-play countdown)
   socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
     if (isRecord) {
       chat.addRecordMessage(message);
@@ -229,13 +193,11 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Coins earned
   socketManager.on('coinsEarned', ({ amount, total }) => {
     showCoinAnimation(amount);
     log.info(`Earned ${amount} $qr, total: ${total}`);
   }, 'vgm');
 
-  // Edit-based countdown
   socketManager.on('sqrrrCountdown', ({ id, message }) => {
     let countdownDiv = countdownMessages[id];
 
@@ -249,44 +211,36 @@ function setupHandlers() {
     chat.scrollToBottom();
   }, 'vgm');
 
-  // Chat messages from all players
   socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings }) => {
     chat.addMsnMessage(sender, message, false, { senderFontSettings: fontSettings });
   }, 'vgm');
 
-  // Nudge received
   socketManager.on('nudgeReceived', () => {
     audioManager.play('nudge', { volume: 0.1 });
     ui.shakeScreen();
   }, 'vgm');
 
-  // Close guess
   socketManager.on('closeGuess', ({ guess, type, percentage }) => {
     chat.addCloseGuessMessage(guess, percentage);
     audioManager.playOneShot('close.mp3', { volume: 0.8 });
   }, 'vgm');
 
-  // Easter eggs
   socketManager.on('easterEgg', ({ type, message }) => {
     chat.addSystemMessage(message);
   }, 'vgm');
 
-  // New record
   socketManager.on('newRecord', ({ player, time, previousPlayer, previousTime }) => {
     audioManager.playOneShot('supersonic.mp3', { volume: 0.8 });
   }, 'vgm');
 
-  // Audio duration update
   socketManager.on('audioDurationUpdate', ({ duration }) => {
     state.setFullAudioDuration(duration);
   }, 'vgm');
 
-  // Extend votes update
   socketManager.on('extendVotesUpdate', ({ votes, needed, totalPlayers }) => {
     ui.updateExtendVotes(votes, needed);
   }, 'vgm');
 
-  // Round extended
   socketManager.on('roundExtended', ({ newDuration }) => {
     state.setExtended(true);
     timer.setDuration(newDuration);
@@ -295,7 +249,6 @@ function setupHandlers() {
     chat.addMsnMessage('SQRRR', 'La ronda se ha extendido hasta el final de la canción', false);
   }, 'vgm');
 
-  // Chat history
   socketManager.on('chatHistory', (history) => {
     history.forEach(msg => {
       if (msg.type === 'guess') {
@@ -311,7 +264,6 @@ function setupHandlers() {
     }
   }, 'vgm');
 
-  // Typing updates
   socketManager.on('typingUpdate', ({ typing }) => {
     const currentUsername = state.getCurrentUsername();
     const othersTyping = typing.filter(name => name !== currentUsername);
@@ -319,9 +271,6 @@ function setupHandlers() {
   }, 'vgm');
 }
 
-/**
- * Cleanup - clear countdown messages cache
- */
 function cleanup() {
   countdownMessages = {};
 }
