@@ -65,7 +65,7 @@
 /* no mode yet: bare bar with only the back button; reset only makes sense once a list is loaded */
 .mode-none .tl-bottom { padding-top: 0; }
 .mode-none .tl-clock, .mode-none .tl-bar-center, .mode-none .tl-bar-side.right { display: none; }
-.tl-stage:not(.has-list) #tl-cancel-btn, .tl-stage:not(.has-list) #tl-finish-btn { display: none !important; }
+.tl-stage:not(.has-list) #tl-cancel-btn, .tl-stage:not(.has-list) #tl-finish-btn, .tl-stage:not(.has-list) #tl-verdict-btn { display: none !important; }
 #tl-finish-btn:not(:disabled) { border-color: #7fff7f; color: #fff; }
 .tl-search-box { display: flex; align-items: center; gap: 10px; width: min(560px, 90%); border-bottom: 2px solid var(--glow); padding: 4px 6px; color: var(--grey); }
 .tl-search-box input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #eee; font-size: 20px; padding: 6px 0; }
@@ -82,7 +82,6 @@
 /* general mode: no player, veredicto centered on an otherwise empty bar */
 .mode-general .tl-bottom { padding-top: 0; }
 .mode-general .tl-clock, .mode-general .tl-bar-center { display: none; }
-.mode-general .tl-bar-side.right { position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); padding-top: 0; flex: none; align-items: center; }
 .tl-result:hover { border-color: var(--glow); }
 .tl-result-cover { width: 100%; aspect-ratio: 1; background: #222 center / cover no-repeat; }
 .tl-result-title { font-size: 13px; color: #ddd; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -186,7 +185,7 @@
 .tl-round:hover:not(:disabled) { box-shadow: 0 0 12px var(--glow), inset 0 1px 0 rgba(255, 255, 255, .15); color: #fff; }
 .tl-round:disabled { border-color: #444; box-shadow: none; color: #666; }
 .tl-round .tl-ico { width: 26px; height: 26px; }
-.tl-round-big { width: 92px; height: 92px; font-size: 14px; font-weight: 700; letter-spacing: .5px; }
+.tl-round-big { width: 92px; height: 92px; margin-left: 10px; font-size: 14px; font-weight: 700; letter-spacing: .5px; }
 /* the host's call: veredicto glows yellow while a song is waiting for one */
 .is-host .tl-round-big:not(:disabled) { border-color: #ffd54a; color: #fff; animation: tl-verdict-glow 1.6s ease-in-out infinite; }
 @keyframes tl-verdict-glow { 0%, 100% { box-shadow: 0 0 10px rgba(255, 213, 74, .6), inset 0 1px 0 rgba(255, 255, 255, .15); } 50% { box-shadow: 0 0 26px rgba(255, 213, 74, .95), inset 0 1px 0 rgba(255, 255, 255, .15); } }
