@@ -51,7 +51,9 @@ const ROOM = 'tierlist';
 
 const emptyTiers = () => Object.fromEntries(TIERS.map(t => [t, []]));
 
+const MODES = ['music', 'general'];
 const lobby = {
+  mode: 'music', // 'music' (khinsider + YouTube, synced player) | 'general' (tiermaker templates, no player)
   players: {},   // socketId -> { username, color, profilePicture }
   host: null,    // socketId
   album: null,   // { slug, title, covers }
@@ -65,7 +67,7 @@ const lobby = {
 
 function reset() {
   Object.assign(lobby, {
-    host: null, album: null, songs: [], currentId: null,
+    host: null, mode: 'music', album: null, songs: [], currentId: null,
     playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {}
   });
 }
@@ -76,7 +78,7 @@ function unplace(id) {
 }
 
 // ==================== KHINSIDER SCRAPER ====================
-const cache = { search: new Map(), album: new Map() };
+const cache = { search: new Map(), album: new Map(), tm: new Map() };
 
 async function getHtml(url) {
   const res = await fetch(url, { ...FETCH_OPTS, signal: AbortSignal.timeout(20000) });
@@ -200,6 +202,50 @@ async function ytStreamUrl(id) {
   return url;
 }
 
+// ==================== TIERMAKER (general mode) ====================
+// ponytail: tiermaker sits behind Cloudflare, which challenges datacenter IPs (the VPS) but not browsers. Direct fetch first,
+// then the r.jina.ai reader relay, which renders the page for us. Browsers load the template images straight from tiermaker.
+const TM = 'https://tiermaker.com';
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
+async function tmFetch(url, format = 'html') {
+  try {
+    const r = await fetch(url, { headers: { 'User-Agent': BROWSER_UA, accept: '*/*' }, signal: AbortSignal.timeout(15000) });
+    const t = await r.text();
+    if (r.ok && !/Just a moment/i.test(t)) return t;
+  } catch (e) { /* fall back to the relay */ }
+  const r = await fetch(`https://r.jina.ai/${url}`, { headers: { 'X-Return-Format': format }, signal: AbortSignal.timeout(60000) });
+  if (!r.ok) throw new Error(`tiermaker relay ${r.status}`);
+  return r.text();
+}
+
+async function tmSearch(q) {
+  const key = q.toLowerCase();
+  if (cache.tm.has(key)) return cache.tm.get(key);
+  const html = await tmFetch(`${TM}/search/?q=${encodeURIComponent(q)}`, 'html');
+  const out = [];
+  const re = /href=['"]\/create\/([^'"]+)['"][^>]*>\s*<div class=['"]image-count-container['"]>(\d+)<\/div>\s*<div class=['"]category-carousel-item['"] style=['"]background-image:\s*url\(["']?([^)"']+)["']?\)['"]>\s*<div class=['"]cat-header['"]>([^<]*)<\/div>/g;
+  for (const m of html.matchAll(re)) {
+    out.push({ source: 'tm', id: m[1], count: +m[2], thumb: m[3].startsWith('http') ? m[3] : TM + m[3], title: unescapeHtml(m[4].trim()).replace(/\\+(['"])/g, '$1') || m[1] });
+    if (out.length >= 40) break;
+  }
+  cache.tm.set(key, out);
+  return out;
+}
+
+// template -> image list. The API answers [basePath, file, file, ...]; old templates give a bare slug, new ones a /template_images/... path
+async function tmTemplate(slug) {
+  const txt = await tmFetch(`${TM}/api/?type=templates-v2&id=${encodeURIComponent(slug)}&lastEdited=&variation=`, 'text');
+  const arr = JSON.parse(txt.trim().replace(/^<html>.*<body>|<\/body>.*$/gs, ''));
+  if (!Array.isArray(arr) || arr.length < 2) throw new Error('template has no images');
+  const base = String(arr[0]);
+  const imgUrl = f => base.startsWith('/') ? `${TM}/images${base}/${f}` : `${TM}/images/chart/chart/${base}/${f}`;
+  const nameOf = f => f.replace(/\.[a-z0-9]+$/i, '').replace(/(jpe?g|png|webp|gif)$/i, '').replace(/[-_]+/g, ' ').trim();
+  let title = null;
+  for (const list of cache.tm.values()) { const hit = list.find(r => r.id === slug); if (hit) { title = hit.title; break; } }
+  if (!title) title = slug.replace(/-\d+(-\d+)?$/, '').replace(/-/g, ' ');
+  return { title, images: arr.slice(1).map((f, i) => ({ name: nameOf(String(f)) || `#${i + 1}`, cover: imgUrl(String(f)) })) };
+}
+
 // ==================== STATE ====================
 const playerList = () => Object.values(lobby.players);
 const hostName = () => (lobby.players[lobby.host] || {}).username || null;
@@ -210,7 +256,7 @@ const playbackMsg = () => ({
   serverNow: Date.now()
 });
 const publicState = () => ({
-  players: playerList(), host: hostName(), album: lobby.album, songs: lobby.songs,
+  mode: lobby.mode, players: playerList(), host: hostName(), album: lobby.album, songs: lobby.songs,
   currentId: lobby.currentId, playback: lobby.playback, tiers: lobby.tiers, trashed: lobby.trashed, votes: lobby.votes, serverNow: Date.now()
 });
 const tiersMsg = placed => ({ tiers: lobby.tiers, trashed: lobby.trashed, placed });
@@ -285,13 +331,33 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', 'reset by host');
   });
 
+  // Host picks the lobby mode; switching clears the list for everyone
+  socket.on('tlMode', ({ mode } = {}) => {
+    if (!isHost() || !MODES.includes(mode) || mode === lobby.mode) return;
+    Object.assign(lobby, { mode, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: Date.now() }, tiers: emptyTiers(), trashed: [], votes: {} });
+    io.to(ROOM).emit('tlState', publicState());
+    log('TIERLIST', `mode -> ${mode}`);
+  });
+
+  // Everyone sees what the host types and the results that come back
+  socket.on('tlTyping', ({ q } = {}) => {
+    if (!isHost()) return;
+    socket.to(ROOM).emit('tlTyping', { q: String(q || '').slice(0, 200) });
+  });
+
   socket.on('tlSearch', async ({ q } = {}) => {
     if (!isHost() || !q || !q.trim()) return;
+    io.to(ROOM).emit('tlSearching', { q });
+    if (lobby.mode === 'general') {
+      try { io.to(ROOM).emit('tlSearchResults', { q, results: await tmSearch(q.trim()), gated: false }); }
+      catch (e) { warn('TIERLIST', 'tiermaker search failed', e.message); io.to(ROOM).emit('tlSearchResults', { q, results: [], gated: false, error: 'TierMaker no responde' }); }
+      return;
+    }
     const [kh, yt] = await Promise.all([
       searchAlbums(q.trim()).catch(e => { warn('TIERLIST', 'khinsider search failed', e.message); return { results: [], gated: false }; }),
       ytSearch(q.trim()).catch(e => { warn('TIERLIST', 'youtube search failed', e.message); return []; })
     ]);
-    socket.emit('tlSearchResults', { q, results: [...kh.results.map(r => ({ source: 'kh', ...r })), ...yt], gated: kh.gated, youtube: ytAvailable() });
+    io.to(ROOM).emit('tlSearchResults', { q, results: [...kh.results.map(r => ({ source: 'kh', ...r })), ...yt], gated: kh.gated, youtube: ytAvailable() });
   });
 
   socket.on('tlLoad', async ({ source, id, append } = {}) => {
@@ -303,6 +369,11 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
         const a = await loadAlbum(id);
         title = a.title;
         songs = a.songs.map(s => ({ ...s, source: 'kh' }));
+      } else if (source === 'tm') {
+        if (!SLUG_RE.test(id)) return;
+        const t = await tmTemplate(id);
+        title = t.title;
+        songs = t.images.map((im, i) => ({ id: i, name: im.name, disc: 1, num: i + 1, duration: '', cover: im.cover, source: 'tm' }));
       } else if (source === 'yt' || source === 'yturl') {
         if (source === 'yt' ? !YT_PL_ID.test(id) : !YT_URL.test(id)) return;
         if (!ytAvailable()) return fail('YouTube no está disponible en el servidor');
@@ -336,9 +407,9 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     const song = lobby.songs[songId];
     if (!song) return;
     try {
-      song.mp3 = await resolveMp3(song);
+      song.mp3 = song.source === 'tm' ? null : await resolveMp3(song);
       lobby.currentId = song.id;
-      lobby.playback = { playing: true, position: 0, at: Date.now() };
+      lobby.playback = { playing: song.source !== 'tm', position: 0, at: Date.now() };
       io.to(ROOM).emit('tlPlayback', playbackMsg());
     } catch (e) { fail('No se pudo cargar la canción', e); }
   });
@@ -413,7 +484,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   return { handleDisconnect: leave };
 }
 
-module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl };
+module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl, tmSearch, tmTemplate };
 
 // Self-check: node server/handlers/tierlist.js
 if (require.main === module) {

@@ -29,8 +29,26 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   b.emit('tlJoin'); const [sb] = await Promise.all([once(b, 'tlState'), once(a, 'tlPlayers')]);
   assert.equal(sb.host, 'REASON'); assert.equal(sb.players.length, 2);
 
+  console.log(" - general mode: tiermaker search seen by everyone, template loads without audio, typing mirrored");
+  b.emit('tlMode', { mode: 'general' }); await silence(b, 'tlState');
+  a.emit('tlMode', { mode: 'general' }); const [, sg] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+  assert.equal(sg.mode, 'general'); assert.equal(sg.album, null);
+  a.emit('tlSearch', { q: 'minecraft' });
+  const [, sb1, rt] = await Promise.all([once(a, 'tlSearching'), once(b, 'tlSearching'), once(b, 'tlSearchResults'), once(a, 'tlSearchResults')]);
+  assert.equal(sb1.q, 'minecraft'); assert(rt.results.length > 0 && rt.results.every(r => r.source === 'tm' && r.id && r.count > 0 && r.thumb.startsWith('https://tiermaker.com/')), 'tiermaker results: ' + JSON.stringify(rt.results[0]));
+  a.emit('tlLoad', { source: 'tm', id: rt.results[0].id });
+  const [, st] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+  assert(st.songs.length > 1 && st.songs.every(s => s.source === 'tm' && s.cover.startsWith('https://tiermaker.com/images/')), 'template load: ' + JSON.stringify(st.songs[0]));
+  assert.equal(st.album.title, rt.results[0].title);
+  a.emit('tlSelect', { songId: 0 }); const [, pg] = await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+  assert.equal(pg.currentId, 0); assert.equal(pg.mp3, null); assert(!pg.playback.playing);
+  a.emit('tlTyping', { q: 'mine' }); const ty = await once(b, 'tlTyping'); assert.equal(ty.q, 'mine');
+  b.emit('tlTyping', { q: 'nope' }); await silence(a, 'tlTyping');
+  a.emit('tlMode', { mode: 'music' }); const [, sm] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+  assert.equal(sm.mode, 'music'); assert.equal(sm.album, null);
+
   b.emit('tlSearch', { q: 'minecraft' }); await silence(b, 'tlSearchResults');           // non-host ignored
-  a.emit('tlSearch', { q: 'minecraft' }); const res = await once(a, 'tlSearchResults');
+  a.emit('tlSearch', { q: 'minecraft' }); const [res] = await Promise.all([once(a, 'tlSearchResults'), once(b, 'tlSearchResults')]);
   assert(res.results.some(r => r.source === 'kh' && r.slug === 'minecraft'), 'search or slug fallback failed (gated=' + res.gated + ')');
   if (res.youtube) {
     const yt = res.results.filter(r => r.source === 'yt');
