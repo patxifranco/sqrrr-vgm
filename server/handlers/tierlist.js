@@ -7,8 +7,31 @@ const { log, warn } = require('../utils');
 
 const KH = 'https://downloads.khinsider.com';
 const FETCH_OPTS = { headers: { 'User-Agent': 'Mozilla/5.0 (sqrrr.com tierlist)' } };
-// khinsider gates /search behind a login; a logged-in browser cookie in KHINSIDER_COOKIE re-enables it
-if (process.env.KHINSIDER_COOKIE) FETCH_OPTS.headers.cookie = process.env.KHINSIDER_COOKIE;
+// khinsider gates /search behind a login: log in with KHINSIDER_USER / KHINSIDER_PASS (XenForo forum session) and keep the cookies
+const KH_USER = process.env.KHINSIDER_USER, KH_PASS = process.env.KHINSIDER_PASS;
+let khLoginPromise = null;
+function khLogin() {
+  if (!KH_USER || !KH_PASS) return Promise.resolve(false);
+  if (khLoginPromise) return khLoginPromise;
+  khLoginPromise = (async () => {
+    const jar = {};
+    const absorb = res => { for (const c of res.headers.getSetCookie()) { const kv = c.split(';')[0]; const i = kv.indexOf('='); jar[kv.slice(0, i).trim()] = kv.slice(i + 1); } };
+    const cookie = () => Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
+    let r = await fetch(`${KH}/forums/index.php?login/`, { headers: { 'User-Agent': FETCH_OPTS.headers['User-Agent'] } });
+    absorb(r);
+    const token = ((await r.text()).match(/name="_xfToken"\s+value="([^"]+)"/) || [])[1] || '';
+    const body = new URLSearchParams({ login: KH_USER, password: KH_PASS, remember: '1', _xfRedirect: `${KH}/`, _xfToken: token });
+    r = await fetch(`${KH}/forums/index.php?login/login`, { method: 'POST', redirect: 'manual', body, headers: { 'User-Agent': FETCH_OPTS.headers['User-Agent'], cookie: cookie(), 'content-type': 'application/x-www-form-urlencoded' } });
+    absorb(r);
+    const ok = !!jar.xf_user;
+    if (ok) FETCH_OPTS.headers.cookie = cookie();
+    (ok ? log : warn)('TIERLIST', ok ? `khinsider: logged in as ${KH_USER}` : `khinsider: login failed (HTTP ${r.status})`);
+    return ok;
+  })().catch(e => { warn('TIERLIST', 'khinsider login error', e.message); return false; })
+    .finally(() => { khLoginPromise = null; });
+  return khLoginPromise;
+}
+khLogin(); // warm the session at startup so the first search is fast
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const COLORS = {
   REASON: '#a01830',
@@ -66,8 +89,10 @@ const SLUG_RE = /^[A-Za-z0-9._-]+$/;
 async function searchAlbums(q) {
   const key = q.toLowerCase();
   if (cache.search.has(key)) return cache.search.get(key);
-  const html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`);
-  const gated = !html.includes('albumIcon') && /Please Log In/i.test(html);
+  const isGated = h => !h.includes('albumIcon') && /Please Log In/i.test(h);
+  let html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`);
+  if (isGated(html) && await khLogin()) html = await getHtml(`${KH}/search?search=${encodeURIComponent(q)}`); // session expired: log in again, retry once
+  const gated = isGated(html);
   const results = [];
   for (const row of gated ? [] : html.split('<tr>').slice(1)) {
     const m = row.match(/class="albumIcon"><a href="\/game-soundtracks\/album\/([^"]+)">(?:<img src="([^"]+)">)?[\s\S]*?<td>\s*<a href="[^"]+">([^<]+)<\/a>\s*<\/td>\s*<td>([\s\S]*?)<\/td>\s*<td>([^<]*)<\/td>\s*<td>([^<]*)<\/td>/);
