@@ -48,6 +48,7 @@ const isPlaced = id => rankedIds().has(id);
 const tierOf = id => TIERS.find(t => (tiers()[t] || []).includes(id)) || null;
 const isActive = () => $('tierlist-screen').classList.contains('active');
 const colorOf = u => tl.colors[u] || '#9aa0a6';
+const isGeneral = () => (tl.view ? tl.view.mode : tl.mode) === 'general';
 const fmtDate = iso => { const d = new Date(iso); return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`; };
 
 function show(id) {
@@ -191,7 +192,7 @@ function renderVerdict() {
   const id = tl.currentId;
   const counts = Object.fromEntries(TIERS.map(t => [t, votesFor(id, t).length]));
   const max = Math.max(...Object.values(counts));
-  $('tl-verdict-title').textContent = `${tl.songs[id].num}. ${tl.songs[id].name}`;
+  $('tl-verdict-title').innerHTML = isGeneral() ? `<img src="${esc(tl.songs[id].cover || '')}" alt="">` : esc(`${tl.songs[id].num}. ${tl.songs[id].name}`);
   $('tl-verdict-rows').innerHTML = TIERS.map((t, i) =>
     `<button class="tl-verdict-row${counts[t] && counts[t] === max ? ' top' : ''}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><span class="tl-label">${t}</span><span class="tl-verdict-cards">${votesFor(id, t).map(u => voteCardHtml(u, tl.songs[id])).join('')}</span><em>${counts[t] || ''}</em><kbd>${i + 1}</kbd></button>`
   ).join('');
@@ -717,7 +718,6 @@ function showPreview(id) {
     img.style.width = Math.round(img.naturalWidth * k) + 'px';
   };
   img.src = s.cover;
-  $('tl-preview-name').textContent = s.name;
   $('tl-preview').hidden = false;
 }
 $('tl-preview').addEventListener('click', () => { $('tl-preview').hidden = true; });
@@ -725,9 +725,8 @@ $('tl-board').addEventListener('click', e => {
   if (suppressClick) { suppressClick = false; return; }
   const c = e.target.closest('.tl-card:not(.tl-vote)');
   if (!c) return;
-  const general = (tl.view ? tl.view.mode : tl.mode) === 'general';
-  if (general) showPreview(+c.dataset.id);
-  if (tl.view || (general && !isHost())) return;
+  if (isGeneral()) showPreview(+c.dataset.id);
+  if (tl.view || (isGeneral() && !isHost())) return;
   if (!isHost()) return socket.emit('tlPing', { songId: +c.dataset.id });
   if (c.classList.contains('trashed')) return socket.emit('tlRestore', { songId: +c.dataset.id });
   if (+c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
@@ -739,7 +738,7 @@ $('tl-board').addEventListener('auxclick', e => {
 $('tl-trash').addEventListener('click', () => { if (isHost() && tl.currentId !== null) socket.emit('tlTrash', { songId: tl.currentId }); });
 $('tl-board').addEventListener('mouseover', e => {
   const c = e.target.closest('.tl-card');
-  if (!c || drag) return;
+  if (!c || drag || isGeneral()) return;
   const id = +c.dataset.id;
   if (c.classList.contains('tl-vote')) return hint(c, `Voto de ${c.dataset.user}`);
   const parts = TIERS.map(t => [t, votesFor(id, t).length]).filter(([, n]) => n).map(([t, n]) => `${t} ${n}`);
