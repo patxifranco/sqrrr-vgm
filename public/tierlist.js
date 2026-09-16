@@ -266,6 +266,7 @@ function removeCursor(key) {
   if (!c) return;
   c.el.remove();
   if (c.ghost) c.ghost.el.remove();
+  if (c.bubble) c.bubble.el.remove();
   delete cursors[key];
 }
 function clearCursors() { for (const k of [...Object.keys(cursors), ME]) removeCursor(k); }
@@ -422,6 +423,10 @@ function tick(now) {
       c.tilt += (c.tiltTarget - c.tilt) * TILT_EASE;
       c.tiltTarget *= TILT_DECAY;
       c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
+      if (c.bubble && !c.bubble.el.hidden) {
+        if (now > c.bubble.until) c.bubble.el.hidden = true;
+        else c.bubble.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg) translate(18px, 34px)`; // hangs off the hand, pivots on the fingertip
+      }
       if (c.ghost) {
         c.ghost.rot += (c.ghost.rotTarget - c.ghost.rot) * 0.5;
         c.ghost.el.style.transform = `translate(${c.x - c.ghost.gx}px, ${c.y - c.ghost.gy}px) rotate(${c.ghost.rot}deg)`;
@@ -433,6 +438,71 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
+
+// ==================== CURSOR CHAT ====================
+// Enter: a bubble opens on your hand and everything else dims. Enter sends it to everyone, Escape (or clicking away) cancels.
+const chatInput = document.createElement('input');
+chatInput.type = 'text'; chatInput.maxLength = 120; chatInput.autocomplete = 'off'; chatInput.className = 'tl-chat-input';
+$('tl-stage').appendChild(chatInput);
+let typing = false;
+
+function bubbleFor(c) {
+  if (!c.bubble) {
+    const el = document.createElement('div');
+    el.className = 'tl-chat-bubble';
+    el.hidden = true;
+    $('tl-cursors').appendChild(el);
+    c.bubble = { el, until: 0 };
+  }
+  return c.bubble;
+}
+function startChat() {
+  if (!tl.me || typing) return;
+  typing = true;
+  $('tl-dim').hidden = false;
+  chatInput.value = '';
+  const b = bubbleFor(getCursor(ME));
+  b.el.textContent = '';
+  b.el.classList.add('typing');
+  b.el.hidden = false;
+  b.until = Infinity;
+  chatInput.focus();
+}
+function endChat(send) {
+  if (!typing) return;
+  typing = false;
+  $('tl-dim').hidden = true;
+  const text = chatInput.value.trim();
+  chatInput.value = '';
+  chatInput.blur();
+  const b = bubbleFor(getCursor(ME));
+  b.el.classList.remove('typing');
+  b.el.hidden = true;
+  if (send && text) socket.emit('tlChat', { text });
+}
+chatInput.addEventListener('input', () => { bubbleFor(getCursor(ME)).el.textContent = chatInput.value; });
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); endChat(true); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); endChat(false); }
+});
+chatInput.addEventListener('blur', () => { if (typing) endChat(false); });
+window.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !isActive() || typing || drag) return;
+  const t = document.activeElement;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  e.preventDefault();
+  startChat();
+});
+socket.on('tlChat', ({ username, text }) => {
+  if (!tl.me) return;
+  const c = username === tl.me.username ? getCursor(ME) : (tl.players.some(p => p.username === username) ? getCursor(username) : null);
+  if (!c) return;
+  const b = bubbleFor(c);
+  b.el.classList.remove('typing');
+  b.el.textContent = text;
+  b.el.hidden = false;
+  b.until = performance.now() + Math.min(12000, 3500 + text.length * 70);
+});
 
 // ==================== SOCKET ====================
 socket.on('tlState', s => {
@@ -477,6 +547,7 @@ socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
 
 // ==================== CONTROLS ====================
 function leaveScreen() {
+  endChat(false);
   socket.emit('tlLeave');
   audio.pause();
   audio.removeAttribute('src');
@@ -498,7 +569,7 @@ window.addEventListener('pagehide', () => {
   try { socket.emit('tlLeave'); navigator.sendBeacon('/tierlist/leave', socket.id); } catch {}
 });
 $('tl-cancel-btn').addEventListener('click', () => {
-  if (isHost() && confirm('¿Resetear to\' toito? Se borra la tierlist para todos y se vuelve a buscar.')) socket.emit('tlReset');
+  if (isHost()) socket.emit('tlReset');
 });
 function load(source, id) {
   socket.emit('tlLoad', { source, id, append: !!tl.album });

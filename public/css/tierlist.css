@@ -173,6 +173,19 @@
 .tl-verdict.readonly .tl-verdict-row { pointer-events: none; }
 .tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 8px; font-size: 13px; }
 
+/* cursor chat: dim layer under the cursors, bubble hanging off the hand */
+.tl-dim { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, .62); }
+.tl-chat-input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+.tl-chat-bubble {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 5; will-change: transform;
+  max-width: 260px; padding: 6px 12px; background: #fff; color: #111; border-radius: 14px; border-top-left-radius: 3px;
+  font-size: 13px; font-weight: 600; line-height: 1.3; white-space: pre-wrap; word-break: break-word; box-shadow: 0 3px 10px #000;
+}
+.tl-chat-bubble::before { content: ''; position: absolute; left: -9px; top: 0; width: 10px; height: 10px; background: #fff; clip-path: polygon(100% 0, 100% 100%, 0 0); }
+.tl-chat-bubble.typing { min-width: 14px; min-height: 1.3em; }
+.tl-chat-bubble.typing::after { content: ''; display: inline-block; width: 2px; height: 1em; background: #111; margin-left: 2px; vertical-align: -2px; animation: tl-caret 1s steps(2) infinite; }
+@keyframes tl-caret { 50% { opacity: 0; } }
+
 /* cursors: native cursor hidden everywhere on the stage, everyone is a Wii hand overlay (same size for you and the others) */
 .tl-stage, .tl-stage * { cursor: none !important; }
 .tl-cursors { position: absolute; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; } /* above the veredicto panel */

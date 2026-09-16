@@ -58,6 +58,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlCursor', { x: 0.5, y: 0.25, drag: { id: 1, gx: 10, gy: 20, rot: -12.5 } }); const c = await once(b, 'tlCursor');
   assert.equal(c.username, 'REASON'); assert.equal(c.x, 0.5); assert.deepEqual(c.drag, { id: 1, gx: 10, gy: 20, rot: -12.5 });
 
+  console.log(" - cursor chat: trimmed, capped, empty ignored");
+  b.emit('tlChat', { text: '   hola   ' }); const [ch] = await Promise.all([once(a, 'tlChat'), once(b, 'tlChat')]);
+  assert.deepEqual(ch, { username: 'Mugi', text: 'hola' });
+  b.emit('tlChat', { text: '   ' }); await silence(a, 'tlChat');
+
   console.log(" - votes: both vote, b changes their mind, votes for a non-current song are ignored");
   b.emit('tlVote', { songId: 1, tier: 'S' }); const [v1] = await Promise.all([once(a, 'tlVotes'), once(b, 'tlVotes')]);
   assert.deepEqual(v1, { songId: 1, votes: { Mugi: 'S' } });

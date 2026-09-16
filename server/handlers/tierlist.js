@@ -357,6 +357,16 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     socket.to(ROOM).volatile.emit('tlCursor', { username: p.username, x: +pos.x || 0, y: +pos.y || 0, drag });
   });
 
+  // Cursor chat: short text shown in a bubble on the sender's hand
+  let lastChat = 0;
+  socket.on('tlChat', ({ text } = {}) => {
+    const p = lobby.players[socket.id];
+    const t = String(text || '').trim().slice(0, 120);
+    if (!p || !t || Date.now() - lastChat < 300) return;
+    lastChat = Date.now();
+    io.to(ROOM).emit('tlChat', { username: p.username, text: t });
+  });
+
   // Anyone votes the current song into a tier (until the host places it)
   socket.on('tlVote', ({ songId, tier } = {}) => {
     const p = lobby.players[socket.id];
