@@ -13,7 +13,7 @@ const silence = (s, ev, ms = 400) => new Promise((res, rej) => { const h = () =>
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  // the server ships the browser client bundle; it runs fine in Node 22+ with the websocket transport
+  console.log(" - the server ships the browser client bundle; it runs fine in Node 22+ with the websocket transport");
   const bundle = path.join(os.tmpdir(), 'sqrrr-socket.io.js');
   fs.writeFileSync(bundle, await (await fetch(URL + '/socket.io/socket.io.js')).text());
   const io = require(bundle);
@@ -32,7 +32,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   b.emit('tlSearch', { q: 'minecraft' }); await silence(b, 'tlSearchResults');           // non-host ignored
   a.emit('tlSearch', { q: 'minecraft' }); const res = await once(a, 'tlSearchResults');
   assert(res.results.some(r => r.source === 'kh' && r.slug === 'minecraft'), 'search or slug fallback failed (gated=' + res.gated + ')');
-  if (res.youtube) assert(res.results.some(r => r.source === 'yt' && /^[A-Za-z0-9_-]{11}$/.test(r.id)), 'no youtube results');
+  if (res.youtube) {
+    const yt = res.results.filter(r => r.source === 'yt');
+    assert(yt.length > 0, 'no youtube results');
+    assert(yt.every(r => r.id.length !== 11 && r.title), 'youtube results must be playlists, not videos: ' + JSON.stringify(yt.slice(0, 2)));
+  }
   else console.log('  (yt-dlp not installed locally: skipping YouTube checks)');
 
   a.emit('tlLoad', { source: 'kh', id: 'minecraft' });
@@ -54,7 +58,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   a.emit('tlCursor', { x: 0.5, y: 0.25, drag: { id: 1, gx: 10, gy: 20, rot: -12.5 } }); const c = await once(b, 'tlCursor');
   assert.equal(c.username, 'REASON'); assert.equal(c.x, 0.5); assert.deepEqual(c.drag, { id: 1, gx: 10, gy: 20, rot: -12.5 });
 
-  // votes: both vote, b changes their mind, votes for a non-current song are ignored
+  console.log(" - votes: both vote, b changes their mind, votes for a non-current song are ignored");
   b.emit('tlVote', { songId: 1, tier: 'S' }); const [v1] = await Promise.all([once(a, 'tlVotes'), once(b, 'tlVotes')]);
   assert.deepEqual(v1, { songId: 1, votes: { Mugi: 'S' } });
   a.emit('tlVote', { songId: 1, tier: 'A' }); const [v2] = await Promise.all([once(a, 'tlVotes'), once(b, 'tlVotes')]);
@@ -63,29 +67,29 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.deepEqual(v3.votes, { Mugi: 'B', REASON: 'A' });
   b.emit('tlVote', { songId: 2, tier: 'S' }); await silence(b, 'tlVotes');
 
-  // veredicto panel: non-host can't open it for others, host can
+  console.log(" - veredicto panel: non-host can't open it for others, host can");
   b.emit('tlVerdictOpen'); await silence(a, 'tlVerdictOpen');
   a.emit('tlVerdictOpen'); const [vo] = await Promise.all([once(a, 'tlVerdictOpen'), once(b, 'tlVerdictOpen')]);
   assert.deepEqual(vo, { songId: 1 });
 
-  // verdict: non-host ignored, host places it; then votes on a placed song are ignored
+  console.log(" - verdict: non-host ignored, host places it; then votes on a placed song are ignored");
   b.emit('tlVerdict', { songId: 1, tier: 'S' }); await silence(b, 'tlTiers');
   a.emit('tlVerdict', { songId: 1, tier: 'A' }); const [t1] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   assert.deepEqual(t1.tiers.A, [1]); assert.equal(t1.placed, 1);
   b.emit('tlVote', { songId: 1, tier: 'S' }); await silence(b, 'tlVotes');
 
-  // host moves it to S at index 0 in front of another placed song
+  console.log(" - host moves it to S at index 0 in front of another placed song");
   a.emit('tlVerdict', { songId: 5, tier: 'S' }); await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   a.emit('tlVerdict', { songId: 1, tier: 'S', index: 0 }); const [t2] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   assert.deepEqual(t2.tiers.S, [1, 5]); assert.deepEqual(t2.tiers.A, []);
 
-  // trash
+  console.log(" - trash");
   a.emit('tlTrash', { songId: 5 }); const [t3] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   assert.deepEqual(t3.tiers.S, [1]); assert.deepEqual(t3.trashed, [5]); assert.equal(t3.placed, null);
 
-  // YouTube: append one video to the list, play it through the proxy
+  console.log(" - YouTube: append one video to the list, play it through the proxy");
   if (res.youtube) {
-    a.emit('tlLoad', { source: 'yt', id: 'aBkTkxKDduc', append: true });
+    a.emit('tlLoad', { source: 'yturl', id: 'https://www.youtube.com/watch?v=aBkTkxKDduc', append: true });
     const [, sy] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
     assert.equal(sy.songs.length, 55); assert.equal(sy.songs[54].source, 'yt'); assert.equal(sy.songs[54].num, 55); assert(sy.album.title.endsWith(' +'));
     assert.deepEqual(sy.tiers.S, [1]);                                           // appending keeps the board
@@ -95,9 +99,21 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     const pr = await fetch(URL + '/tierlist/audio?u=' + encodeURIComponent(py.mp3), { headers: { range: 'bytes=0-99' } });
     assert.equal(pr.status, 206); assert(/audio\//.test(pr.headers.get('content-type')), pr.headers.get('content-type'));
     await pr.arrayBuffer();
+    console.log(" - a playlist tile loads the whole playlist (replace mode)");
+    const pl = res.results.find(r => r.source === 'yt');
+    a.emit('tlLoad', { source: 'yt', id: pl.id });
+    const [, sp] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+    assert(sp.songs.length > 1 && sp.songs.every(s => s.source === 'yt'), 'playlist load failed'); assert.equal(sp.album.title, pl.title);
+    console.log(" - back to the khinsider album and rebuild the state the later checks expect (votes on 1, 1 placed in S, 5 trashed)");
+    a.emit('tlLoad', { source: 'kh', id: 'minecraft' }); await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+    a.emit('tlSelect', { songId: 1 }); await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
+    b.emit('tlVote', { songId: 1, tier: 'B' }); await Promise.all([once(a, 'tlVotes'), once(b, 'tlVotes')]);
+    a.emit('tlVote', { songId: 1, tier: 'A' }); await Promise.all([once(a, 'tlVotes'), once(b, 'tlVotes')]);
+    a.emit('tlVerdict', { songId: 1, tier: 'S' }); await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
+    a.emit('tlTrash', { songId: 5 }); await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);
   }
 
-  // trashing the playing song stops playback; restore brings it back to the list
+  console.log(" - trashing the playing song stops playback; restore brings it back to the list");
   a.emit('tlSelect', { songId: 2 }); await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
   a.emit('tlTrash', { songId: 2 });
   const [t4, p4] = await Promise.all([once(b, 'tlTiers'), once(b, 'tlPlayback')]);
@@ -107,21 +123,21 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.deepEqual(t5.trashed, [5]);
   a.emit('tlSelect', { songId: 1 }); await Promise.all([once(a, 'tlPlayback'), once(b, 'tlPlayback')]);
 
-  // late joiner gets the full picture
+  console.log(" - late joiner gets the full picture");
   const cc = connect(); await once(cc, 'connect'); await login(cc, 'Jesus');
   cc.emit('tlJoin'); const [s3] = await Promise.all([once(cc, 'tlState'), once(b, 'tlPlayers')]);
   assert.equal(s3.currentId, 1); assert.deepEqual(s3.tiers.S, [1]); assert.deepEqual(s3.trashed, [5]); assert.deepEqual(s3.votes[1], { Mugi: 'B', REASON: 'A' });
 
-  // closing the tab: the beacon endpoint removes the player right away
+  console.log(" - closing the tab: the beacon endpoint removes the player right away");
   const [plc] = await Promise.all([once(b, 'tlPlayers'), fetch(URL + '/tierlist/leave', { method: 'POST', body: cc.id, headers: { 'content-type': 'text/plain' } })]);
   assert(!plc.players.some(p => p.username === 'Jesus')); assert.equal(plc.players.length, 2);
 
-  // Cancelar: non-host ignored, host clears everything for everyone
+  console.log(" - Cancelar: non-host ignored, host clears everything for everyone");
   b.emit('tlReset'); await silence(b, 'tlState');
   a.emit('tlReset'); const [, sr] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
   assert.equal(sr.album, null); assert.equal(sr.songs.length, 0); assert.equal(sr.currentId, null); assert.equal(sr.host, 'REASON');
 
-  // host leaves -> next player hosts; everyone leaves -> lobby resets
+  console.log(" - host leaves -> next player hosts; everyone leaves -> lobby resets");
   a.emit('tlLeave'); const pl = await once(b, 'tlPlayers');
   assert.equal(pl.host, 'Mugi');
   b.emit('tlLeave'); await wait(150);

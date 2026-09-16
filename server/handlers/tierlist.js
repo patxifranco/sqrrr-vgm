@@ -79,7 +79,7 @@ function unplace(id) {
 const cache = { search: new Map(), album: new Map() };
 
 async function getHtml(url) {
-  const res = await fetch(url, FETCH_OPTS);
+  const res = await fetch(url, { ...FETCH_OPTS, signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`khinsider ${res.status} for ${url}`);
   return res.text();
 }
@@ -167,12 +167,17 @@ function ytdlp(args, timeout = 45000) {
   });
 }
 
+// playlists only (YouTube's "type: playlist" search filter); a tile loads the whole playlist
+const YT_PL_ID = /^[A-Za-z0-9_-]{10,80}$/;
 async function ytSearch(q) {
   if (!ytAvailable()) return [];
   const key = 'yt:' + q.toLowerCase();
   if (cache.search.has(key)) return cache.search.get(key);
-  const j = JSON.parse(await ytdlp([`ytsearch12:${q}`, '--flat-playlist', '-J']));
-  const out = (j.entries || []).filter(e => e && e.id && YT_ID.test(e.id)).map(ytEntry);
+  const j = JSON.parse(await ytdlp([`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAw%253D%253D`, '--flat-playlist', '-J', '--playlist-end', '12']));
+  const out = (j.entries || []).filter(e => e && e.id && YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({
+    source: 'yt', id: e.id, title: e.title || e.id, channel: e.channel || e.uploader || '',
+    thumb: ((e.thumbnails || []).slice(-1)[0] || {}).url || null
+  }));
   cache.search.set(key, out);
   return out;
 }
@@ -299,9 +304,9 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
         title = a.title;
         songs = a.songs.map(s => ({ ...s, source: 'kh' }));
       } else if (source === 'yt' || source === 'yturl') {
-        if (source === 'yt' ? !YT_ID.test(id) : !YT_URL.test(id)) return;
+        if (source === 'yt' ? !YT_PL_ID.test(id) : !YT_URL.test(id)) return;
         if (!ytAvailable()) return fail('YouTube no está disponible en el servidor');
-        const l = await ytList(source === 'yt' ? `https://www.youtube.com/watch?v=${id}` : id);
+        const l = await ytList(source === 'yt' ? `https://www.youtube.com/playlist?list=${id}` : id);
         title = l.title;
         songs = l.entries.map((e, i) => ({ id: i, name: e.title, disc: 1, num: i + 1, duration: e.duration, ytId: e.id, cover: e.thumb, mp3: null, source: 'yt' }));
       } else return;

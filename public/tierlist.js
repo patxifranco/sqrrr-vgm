@@ -128,7 +128,7 @@ function renderResults({ results, gated }) {
     : 'Nada por aquí';
   $('tl-search-results').innerHTML = results.length ? results.map(r => {
     const id = r.source === 'yt' ? r.id : r.slug;
-    const meta = r.source === 'yt' ? [r.channel, r.duration] : [r.type, r.year];
+    const meta = r.source === 'yt' ? ['Playlist', r.channel] : [r.type, r.year];
     return `<div class="tl-result" data-source="${r.source}" data-id="${esc(id)}" title="${esc(r.title)}${r.platform ? ' · ' + esc(r.platform) : ''}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><span class="tl-result-src ${r.source}" title="${r.source === 'yt' ? 'YouTube' : 'khinsider'}">${SRC_ICON[r.source]}</span><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta">${meta.filter(Boolean).map(esc).join(' · ')}</div></div>`;
   }).join('') : `<div class="tl-empty">${empty}</div>`;
 }
