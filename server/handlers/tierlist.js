@@ -189,17 +189,54 @@ function mapLimit(items, limit, fn) { // run fn over items with at most `limit` 
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } });
   return Promise.all(workers).then(() => out);
 }
+// Fast path: YouTube's own results page embeds ytInitialData with every playlist's video count, so one plain fetch
+// (with a consent cookie, YouTube shows EU addresses a consent page otherwise) replaces a dozen yt-dlp calls.
+async function ytSearchPage(q) {
+  const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAw%253D%253D&hl=en`, {
+    headers: { 'User-Agent': BROWSER_UA, 'Accept-Language': 'en-US,en;q=0.9', cookie: 'SOCS=CAI; CONSENT=YES+cb' },
+    signal: AbortSignal.timeout(15000)
+  });
+  const m = (await r.text()).match(/ytInitialData\s*=\s*(\{.*?\});\s*<\/script>/s);
+  if (!m) throw new Error('no ytInitialData');
+  const out = [];
+  const walk = o => {
+    if (!o || typeof o !== 'object') return;
+    if (Array.isArray(o)) return o.forEach(walk);
+    if (o.playlistRenderer) { // older layout
+      const p = o.playlistRenderer;
+      out.push({ id: p.playlistId, title: p.title.simpleText || (p.title.runs || []).map(x => x.text).join(''), count: Number(p.videoCount) || 0,
+        channel: (((p.shortBylineText || {}).runs || [])[0] || {}).text || '', thumb: ((((p.thumbnails || [])[0] || {}).thumbnails || []).slice(-1)[0] || {}).url || null });
+    } else if (o.lockupViewModel && o.lockupViewModel.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') { // current layout
+      const l = o.lockupViewModel, s = JSON.stringify(l);
+      out.push({ id: l.contentId, title: ((((l.metadata || {}).lockupMetadataViewModel || {}).title || {}).content) || l.contentId,
+        count: Number(((s.match(/"text":"(\d[\d,]*) (?:videos?|episodes?)"/) || [])[1] || '').replace(/,/g, '')) || 0,
+        channel: (s.match(/"metadataParts":\[\{"text":\{"content":"([^"]+)"/) || [])[1] || '',
+        thumb: (s.match(/"url":"(https:\/\/i\.ytimg\.com\/[^"]+)"/) || [])[1] || null });
+    }
+    for (const v of Object.values(o)) walk(v);
+  };
+  walk(JSON.parse(m[1]));
+  return out;
+}
+
 async function ytSearch(q) {
   if (!ytAvailable()) return [];
   const key = 'yt:' + q.toLowerCase();
   if (cache.search.has(key)) return cache.search.get(key);
-  const j = JSON.parse(await ytdlp([`https://www.youtube.com/results?search_query=${encodeURIComponent(q + ' music')}&sp=EgIQAw%253D%253D`, '--flat-playlist', '-J', '--playlist-end', '14']));
-  const cands = (j.entries || []).filter(e => e && e.id && YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({
-    source: 'yt', id: e.id, title: e.title || e.id, channel: e.channel || e.uploader || '',
-    thumb: ((e.thumbnails || []).slice(-1)[0] || {}).url || null
-  }));
-  const counts = await mapLimit(cands, 6, c => ytPlaylistCount(c.id));
-  const out = cands.map((c, i) => ({ ...c, count: counts[i] })).filter(c => c.count > 1).slice(0, 12);
+  const query = q + ' music';
+  let cands;
+  try {
+    cands = (await ytSearchPage(query)).filter(e => YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({ source: 'yt', ...e }));
+  } catch (e) { // page layout changed or blocked: slow path through yt-dlp + per-playlist counts
+    warn('TIERLIST', 'youtube page search failed, using yt-dlp', e.message);
+    const j = JSON.parse(await ytdlp([`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAw%253D%253D`, '--flat-playlist', '-J', '--playlist-end', '14']));
+    cands = (j.entries || []).filter(e => e && e.id && YT_PL_ID.test(e.id) && !YT_ID.test(e.id)).map(e => ({
+      source: 'yt', id: e.id, title: e.title || e.id, channel: e.channel || e.uploader || '', thumb: ((e.thumbnails || []).slice(-1)[0] || {}).url || null
+    }));
+    const counts = await mapLimit(cands, 6, c => ytPlaylistCount(c.id));
+    cands = cands.map((c, i) => ({ ...c, count: counts[i] }));
+  }
+  const out = cands.filter(c => c.count > 1).slice(0, 12); // no single-video "playlists" (one long compilation)
   cache.search.set(key, out);
   return out;
 }
