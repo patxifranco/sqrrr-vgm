@@ -85,10 +85,15 @@
 }
 .tl-now { flex: 1; min-width: 120px; text-align: center; color: var(--glow); font-size: 18px; text-shadow: 0 0 6px rgba(53, 180, 255, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* remote cursors */
+/* cursors: native cursor hidden everywhere on the stage, everyone is a Wii hand overlay (same size for you and the others) */
+.tl-stage, .tl-stage * { cursor: none !important; }
 .tl-cursors { position: absolute; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
-.tl-cursor { position: absolute; left: 0; top: 0; height: 64px; margin: -2px 0 0 -12px; transition: transform 45ms linear; will-change: transform; filter: drop-shadow(0 2px 3px #000); }
+.tl-cursor {
+  position: absolute; left: 0; top: 0; height: var(--tl-cursor-h, 44px); margin: -1px 0 0 -9px; /* fingertip is the hotspot */
+  transition: transform 45ms linear; will-change: transform; filter: drop-shadow(0 2px 3px #000);
+}
+.tl-cursor.me { transition: none; z-index: 1; }
 .tl-cursor-fallback {
-  width: 32px; height: 32px; border-radius: 50%; margin: -16px 0 0 -16px; background: var(--c); color: #fff; font-weight: 700;
+  width: 28px; height: 28px; border-radius: 50%; margin: -14px 0 0 -14px; background: var(--c); color: #fff; font-weight: 700; font-size: 13px;
   display: flex; align-items: center; justify-content: center; border: 2px solid #fff;
 }
