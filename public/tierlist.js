@@ -216,9 +216,10 @@ function pingCard(id, color) {
     const ring = document.createElement('span');
     ring.className = 'tl-ping';
     ring.style.setProperty('--c', color);
+    card.style.setProperty('--c', color); // the card's own outline uses it too
     card.appendChild(ring);
     card.classList.add('pinged');
-    setTimeout(() => { ring.remove(); card.classList.remove('pinged'); }, 1600);
+    setTimeout(() => { ring.remove(); card.classList.remove('pinged'); card.style.removeProperty('--c'); }, 1600);
   });
 }
 
@@ -243,6 +244,24 @@ function ensureAudioGraph() {
     freq = new Uint8Array(analyser.frequencyBinCount);
   } catch (e) { actx = null; analyser = null; }
 }
+
+// ==================== SFX ====================
+// ponytail: Web Audio buffers (not <audio>) so pickup/drop can be pitch-shifted through playbackRate. Fetched once, on first use or preload.
+const SFX_NAMES = ['mensaje', 'pickup', 'drop', 'ping', 'select'];
+const sfxBufs = {};
+const sfxLoad = name => sfxBufs[name] || (sfxBufs[name] = fetch(`tierlist/audio/${name}.wav`).then(r => r.arrayBuffer()).then(b => actx.decodeAudioData(b)).catch(() => { delete sfxBufs[name]; }));
+function sfx(name, { rate = 1, volume = 0.7 } = {}) {
+  if (!actx) return;
+  sfxLoad(name).then(buf => {
+    if (!buf) return;
+    const src = actx.createBufferSource(), gain = actx.createGain();
+    src.buffer = buf; src.playbackRate.value = rate; gain.gain.value = volume;
+    src.connect(gain).connect(actx.destination);
+    src.start();
+  });
+}
+const wobble = () => 0.85 + Math.random() * 0.3; // random pitch (stretch / shrink) for pickup and drop
+const pingSoundAt = {}; // username -> last time their ping made a sound (1.5 s cooldown each)
 
 function stopAudio() {
   audio.pause(); audio.removeAttribute('src');
@@ -362,6 +381,7 @@ function setRemoteGhost(c, d) {
     if (c.ghost) c.ghost.el.remove();
     c.ghost = { id: d.id, el: ghostEl(tl.songs[d.id]), gx: d.gx, gy: d.gy, rot: d.rot, rotTarget: d.rot };
     c.ghost.el.style.transformOrigin = `${d.gx}px ${d.gy}px`;
+    sfx('pickup', { rate: wobble() });
   }
   c.ghost.gx = d.gx; c.ghost.gy = d.gy; c.ghost.rotTarget = d.rot;
 }
@@ -398,6 +418,7 @@ function startDrag(e, card, mode) {
     px: p.x, py: p.y, prevPx: p.x, vx: 0, startX: p.x, startY: p.y, moved: false, lastT: performance.now(), el: ghostEl(tl.songs[id]) };
   drag.el.style.transformOrigin = `${gx}px ${gy}px`;
   card.classList.add('dragging');
+  sfx('pickup', { rate: wobble() });
 }
 
 function stepDrag(now) {
@@ -591,6 +612,7 @@ socket.on('tlChat', ({ username, text }) => {
   if (!tl.me) return;
   const c = username === tl.me.username ? getCursor(ME) : (tl.players.some(p => p.username === username) ? getCursor(username) : null);
   if (!c) return;
+  sfx('mensaje');
   const b = bubbleFor(c);
   b.el.classList.remove('typing');
   b.el.textContent = text;
@@ -623,19 +645,26 @@ socket.on('tlPlayers', ({ players, host }) => {
 socket.on('tlSearchResults', renderResults);
 socket.on('tlSearching', () => { if (!isHost()) $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>'; });
 socket.on('tlTyping', ({ q }) => { if (!isHost()) $('tl-search-input').value = q; });
-socket.on('tlPlayback', d => { setLoading(false); applyPlayback(d); });
-socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) renderVotes(); });
+socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select'); applyPlayback(d); });
+socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) { renderVotes(); sfx('drop', { rate: wobble() }); } });
 socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
   renderBoard();
   if (placed !== null && placed !== undefined) {
     const card = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${placed}"]`);
     if (card) card.classList.add('pop');
+    sfx('drop', { rate: wobble() });
     if (placed === tl.currentId) $('tl-verdict').hidden = true;
   }
 });
 socket.on('tlVerdictOpen', openVerdict);
-socket.on('tlPing', ({ username, songId }) => pingCard(songId, colorOf(username)));
+socket.on('tlPing', ({ username, songId }) => {
+  pingCard(songId, colorOf(username));
+  const now = Date.now();
+  if (now - (pingSoundAt[username] || 0) < 1500) return;
+  pingSoundAt[username] = now;
+  sfx('ping');
+});
 socket.on('tlSaved', ({ list }) => { if (!list) return; tl.view = list; $('tl-verdict').hidden = true; stopAudio(); renderBoard(); });
 socket.on('tlError', ({ message }) => { setLoading(false); $('tl-now').textContent = message; });
 socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
@@ -661,6 +690,7 @@ $('tierlist-btn').addEventListener('click', () => {
   tl.me = window.currentUser;
   if (!tl.me) return;
   ensureAudioGraph(); // inside the click so the AudioContext is allowed to start
+  if (actx) SFX_NAMES.forEach(sfxLoad);
   socket.emit('tlJoin');
   show('tierlist-screen');
   fitStage();
