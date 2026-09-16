@@ -7,7 +7,7 @@ const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const TIER_COLORS = { S: '#ff7f7f', A: '#ffbf7f', B: '#ffdf7f', C: '#ffff7f', D: '#bfff7f', F: '#7fff7f' };
 const ME = Symbol('me'); // key for your own cursor in the cursors map
 
-const tl = { me: null, mode: 'music', players: [], colors: {}, host: null, album: null, songs: [], tiers: {}, trashed: [], votes: {}, currentId: null, playback: null, offset: 0 };
+const tl = { me: null, mode: null, players: [], colors: {}, host: null, album: null, songs: [], tiers: {}, trashed: [], votes: {}, currentId: null, playback: null, offset: 0 };
 const SRC_ICON = {
   kh: '<svg class="tl-ico" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
   yt: '<svg class="tl-ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>',
@@ -50,9 +50,12 @@ function renderPlayers() {
   $('tl-stage').classList.toggle('is-host', isHost());
   const input = $('tl-search-input');
   input.disabled = !isHost();
-  input.placeholder = isHost() ? PLACEHOLDER[tl.mode] : `Esperando a que ${tl.host || 'el host'} elija algo`;
-  document.querySelectorAll('.tl-mode').forEach(b => { b.disabled = !isHost(); b.classList.toggle('active', b.dataset.mode === tl.mode); });
+  input.placeholder = isHost() ? (PLACEHOLDER[tl.mode] || '') : `Esperando a que ${tl.host || 'el host'} elija algo`;
+  document.querySelectorAll('.tl-pick-box').forEach(b => { b.disabled = !isHost(); });
+  $('tl-pick-hint').textContent = isHost() ? 'Elige qué vamos a puntuar' : `${tl.host || 'El host'} elige el modo`;
   $('tl-stage').classList.toggle('mode-general', tl.mode === 'general');
+  $('tl-stage').classList.toggle('mode-none', !tl.mode);
+  $('tl-stage').classList.toggle('has-list', !!tl.album);
   for (const u of Object.keys(cursors)) {
     if (!tl.players.some(p => p.username === u)) removeCursor(u);
   }
@@ -65,7 +68,8 @@ function cardHtml(s) {
 
 function renderBoard() {
   const hasAlbum = !!tl.album;
-  $('tl-search').hidden = hasAlbum;
+  $('tl-pick').hidden = !!tl.mode;          // first screen: pick Música / General
+  $('tl-search').hidden = !tl.mode || hasAlbum;
   $('tl-board').hidden = !hasAlbum;
   $('tl-album-title').textContent = hasAlbum ? tl.album.title : '';
   if (!hasAlbum) { $('tl-search-results').innerHTML = ''; return; }
@@ -529,7 +533,7 @@ socket.on('tlChat', ({ username, text }) => {
 socket.on('tlLoading', ({ on }) => setLoading(!!on));
 socket.on('tlState', s => {
   setLoading(false);
-  Object.assign(tl, { mode: s.mode || 'music', players: s.players, host: s.host, album: s.album, songs: s.songs, tiers: s.tiers, trashed: s.trashed || [], votes: s.votes });
+  Object.assign(tl, { mode: s.mode || null, players: s.players, host: s.host, album: s.album, songs: s.songs, tiers: s.tiers, trashed: s.trashed || [], votes: s.votes });
   tl.offset = s.serverNow - Date.now();
   $('tl-verdict').hidden = true;
   renderPlayers();
@@ -615,7 +619,8 @@ $('tl-search-input').addEventListener('input', e => { // mirror the host's typin
   if (!isHost() || typingTimer) return;
   typingTimer = setTimeout(() => { typingTimer = null; socket.emit('tlTyping', { q: e.target.value }); }, 80);
 });
-document.querySelectorAll('.tl-mode').forEach(b => b.addEventListener('click', () => { if (isHost()) socket.emit('tlMode', { mode: b.dataset.mode }); }));
+document.querySelectorAll('.tl-pick-box').forEach(b => b.addEventListener('click', () => { if (isHost()) socket.emit('tlMode', { mode: b.dataset.mode }); }));
+$('tl-search-back').addEventListener('click', () => { if (isHost()) socket.emit('tlMode', { mode: null }); }); // everyone back to the picker
 $('tl-search-go').addEventListener('click', search);
 $('tl-search-results').addEventListener('click', e => {
   const r = e.target.closest('.tl-result');

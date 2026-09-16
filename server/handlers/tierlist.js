@@ -53,7 +53,7 @@ const emptyTiers = () => Object.fromEntries(TIERS.map(t => [t, []]));
 
 const MODES = ['music', 'general'];
 const lobby = {
-  mode: 'music', // 'music' (khinsider + YouTube, synced player) | 'general' (tiermaker templates, no player)
+  mode: null,    // null = mode picker | 'music' (khinsider + YouTube, synced player) | 'general' (tiermaker templates, no player)
   players: {},   // socketId -> { username, color, profilePicture }
   host: null,    // socketId
   album: null,   // { slug, title, covers }
@@ -67,7 +67,7 @@ const lobby = {
 
 function reset() {
   Object.assign(lobby, {
-    host: null, mode: 'music', album: null, songs: [], currentId: null,
+    host: null, mode: null, album: null, songs: [], currentId: null,
     playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {}
   });
 }
@@ -388,9 +388,9 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', 'reset by host');
   });
 
-  // Host picks the lobby mode; switching clears the list for everyone
+  // Host picks the lobby mode (null = back to the picker); switching clears the list for everyone
   socket.on('tlMode', ({ mode } = {}) => {
-    if (!isHost() || !MODES.includes(mode) || mode === lobby.mode) return;
+    if (!isHost() || (mode !== null && !MODES.includes(mode)) || mode === lobby.mode) return;
     Object.assign(lobby, { mode, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: Date.now() }, tiers: emptyTiers(), trashed: [], votes: {} });
     io.to(ROOM).emit('tlState', publicState());
     log('TIERLIST', `mode -> ${mode}`);
@@ -403,7 +403,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   });
 
   socket.on('tlSearch', async ({ q } = {}) => {
-    if (!isHost() || !q || !q.trim()) return;
+    if (!isHost() || !lobby.mode || !q || !q.trim()) return;
     io.to(ROOM).emit('tlSearching', { q });
     if (lobby.mode === 'general') {
       try { io.to(ROOM).emit('tlSearchResults', { q, results: await tmSearch(q.trim()), gated: false }); }
@@ -418,7 +418,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   });
 
   socket.on('tlLoad', async ({ source, id } = {}) => {
-    if (!isHost() || typeof id !== 'string') return;
+    if (!isHost() || !lobby.mode || typeof id !== 'string') return;
     io.to(ROOM).emit('tlLoading', { on: true });
     try {
       let title, songs;

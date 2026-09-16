@@ -25,7 +25,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await login(a, 'REASON'); await login(b, 'Mugi');
 
   a.emit('tlJoin'); const sa = await once(a, 'tlState');
-  assert.equal(sa.host, 'REASON'); assert.equal(sa.players[0].color, '#a01830'); assert.equal(sa.album, null);
+  assert.equal(sa.host, 'REASON'); assert.equal(sa.players[0].color, '#a01830'); assert.equal(sa.album, null); assert.equal(sa.mode, null);
   b.emit('tlJoin'); const [sb] = await Promise.all([once(b, 'tlState'), once(a, 'tlPlayers')]);
   assert.equal(sb.host, 'REASON'); assert.equal(sb.players.length, 2);
 
@@ -44,6 +44,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(pg.currentId, 0); assert.equal(pg.mp3, null); assert(!pg.playback.playing);
   a.emit('tlTyping', { q: 'mine' }); const ty = await once(b, 'tlTyping'); assert.equal(ty.q, 'mine');
   b.emit('tlTyping', { q: 'nope' }); await silence(a, 'tlTyping');
+  console.log(" - back arrow: everyone returns to the mode picker; nothing searchable without a mode");
+  a.emit('tlMode', { mode: null }); const [, sn] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
+  assert.equal(sn.mode, null); assert.equal(sn.album, null);
+  a.emit('tlSearch', { q: 'minecraft' }); await silence(a, 'tlSearching');
   a.emit('tlMode', { mode: 'music' }); const [, sm] = await Promise.all([once(a, 'tlState'), once(b, 'tlState')]);
   assert.equal(sm.mode, 'music'); assert.equal(sm.album, null);
 
