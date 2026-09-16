@@ -215,6 +215,12 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     log('TIERLIST', `${lobby.songs[songId].name} -> ${tier}`);
   });
 
+  // Host opens the veredicto panel on every screen (also fired automatically when the song ends)
+  socket.on('tlVerdictOpen', () => {
+    if (!isHost() || lobby.currentId === null || isPlaced(lobby.currentId)) return;
+    io.to(ROOM).emit('tlVerdictOpen', { songId: lobby.currentId });
+  });
+
   socket.on('tlTrash', ({ songId } = {}) => {
     if (!isHost() || !lobby.songs[songId]) return;
     unplace(songId);

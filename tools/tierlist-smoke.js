@@ -57,6 +57,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   assert.deepEqual(v3.votes, { Mugi: 'B', REASON: 'A' });
   b.emit('tlVote', { songId: 2, tier: 'S' }); await silence(b, 'tlVotes');
 
+  // veredicto panel: non-host can't open it for others, host can
+  b.emit('tlVerdictOpen'); await silence(a, 'tlVerdictOpen');
+  a.emit('tlVerdictOpen'); const [vo] = await Promise.all([once(a, 'tlVerdictOpen'), once(b, 'tlVerdictOpen')]);
+  assert.deepEqual(vo, { songId: 1 });
+
   // verdict: non-host ignored, host places it; then votes on a placed song are ignored
   b.emit('tlVerdict', { songId: 1, tier: 'S' }); await silence(b, 'tlTiers');
   a.emit('tlVerdict', { songId: 1, tier: 'A' }); const [t1] = await Promise.all([once(a, 'tlTiers'), once(b, 'tlTiers')]);

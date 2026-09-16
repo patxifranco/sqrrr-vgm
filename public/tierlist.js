@@ -65,21 +65,35 @@ function renderBoard() {
 }
 
 function renderCurrent() {
-  document.querySelectorAll('.tl-card').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.currentId));
+  document.querySelectorAll('.tl-card:not(.tl-vote)').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.currentId));
   const s = tl.songs[tl.currentId];
   $('tl-now').textContent = s ? `${s.num}. ${s.name}` : (tl.album ? (isHost() ? 'Elige una cancion' : 'Esperando al host…') : '');
   $('tl-play').disabled = !isHost() || !s;
   $('tl-next').disabled = !isHost() || !tl.album;
   $('tl-seek').disabled = !isHost() || !s;
-  $('tl-verdict-btn').disabled = !isHost() || !s || isPlaced(s.id);
+  $('tl-verdict-btn').disabled = !s || isPlaced(s.id);
   $('tl-play').textContent = tl.playback && tl.playback.playing ? '❚❚' : '▶';
 }
 
 const token = u => `<span class="tl-token" style="--c:${colorOf(u)}" title="${esc(u)}">${esc(u[0].toUpperCase())}</span>`;
 const votesFor = (id, tier) => Object.entries(tl.votes[id] || {}).filter(([, t]) => t === tier).map(([u]) => u);
 
+const voteCardHtml = (u, s) => `<div class="tl-card tl-vote" data-id="${s.id}" data-user="${esc(u)}" style="--c:${colorOf(u)};background-image:url('${esc(s.cover || '')}')"><span class="tl-vote-badge">${esc(u[0].toUpperCase())}</span></div>`;
+
 function renderVotes() {
-  for (const t of TIERS) $(`tl-votes-${t}`).innerHTML = tl.currentId === null ? '' : votesFor(tl.currentId, t).map(token).join('');
+  document.querySelectorAll('.tl-drop .tl-vote').forEach(el => el.remove());
+  if (tl.currentId === null || isPlaced(tl.currentId)) return;
+  const song = tl.songs[tl.currentId];
+  for (const t of TIERS) $(`tl-drop-${t}`).insertAdjacentHTML('beforeend', votesFor(tl.currentId, t).map(u => voteCardHtml(u, song)).join(''));
+  if (!$('tl-verdict').hidden) renderVerdict();
+}
+
+function openVerdict() {
+  if (tl.currentId === null || isPlaced(tl.currentId)) return;
+  renderVerdict();
+  $('tl-verdict').classList.toggle('readonly', !isHost());
+  $('tl-verdict-hint').textContent = isHost() ? 'Elige donde va' : `Esperando el veredicto de ${tl.host}…`;
+  $('tl-verdict').hidden = false;
 }
 
 function renderResults({ results }) {
@@ -107,6 +121,7 @@ function expectedTime() {
 
 function applyPlayback({ currentId, mp3, playback, serverNow }) {
   tl.offset = serverNow - Date.now();
+  if (currentId !== tl.currentId) $('tl-verdict').hidden = true;
   tl.currentId = currentId;
   tl.playback = playback;
   if (mp3 && audio.src !== mp3) audio.src = mp3;
@@ -128,7 +143,11 @@ audio.addEventListener('timeupdate', () => {
   $('tl-dur').textContent = fmt(audio.duration);
   if (!seekDragging) $('tl-seek').value = audio.duration ? Math.round(audio.currentTime / audio.duration * 1000) : 0;
 });
-audio.addEventListener('ended', () => { if (isHost()) socket.emit('tlPlayback', { playing: false, position: audio.duration || 0 }); });
+audio.addEventListener('ended', () => {
+  if (!isHost()) return;
+  socket.emit('tlPlayback', { playing: false, position: audio.duration || 0 });
+  socket.emit('tlVerdictOpen');
+});
 
 // ==================== CURSORS ====================
 // The native cursor is hidden on the stage (see CSS); everyone, including you, is a Wii hand overlay.
@@ -248,8 +267,15 @@ $('tl-board').addEventListener('pointerdown', e => {
   if (!card) return;
   const id = +card.dataset.id;
   const inTray = !!card.closest('#tl-tray');
-  const mode = inTray && id === tl.currentId && !isPlaced(id) ? 'vote' : (!inTray && isHost() ? 'move' : null);
-  if (!mode) return;
+  const isVote = card.classList.contains('tl-vote');
+  let mode = null;
+  if (isVote) mode = card.dataset.user === tl.me.username ? 'vote' : null;
+  else if (inTray) mode = id === tl.currentId && !isPlaced(id) ? 'vote' : null;
+  else mode = isHost() ? 'move' : null;
+  if (!mode) {
+    if (inTray && tl.currentId !== null) hint(card, 'Solo se vota la que suena', 1200);
+    return;
+  }
   e.preventDefault();
   startDrag(e, card, mode);
 });
@@ -280,7 +306,7 @@ window.addEventListener('pointerup', e => {
     const tier = row.dataset.tier;
     if (d.mode === 'vote') socket.emit('tlVote', { songId: d.id, tier });
     else {
-      const index = [...row.querySelectorAll('.tl-drop .tl-card')].filter(c => +c.dataset.id !== d.id && c.getBoundingClientRect().left + c.offsetWidth / 2 < e.clientX).length;
+      const index = [...row.querySelectorAll('.tl-drop .tl-card:not(.tl-vote)')].filter(c => +c.dataset.id !== d.id && c.getBoundingClientRect().left + c.offsetWidth / 2 < e.clientX).length;
       socket.emit('tlVerdict', { songId: d.id, tier, index });
     }
   } else if (trash && d.mode === 'move') {
@@ -293,8 +319,8 @@ function tick(now) {
   if (isActive()) {
     for (const c of Object.getOwnPropertySymbols(cursors).concat(Object.keys(cursors)).map(k => cursors[k])) {
       if (c.key !== ME) { c.x += (c.tx - c.x) * 0.4; c.y += (c.ty - c.y) * 0.4; }
-      c.tilt += (c.tiltTarget - c.tilt) * 0.25;
-      c.tiltTarget *= 0.8;
+      c.tilt += (c.tiltTarget - c.tilt) * 0.2;
+      c.tiltTarget *= 0.94; // ponytail: tilt decay per frame; lower = snappier return
       c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
       if (c.ghost) {
         c.ghost.rot += (c.ghost.rotTarget - c.ghost.rot) * 0.5;
@@ -329,10 +355,12 @@ socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
   renderBoard();
   if (placed !== null && placed !== undefined) {
-    const card = document.querySelector(`.tl-drop .tl-card[data-id="${placed}"]`);
+    const card = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${placed}"]`);
     if (card) card.classList.add('pop');
+    if (placed === tl.currentId) $('tl-verdict').hidden = true;
   }
 });
+socket.on('tlVerdictOpen', openVerdict);
 socket.on('tlError', ({ message }) => { $('tl-now').textContent = message; });
 socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
   if (!tl.me || username === tl.me.username) return;
@@ -369,7 +397,7 @@ $('tl-search-results').addEventListener('click', e => {
 });
 $('tl-board').addEventListener('click', e => {
   if (suppressClick) { suppressClick = false; return; }
-  const c = e.target.closest('.tl-card');
+  const c = e.target.closest('.tl-card:not(.tl-vote)');
   if (c && isHost() && +c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
 });
 // song-name bubble (plus vote breakdown) above the hovered card
@@ -377,15 +405,22 @@ $('tl-board').addEventListener('mouseover', e => {
   const c = e.target.closest('.tl-card');
   if (!c || drag) return;
   const id = +c.dataset.id;
+  if (c.classList.contains('tl-vote')) return hint(c, `Voto de ${c.dataset.user}`);
   const parts = TIERS.map(t => [t, votesFor(id, t).length]).filter(([, n]) => n).map(([t, n]) => `${t} ${n}`);
-  const r = c.getBoundingClientRect();
+  hint(c, c.dataset.name + (parts.length ? `  ·  ${parts.join(' · ')}` : ''));
+});
+$('tl-board').addEventListener('mouseout', e => { if (e.target.closest('.tl-card')) $('tl-bubble').hidden = true; });
+let hintTimer = null;
+function hint(card, text, ms = 0) {
+  const r = card.getBoundingClientRect();
   const b = $('tl-bubble');
-  b.textContent = c.dataset.name + (parts.length ? `  ·  ${parts.join(' · ')}` : '');
+  b.textContent = text;
   b.style.left = `${r.left + r.width / 2}px`;
   b.style.top = `${r.top - 10}px`;
   b.hidden = false;
-});
-$('tl-board').addEventListener('mouseout', e => { if (e.target.closest('.tl-card')) $('tl-bubble').hidden = true; });
+  clearTimeout(hintTimer);
+  if (ms) hintTimer = setTimeout(() => { b.hidden = true; }, ms);
+}
 $('tl-play').addEventListener('click', () => socket.emit('tlPlayback', { playing: audio.paused, position: audio.currentTime }));
 $('tl-next').addEventListener('click', () => {
   const skip = rankedIds();
@@ -394,14 +429,10 @@ $('tl-next').addEventListener('click', () => {
   const next = tl.songs.find(s => s.id > after && !skip.has(s.id)) || tl.songs.find(s => !skip.has(s.id) && s.id !== tl.currentId);
   if (next) socket.emit('tlSelect', { songId: next.id });
 });
-$('tl-verdict-btn').addEventListener('click', () => {
-  if (!isHost() || tl.currentId === null) return;
-  renderVerdict();
-  $('tl-verdict').hidden = false;
-});
+$('tl-verdict-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlVerdictOpen'); else openVerdict(); });
 $('tl-verdict-rows').addEventListener('click', e => {
   const r = e.target.closest('.tl-verdict-row');
-  if (!r) return;
+  if (!r || !isHost()) return;
   socket.emit('tlVerdict', { songId: tl.currentId, tier: r.dataset.tier });
   $('tl-verdict').hidden = true;
 });
