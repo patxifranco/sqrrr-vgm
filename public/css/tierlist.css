@@ -146,6 +146,9 @@
 .tl-round:disabled { border-color: #444; box-shadow: none; color: #666; }
 .tl-round .tl-ico { width: 26px; height: 26px; }
 .tl-round-big { width: 92px; height: 92px; font-size: 14px; font-weight: 700; letter-spacing: .5px; }
+/* the host's call: veredicto glows yellow while a song is waiting for one */
+.is-host .tl-round-big:not(:disabled) { border-color: #ffd54a; color: #fff; animation: tl-verdict-glow 1.6s ease-in-out infinite; }
+@keyframes tl-verdict-glow { 0%, 100% { box-shadow: 0 0 10px rgba(255, 213, 74, .6), inset 0 1px 0 rgba(255, 255, 255, .15); } 50% { box-shadow: 0 0 26px rgba(255, 213, 74, .95), inset 0 1px 0 rgba(255, 255, 255, .15); } }
 /* sliders: beat the global input[type="range"] rules from the XP theme */
 .tl-stage input[type="range"] { -webkit-appearance: none; appearance: none; height: 16px; background: transparent; margin: 0; }
 /* sliders: the native thumb is invisible (but still draggable, 16px wide); the knob is drawn by the wrapper at the same
