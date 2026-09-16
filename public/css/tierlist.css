@@ -82,7 +82,7 @@
 .tl-row.hot { outline-color: var(--glow); }
 .tl-label { width: 80px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #222; background: var(--tc); }
 .tl-drop { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 2px; }
-.tl-drop .tl-card:not(.tl-vote) { width: 98px; height: 98px; }
+.tl-drop .tl-card { width: 98px; height: 98px; }
 .tl-tray { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 8px; margin-top: 6px; background: #0d0d0d; border: 1px dashed #333; overflow-y: auto; flex: 1; min-height: 90px; }
 .tl-tray .tl-card { width: var(--cs, 50px); height: var(--cs, 50px); }
 .tl-tray .tl-card-num { left: 2px; bottom: 2px; padding: 0 4px; font-size: 10px; }
