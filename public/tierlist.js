@@ -214,10 +214,10 @@ function renderResults(data) {
     ? 'khinsider pide login para buscar. Pega la URL del álbum (downloads.khinsider.com/game-soundtracks/album/...) o escribe su nombre exacto, ej: minecraft'
     : 'Nada por aquí';
   const shown = results.filter(r => r.source === 'tm' || r.source === searchSrc);
-  $('tl-src').querySelectorAll('button').forEach(b => {
-    const n = results.filter(r => r.source === b.dataset.src).length;
-    b.querySelector('span').textContent = n ? ` ${n}` : '';
-  });
+  for (const src of ['kh', 'yt']) {
+    const n = results.filter(r => r.source === src).length;
+    $('tl-src').querySelector(`.${src} b`).textContent = n || '';
+  }
   $('tl-search-results').innerHTML = shown.length ? shown.map(r => {
     const id = r.source === 'kh' ? r.slug : r.id;
     const rest = r.source === 'yt' ? [r.channel] : r.source === 'tm' ? [] : [/^\d+ pistas$/.test(r.type || '') ? '' : r.type, r.year];
@@ -229,11 +229,11 @@ socket.on('tlAlbumCounts', ({ counts }) => {
   Object.assign(albumCounts, counts);
   if (lastResults && !$('tl-search').hidden) renderResults(lastResults);
 });
-$('tl-src').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  searchSrc = b.dataset.src;
-  $('tl-src').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+$('tl-src').querySelector('.kh .tl-src-ico').innerHTML = SRC_ICON.kh;
+$('tl-src').querySelector('.yt .tl-src-ico').innerHTML = SRC_ICON.yt;
+$('tl-src').addEventListener('click', () => {
+  searchSrc = searchSrc === 'kh' ? 'yt' : 'kh';
+  $('tl-src').dataset.src = searchSrc;
   if (lastResults) renderResults(lastResults);
 });
 
@@ -475,7 +475,7 @@ audio.addEventListener('ended', () => {
   socket.emit('tlVerdictOpen');
 });
 
-const TILT_GAIN = 22, TILT_MAX = 40, TILT_RETURN = 0.04, TILT_EASE = 8;
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_RETURN = 0.005, TILT_EASE = 12;
 function pushTilt(c, v) {
   const t = clamp(v * TILT_GAIN, -TILT_MAX, TILT_MAX);
   if (Math.abs(t) > Math.abs(c.tiltTarget) || t * c.tiltTarget < 0) c.tiltTarget = t;
