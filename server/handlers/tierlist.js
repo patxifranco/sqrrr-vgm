@@ -374,6 +374,20 @@ async function fetchTrackArt(io, slug) {
   clearInterval(timer);
   flush();
 }
+const countCache = new Map();
+async function fillCounts(io, results) {
+  let batch = {};
+  const flush = () => { if (Object.keys(batch).length) io.to(ROOM).emit('tlAlbumCounts', { counts: batch }); batch = {}; };
+  const timer = setInterval(flush, 700);
+  await mapLimit(results, 4, async r => {
+    if (!countCache.has(r.slug)) {
+      try { countCache.set(r.slug, (await loadAlbum(r.slug)).songs.length); } catch (e) { countCache.set(r.slug, null); }
+    }
+    if (countCache.get(r.slug)) batch[r.slug] = countCache.get(r.slug);
+  });
+  clearInterval(timer);
+  flush();
+}
 async function withPages(list) {
   if (!list || list.mode === 'general' || !list.songs.some(s => s.source === 'kh' && !s.page)) return list;
   try {
@@ -498,6 +512,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       ytSearch(q.trim()).catch(e => { warn('TIERLIST', 'youtube search failed', e.message); return []; })
     ]);
     io.to(ROOM).emit('tlSearchResults', { q, results: [...kh.results.map(r => ({ source: 'kh', ...r })), ...yt], gated: kh.gated, youtube: ytAvailable() });
+    fillCounts(io, kh.results.slice(0, 40)).catch(() => {});
   });
 
   socket.on('tlLoad', async ({ source, id } = {}) => {

@@ -198,16 +198,44 @@ function renderVotes() {
 }
 
 const SRC_NAME = { kh: 'khinsider', yt: 'YouTube', tm: 'TierMaker' };
-function renderResults({ results, gated, error }) {
+let searchSrc = 'kh', lastResults = null;
+const albumCounts = {};
+function countLabel(r) {
+  if (r.source === 'yt') return `${r.count} vídeos`;
+  if (r.source === 'tm') return `${r.count} imágenes`;
+  const m = /^(\d+) pistas$/.exec(r.type || '');
+  const n = m ? +m[1] : albumCounts[r.slug];
+  return n ? `${n} pistas` : '';
+}
+function renderResults(data) {
+  lastResults = data;
+  const { results, gated, error } = data;
   const empty = error ? error : gated
     ? 'khinsider pide login para buscar. Pega la URL del álbum (downloads.khinsider.com/game-soundtracks/album/...) o escribe su nombre exacto, ej: minecraft'
     : 'Nada por aquí';
-  $('tl-search-results').innerHTML = results.length ? results.map(r => {
+  const shown = results.filter(r => r.source === 'tm' || r.source === searchSrc);
+  $('tl-src').querySelectorAll('button').forEach(b => {
+    const n = results.filter(r => r.source === b.dataset.src).length;
+    b.querySelector('span').textContent = n ? ` ${n}` : '';
+  });
+  $('tl-search-results').innerHTML = shown.length ? shown.map(r => {
     const id = r.source === 'kh' ? r.slug : r.id;
-    const meta = r.source === 'yt' ? [`${r.count} vídeos`, r.channel] : r.source === 'tm' ? [`${r.count} imágenes`] : [r.type, r.year];
-    return `<div class="tl-result" data-source="${r.source}" data-id="${esc(id)}" title="${esc(r.title)}${r.platform ? ' · ' + esc(r.platform) : ''}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><span class="tl-result-src ${r.source}" title="${SRC_NAME[r.source]}">${SRC_ICON[r.source]}</span><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta">${meta.filter(Boolean).map(esc).join(' · ')}</div></div>`;
+    const rest = r.source === 'yt' ? [r.channel] : r.source === 'tm' ? [] : [/^\d+ pistas$/.test(r.type || '') ? '' : r.type, r.year];
+    const count = countLabel(r);
+    return `<div class="tl-result" data-source="${r.source}" data-id="${esc(id)}" title="${esc(r.title)}${r.platform ? ' · ' + esc(r.platform) : ''}"><div class="tl-result-cover" style="background-image:url('${esc(r.thumb || '')}')"></div><span class="tl-result-src ${r.source}" title="${SRC_NAME[r.source]}">${SRC_ICON[r.source]}</span><div class="tl-result-title">${esc(r.title)}</div><div class="tl-result-meta"><b>${esc(count)}</b>${count && rest.filter(Boolean).length ? ' · ' : ''}${rest.filter(Boolean).map(esc).join(' · ')}</div></div>`;
   }).join('') : `<div class="tl-empty">${empty}</div>`;
 }
+socket.on('tlAlbumCounts', ({ counts }) => {
+  Object.assign(albumCounts, counts);
+  if (lastResults && !$('tl-search').hidden) renderResults(lastResults);
+});
+$('tl-src').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  searchSrc = b.dataset.src;
+  $('tl-src').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  if (lastResults) renderResults(lastResults);
+});
 
 let loadingTimer = null;
 function setLoading(on) {
