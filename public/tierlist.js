@@ -447,7 +447,15 @@ audio.addEventListener('ended', () => {
   socket.emit('tlVerdictOpen');
 });
 
-const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.988, TILT_EASE = 0.1;
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_RETURN = 0.6, TILT_EASE = 8;
+function pushTilt(c, v) {
+  const t = clamp(v * TILT_GAIN, -TILT_MAX, TILT_MAX);
+  if (Math.abs(t) > Math.abs(c.tiltTarget) || t * c.tiltTarget < 0) c.tiltTarget = t;
+}
+function settleTilt(c, dt) {
+  c.tilt += (c.tiltTarget - c.tilt) * (1 - Math.exp(-dt * TILT_EASE));
+  c.tiltTarget *= Math.pow(TILT_RETURN, dt);
+}
 
 function getCursor(key) {
   if (cursors[key]) return cursors[key];
@@ -475,7 +483,7 @@ function pointCursor(c, x, y, now) {
     if (c.samples.length > 60) c.samples.shift();
     return;
   }
-  if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * TILT_GAIN, -TILT_MAX, TILT_MAX);
+  if (c.lastX !== null && now > c.lastT) pushTilt(c, (x - c.lastX) / (now - c.lastT));
   c.lastX = x; c.lastT = now;
   c.x = x; c.y = y;
 }
@@ -651,18 +659,18 @@ function stepWave(now) {
 }
 
 function tick(now) {
+  const fdt = Math.min(0.05, Math.max(0.001, (now - lastTick) / 1000));
   if (isActive()) {
     for (const c of Object.getOwnPropertySymbols(cursors).concat(Object.keys(cursors)).map(k => cursors[k])) {
       if (c.key !== ME) {
         const p = sampleAt(c, now);
         if (p) {
           const dt = Math.max(1, now - (c.lastT || now - 16));
-          if (Math.abs(p.x - c.x) > 0.01) c.tiltTarget = clamp((p.x - c.x) / dt * TILT_GAIN, -TILT_MAX, TILT_MAX);
+          if (Math.abs(p.x - c.x) > 0.01) pushTilt(c, (p.x - c.x) / dt);
           c.x = p.x; c.y = p.y; c.lastT = now;
         }
       }
-      c.tilt += (c.tiltTarget - c.tilt) * TILT_EASE;
-      c.tiltTarget *= TILT_DECAY;
+      settleTilt(c, fdt);
       c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
       c.spin.style.transform = `translate(${c.x}px, ${c.y}px)`;
       if (c.bubble && !c.bubble.el.hidden) {

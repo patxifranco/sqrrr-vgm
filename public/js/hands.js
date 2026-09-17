@@ -1,5 +1,13 @@
 const STAGE_W = 1920, STAGE_H = 1080;
-const TILT_GAIN = 22, TILT_MAX = 40, TILT_DECAY = 0.988, TILT_EASE = 0.1, NET_DELAY = 70;
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_RETURN = 0.6, TILT_EASE = 8, NET_DELAY = 70;
+function pushTilt(c, v) {
+  const t = clamp(v * TILT_GAIN, -TILT_MAX, TILT_MAX);
+  if (Math.abs(t) > Math.abs(c.tiltTarget) || t * c.tiltTarget < 0) c.tiltTarget = t;
+}
+function settleTilt(c, dt) {
+  c.tilt += (c.tiltTarget - c.tilt) * (1 - Math.exp(-dt * TILT_EASE));
+  c.tiltTarget *= Math.pow(TILT_RETURN, dt);
+}
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ME = Symbol('me');
 
@@ -33,7 +41,7 @@ export function createHands({ stage, layer, socket, event, isActive, getMe }) {
       if (c.samples.length > 60) c.samples.shift();
       return;
     }
-    if (c.lastX !== null && now > c.lastT) c.tiltTarget = clamp((x - c.lastX) / (now - c.lastT) * TILT_GAIN, -TILT_MAX, TILT_MAX);
+    if (c.lastX !== null && now > c.lastT) pushTilt(c, (x - c.lastX) / (now - c.lastT));
     c.lastX = x; c.lastT = now;
     c.x = x; c.y = y;
   }
@@ -76,19 +84,21 @@ export function createHands({ stage, layer, socket, event, isActive, getMe }) {
   });
   window.addEventListener('resize', () => { if (isActive()) fit(); });
 
+  let lastTick = performance.now();
   function tick(now) {
+    const fdt = Math.min(0.05, Math.max(0.001, (now - lastTick) / 1000));
+    lastTick = now;
     if (isActive()) {
       for (const c of Object.getOwnPropertySymbols(cursors).concat(Object.keys(cursors)).map(k => cursors[k])) {
         if (c.key !== ME) {
           const p = sampleAt(c, now);
           if (p) {
             const dt = Math.max(1, now - (c.lastT || now - 16));
-            if (Math.abs(p.x - c.x) > 0.01) c.tiltTarget = clamp((p.x - c.x) / dt * TILT_GAIN, -TILT_MAX, TILT_MAX);
+            if (Math.abs(p.x - c.x) > 0.01) pushTilt(c, (p.x - c.x) / dt);
             c.x = p.x; c.y = p.y; c.lastT = now;
           }
         }
-        c.tilt += (c.tiltTarget - c.tilt) * TILT_EASE;
-        c.tiltTarget *= TILT_DECAY;
+        settleTilt(c, fdt);
         c.el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.tilt}deg)`;
       }
     }
