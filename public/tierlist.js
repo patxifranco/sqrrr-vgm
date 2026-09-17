@@ -24,7 +24,7 @@ const SRC_ICON = {
   yt: '<svg class="tl-ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>',
   tm: '<svg class="tl-ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4"/><rect x="3" y="10" width="18" height="4"/><rect x="3" y="16" width="18" height="4"/></svg>'
 };
-const PLACEHOLDER = { music: 'Buscar en khinsider y YouTube, o pega una URL', general: 'Buscar plantillas en TierMaker' };
+const PLACEHOLDER = { music: '', general: '' };
 const audio = $('tl-audio');
 const cursors = {};
 let lastPos = null;
