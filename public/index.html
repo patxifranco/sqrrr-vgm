@@ -1669,6 +1669,7 @@
   <div id="tierlist-screen" class="screen-container">
     <div id="tl-stage" class="tl-stage">
       <div class="tl-top">
+        <button id="tl-back-btn" class="tl-round" title="Volver al menú"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M20 12H5"/><path d="M11 5l-7 7 7 7"/></svg></button>
         <div id="tl-players" class="tl-players"></div>
         <button id="tl-view-back" class="tl-view-back" title="Volver" hidden><svg class="tl-ico" viewBox="0 0 24 24"><path d="M20 12H5"/><path d="M11 5l-7 7 7 7"/></svg></button>
         <button id="tl-view-edit" class="tl-view-edit" hidden>Editar</button>
@@ -1703,10 +1704,9 @@
         <div id="tl-clock" class="tl-clock">00:00</div>
         <div class="tl-bar">
           <div class="tl-bar-side">
-            <button id="tl-back-btn" class="tl-round" title="Volver al menú"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M20 12H5"/><path d="M11 5l-7 7 7 7"/></svg></button>
             <button id="tl-cancel-btn" class="tl-round host-only" title="Resetear to' toito"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg></button>
             <button id="tl-finish-btn" class="tl-round host-only" title="Terminar y guardar la tierlist" disabled><svg class="tl-ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></button>
-            <button id="tl-verdict-btn" class="tl-round tl-round-big" disabled>Veredicto</button>
+            <button id="tl-verdict-btn" class="tl-round tl-round-big" title="Veredicto" disabled><svg class="tl-ico" viewBox="0 0 24 24"><path d="M13 3l8 8-4 4-8-8z"/><path d="M11 9l-8 8"/><path d="M3 21h10"/></svg></button>
           </div>
           <div class="tl-bar-center">
             <div class="tl-tab-wrap"><div class="tl-tab">
@@ -1723,6 +1723,7 @@
         </div>
       </div>
       <div id="tl-fx" class="tl-fx"></div>
+      <canvas id="tl-fxc" class="tl-fxc" width="1920" height="1080"></canvas>
       <div id="tl-dim" class="tl-dim" hidden></div>
       <div id="tl-loading" class="tl-loading" hidden><span>CARGANDO...</span></div>
       <div id="tl-preview" class="tl-preview" hidden><img alt=""></div>

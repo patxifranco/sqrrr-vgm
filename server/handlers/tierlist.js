@@ -316,12 +316,17 @@ async function saveTierList(doc, id) {
   return saved;
 }
 
-const artCache = new Map();
+const ART_FILE = __dirname + '/../../track-art.json';
+const artStore = new Map();
+try { for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(ART_FILE, 'utf8')))) artStore.set(k, v); } catch (e) { }
+let artSaveTimer = null;
+function saveArtStore() {
+  clearTimeout(artSaveTimer);
+  artSaveTimer = setTimeout(() => fs.writeFile(ART_FILE, JSON.stringify(Object.fromEntries(artStore)), () => {}), 1500);
+}
 const normName = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 async function trackArt(name, game) {
-  const key = normName(name + ' ' + game);
-  if (artCache.has(key)) return artCache.get(key);
-  let url = null, ok = true;
+  let url = null;
   try {
     const r = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(name + ' ' + game)}&limit=4`, { signal: AbortSignal.timeout(6000) });
     const j = await r.json();
@@ -329,13 +334,10 @@ async function trackArt(name, game) {
     const n = normName(name);
     const hit = (j.data || []).find(d => d.explicit_content_cover !== 1 && (normName(d.title).includes(n) || n.includes(normName(d.title))));
     url = hit && hit.album ? hit.album.cover_medium : null;
-  } catch (e) { ok = false; }
-  if (ok) { if (artCache.size > 5000) artCache.clear(); artCache.set(key, url); }
+  } catch (e) { }
   return url;
 }
-const ytVidCache = new Map();
 async function ytFirstVideo(q) {
-  if (ytVidCache.has(q)) return ytVidCache.get(q);
   let id = null;
   try {
     const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAQ%253D%253D&hl=en`, {
@@ -344,9 +346,7 @@ async function ytFirstVideo(q) {
     });
     const m = (await r.text()).match(/"videoRenderer":\{"videoId":"([\w-]{11})"/);
     id = m ? m[1] : null;
-  } catch (e) { return null; }
-  if (ytVidCache.size > 5000) ytVidCache.clear();
-  ytVidCache.set(q, id);
+  } catch (e) { }
   return id;
 }
 async function fetchTrackArt(io, slug) {
@@ -355,12 +355,21 @@ async function fetchTrackArt(io, slug) {
   const live = () => lobby.album && lobby.album.slug === slug;
   const flush = () => { if (live() && Object.keys(batch).length) io.to(ROOM).emit('tlCovers', { slug, covers: batch }); batch = {}; };
   const timer = setInterval(flush, 800);
-  await mapLimit(lobby.songs, 3, async s => {
+  await mapLimit(lobby.songs, 6, async s => {
     if (!live()) return;
-    const vid = ytAvailable() ? await ytFirstVideo(`${s.name} ${game}`) : null;
-    const url = vid ? `https://i.ytimg.com/vi/${vid}/mqdefault.jpg` : await trackArt(s.name, game);
-    await new Promise(r => setTimeout(r, 100));
-    if (url && live()) { s.cover = url; batch[s.id] = url; }
+    const key = normName(s.name + ' ' + game);
+    let url = artStore.get(key);
+    if (url === undefined) {
+      const vid = await ytFirstVideo(`${s.name} ${game}`);
+      url = vid ? `https://i.ytimg.com/vi/${vid}/mqdefault.jpg` : await trackArt(s.name, game);
+      artStore.set(key, url);
+      saveArtStore();
+      await new Promise(r => setTimeout(r, 60));
+    }
+    if (!live()) return;
+    s.artPending = false;
+    if (url) s.cover = url;
+    batch[s.id] = url;
   });
   clearInterval(timer);
   flush();
@@ -488,7 +497,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
         if (!SLUG_RE.test(id)) return;
         const a = await loadAlbum(id);
         title = a.title;
-        songs = a.songs.map(s => ({ ...s, source: 'kh' }));
+        songs = a.songs.map(s => ({ ...s, source: 'kh', artPending: true }));
       } else if (source === 'tm') {
         if (!SLUG_RE.test(id)) return;
         const t = await tmTemplate(id);
@@ -585,6 +594,12 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       broadcastPlayers();
       log('TIERLIST', `${p.username} edits saved list: ${list.title}`);
     } catch (e) { fail('No se pudo abrir', e); }
+  });
+
+  socket.on('tlFall', ({ id, x, y, gx, gy, vx, rot } = {}) => {
+    const p = lobby.players[socket.id];
+    if (!p || !lobby.songs[id]) return;
+    socket.to(ROOM).volatile.emit('tlFall', { username: p.username, id: +id, x: +x || 0, y: +y || 0, gx: +gx || 0, gy: +gy || 0, vx: +vx || 0, rot: +rot || 0 });
   });
 
   socket.on('tlHost', ({ username } = {}) => {

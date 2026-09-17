@@ -74,7 +74,7 @@ function renderPlayers() {
 }
 
 function cardHtml(s) {
-  return `<div class="tl-card" data-id="${s.id}" data-name="${esc(s.name)}" style="background-image:url('${esc(s.cover || '')}')"><span class="tl-card-num">${s.disc > 1 ? s.disc + '-' : ''}${s.num}</span></div>`;
+  return `<div class="tl-card${s.artPending ? ' pending' : ''}" data-id="${s.id}" data-name="${esc(s.name)}" style="background-image:url('${esc(s.cover || '')}')"><span class="tl-card-num">${s.disc > 1 ? s.disc + '-' : ''}${s.num}</span></div>`;
 }
 
 function renderSaved() {
@@ -237,15 +237,62 @@ function puff(x, y) {
     el.style.width = el.style.height = `${rnd(5, 11)}px`;
   });
 }
+const fxc = $('tl-fxc'), fctx = fxc.getContext('2d');
+const bits = [], falls = [];
 function confetti(x, y) {
-  const colors = tl.players.map(p => p.color);
-  if (!colors.length) return;
-  spawn('tl-confetti', x, y, 48, (el, i) => {
-    el.style.setProperty('--c', colors[i % colors.length]);
-    el.style.setProperty('--dx', `${rnd(-300, 300)}px`); el.style.setProperty('--dy', `${rnd(-330, -90)}px`);
-    el.style.setProperty('--r', `${rnd(-540, 540)}deg`);
-    el.style.animationDelay = `${rnd(0, 120)}ms`;
-  });
+  const colors = ['#ff5a5a', '#ffd54a', '#4ade80', '#35b4ff', '#c084fc', '#ff8ccf', '#fb923c', '#f4f4f4'].concat(tl.players.map(p => p.color));
+  for (let i = 0; i < 90; i++) {
+    const ang = -Math.PI / 2 + rnd(-1.15, 1.15), sp = rnd(600, 1500);
+    bits.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, w: rnd(6, 11), h: rnd(10, 18), c: colors[i % colors.length], rot: rnd(0, 6.28), vr: rnd(-7, 7), ph: rnd(0, 6.28), t: 0, life: rnd(1.7, 2.6) });
+  }
+}
+function stepBits(dt) {
+  const k = Math.pow(0.03, dt);
+  for (let i = bits.length - 1; i >= 0; i--) {
+    const p = bits[i];
+    p.t += dt;
+    if (p.t > p.life) { bits.splice(i, 1); continue; }
+    p.vx *= k;
+    p.vy = p.vy * k + 1000 * dt;
+    p.x += p.vx * dt + Math.sin(p.t * 7 + p.ph) * 110 * dt;
+    p.y += p.vy * dt;
+    p.rot += p.vr * dt;
+  }
+}
+function startFall(el, x, y, gx, gy, vx, rot) {
+  el.style.transformOrigin = `${gx}px ${gy}px`;
+  falls.push({ el, x, y, vx, vy: 0, rot, vr: clamp(vx / 5, -260, 260) || 80 });
+}
+function stepFalls(dt) {
+  for (let i = falls.length - 1; i >= 0; i--) {
+    const f = falls[i];
+    f.vy += 3200 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt;
+    f.el.style.transform = `translate(${f.x}px, ${f.y}px) rotate(${f.rot}deg)`;
+    if (f.y > STAGE_H + 220) { f.el.remove(); falls.splice(i, 1); }
+  }
+}
+function drawFx(now) {
+  fctx.clearRect(0, 0, STAGE_W, STAGE_H);
+  fctx.lineCap = 'round'; fctx.lineJoin = 'round';
+  for (const c of Object.getOwnPropertySymbols(cursors).concat(Object.keys(cursors)).map(k => cursors[k])) {
+    if (!c.trail) continue;
+    fctx.strokeStyle = colorOf(c.key === ME ? tl.me.username : c.key);
+    for (let i = 1; i < c.trail.length; i++) {
+      const age = (now - c.trail[i].t) / 340;
+      fctx.globalAlpha = (1 - age) * 0.7;
+      fctx.lineWidth = 2 + (1 - age) * 13;
+      fctx.beginPath(); fctx.moveTo(c.trail[i - 1].x, c.trail[i - 1].y); fctx.lineTo(c.trail[i].x, c.trail[i].y); fctx.stroke();
+    }
+  }
+  for (const p of bits) {
+    fctx.save();
+    fctx.translate(p.x, p.y); fctx.rotate(p.rot); fctx.scale(1, Math.cos(p.t * 9 + p.ph));
+    fctx.globalAlpha = Math.min(1, (p.life - p.t) / 0.5);
+    fctx.fillStyle = p.c;
+    fctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    fctx.restore();
+  }
+  fctx.globalAlpha = 1;
 }
 function land(dest, tier, id) {
   const r = dest.getBoundingClientRect();
@@ -255,31 +302,11 @@ function land(dest, tier, id) {
   const badge = document.querySelector(`#tl-tray .tl-card[data-id="${id}"] .tl-tier-badge`);
   if (badge) { badge.classList.remove('stamp'); void badge.offsetWidth; badge.classList.add('stamp'); }
 }
-function flyCard(id) {
-  const dest = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${id}"]`);
-  if (!dest) return;
-  const tier = tierOf(id);
-  const src = document.querySelector(`#tl-tray .tl-card[data-id="${id}"]`);
-  if (!src) { dest.style.visibility = ''; dest.classList.add('pop'); land(dest, tier, id); return; }
-  const a = src.getBoundingClientRect(), b = dest.getBoundingClientRect();
-  const from = toStage(a.left, a.top), to = toStage(b.left, b.top);
-  const k = b.width / a.width;
-  const fly = document.createElement('div');
-  fly.className = 'tl-card tl-fly';
-  fly.style.backgroundImage = dest.style.backgroundImage;
-  fly.style.width = `${a.width / stageScale}px`; fly.style.height = `${a.height / stageScale}px`;
-  $('tl-fx').appendChild(fly);
-  dest.style.visibility = 'hidden';
-  fly.animate([
-    { transform: `translate(${from.x}px, ${from.y}px) scale(1) rotate(0deg)` },
-    { transform: `translate(${(from.x + to.x) / 2}px, ${Math.min(from.y, to.y) - 140}px) scale(${(1 + k) / 2}) rotate(-10deg)`, offset: 0.5 },
-    { transform: `translate(${to.x}px, ${to.y}px) scale(${k}) rotate(0deg)` }
-  ], { duration: 560, easing: 'cubic-bezier(.3, 1.25, .5, 1)', fill: 'forwards' }).onfinish = () => {
-    fly.remove();
-    dest.style.visibility = '';
-    dest.classList.add('pop');
-    land(dest, tier, id);
-  };
+function landLater(id, wait) {
+  setTimeout(() => {
+    const dest = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${id}"]`);
+    if (dest) land(dest, tierOf(id), id);
+  }, wait);
 }
 
 function openVerdict() {
@@ -545,14 +572,18 @@ window.addEventListener('pointerup', e => {
   if (!drag) return;
   const d = drag;
   drag = null;
-  d.el.remove();
   d.card.classList.remove('dragging');
   document.querySelectorAll('.tl-row.hot').forEach(r => r.classList.remove('hot'));
   $('tl-trash').classList.remove('hot');
-  if (lastPos) socket.emit('tlCursor', { ...lastPos, drag: null });
-  if (!d.moved) return;
+  if (!d.moved) { d.el.remove(); if (lastPos) socket.emit('tlCursor', { ...lastPos, drag: null }); return; }
   suppressClick = true;
   const { row, trash } = dropTarget(e.clientX, e.clientY);
+  if (row || (trash && isHost())) d.el.remove();
+  else {
+    startFall(d.el, d.px - d.gx, d.py - d.gy, d.gx, d.gy, d.vx, d.rot);
+    socket.emit('tlFall', { id: d.id, x: d.px - d.gx, y: d.py - d.gy, gx: d.gx, gy: d.gy, vx: d.vx, rot: d.rot });
+  }
+  if (lastPos) socket.emit('tlCursor', { ...lastPos, drag: null });
   if (row) {
     const tier = row.dataset.tier;
     thud('drop');
@@ -610,16 +641,21 @@ function tick(now) {
         c.ghost.rot += (c.ghost.rotTarget - c.ghost.rot) * 0.5;
         c.ghost.el.style.transform = `translate(${c.x - c.ghost.gx}px, ${c.y - c.ghost.gy}px) rotate(${c.ghost.rot}deg)`;
       }
-      if ((c.ghost || (c.key === ME && drag)) && now - (c.lastTrail || 0) > 35) {
-        c.lastTrail = now;
-        spawn('tl-trail', c.x, c.y, 1, el => el.style.setProperty('--c', colorOf(c.key === ME ? tl.me.username : c.key)));
+      if (c.ghost || (c.key === ME && drag)) {
+        const last = c.trail && c.trail[c.trail.length - 1];
+        if (!last || Math.hypot(c.x - last.x, c.y - last.y) > 1.5) (c.trail = c.trail || []).push({ x: c.x, y: c.y, t: now });
       }
+      if (c.trail) { c.trail = c.trail.filter(p => now - p.t < 340); if (!c.trail.length) c.trail = null; }
     }
     if (drag) stepDrag(now);
+    const dt = Math.min(0.05, (now - lastTick) / 1000);
+    stepBits(dt); stepFalls(dt); drawFx(now);
     stepWave(now);
   }
+  lastTick = now;
   requestAnimationFrame(tick);
 }
+let lastTick = performance.now();
 requestAnimationFrame(tick);
 
 const chatInput = document.createElement('input');
@@ -725,17 +761,21 @@ socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   renderBoard();
   if (placed !== null && placed !== undefined) {
     const card = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${placed}"]`);
-    if (card) card.style.visibility = 'hidden';
-    const wait = placed === tl.currentId ? decideVerdict(TIERS.find(t => tiers[t].includes(placed))) : 0;
-    setTimeout(() => flyCard(placed), wait);
+    if (card) card.classList.add('pop');
+    landLater(placed, placed === tl.currentId ? decideVerdict(TIERS.find(t => tiers[t].includes(placed))) : 0);
   }
+});
+socket.on('tlFall', ({ username, id, x, y, gx, gy, vx, rot }) => {
+  if (!tl.me || username === tl.me.username || !tl.songs[id]) return;
+  startFall(ghostEl(tl.songs[id]), x, y, gx, gy, vx, rot);
 });
 socket.on('tlCovers', ({ slug, covers }) => {
   if (!tl.album || tl.album.slug !== slug) return;
   for (const [id, url] of Object.entries(covers)) {
     if (!tl.songs[id]) continue;
-    tl.songs[id].cover = url;
-    document.querySelectorAll(`.tl-card[data-id="${id}"]`).forEach(c => { c.style.backgroundImage = `url('${url}')`; });
+    tl.songs[id].artPending = false;
+    if (url) tl.songs[id].cover = url;
+    document.querySelectorAll(`.tl-card[data-id="${id}"]`).forEach(c => { c.classList.remove('pending'); if (url) c.style.backgroundImage = `url('${url}')`; });
   }
 });
 socket.on('tlVerdictOpen', openVerdict);
