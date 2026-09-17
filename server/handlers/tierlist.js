@@ -288,7 +288,7 @@ async function tmTemplate(slug) {
 }
 
 const TierList = mongoose.models.TierList || mongoose.model('TierList', new mongoose.Schema({
-  title: String, mode: String, host: String, players: [String], createdAt: { type: Date, default: Date.now },
+  title: String, slug: String, mode: String, host: String, players: [String], createdAt: { type: Date, default: Date.now },
   songs: [{ name: String, cover: String, source: String, num: Number, page: String, ytId: String }],
   tiers: mongoose.Schema.Types.Mixed, votes: mongoose.Schema.Types.Mixed
 }));
@@ -373,6 +373,18 @@ async function fetchTrackArt(io, slug) {
   });
   clearInterval(timer);
   flush();
+}
+async function withPages(list) {
+  if (!list || list.mode === 'general' || !list.songs.some(s => s.source === 'kh' && !s.page)) return list;
+  try {
+    const slug = list.slug && !list.slug.startsWith('saved:') ? list.slug : ((await searchAlbums(list.title)).results[0] || {}).slug;
+    if (!slug) return list;
+    const album = await loadAlbum(slug);
+    const byName = new Map(album.songs.map(s => [normName(s.name), s.page]));
+    for (const s of list.songs) if (s.source === 'kh' && !s.page) s.page = byName.get(normName(s.name)) || null;
+    if (!list.slug) list.slug = slug;
+  } catch (e) { }
+  return list;
 }
 async function getTierList(id) {
   if (dbReady()) { const d = await TierList.findById(id).lean(); return d && { ...d, id: String(d._id), _id: undefined }; }
@@ -566,7 +578,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     if (!placed) return fail('Coloca al menos una en algún tier');
     try {
       await saveTierList({
-        title: lobby.album.title, mode: lobby.mode, host: hostName(), players: playerList().map(p => p.username),
+        title: lobby.album.title, slug: lobby.album.slug, mode: lobby.mode, host: hostName(), players: playerList().map(p => p.username),
         songs: lobby.songs.map(s => ({ name: s.name, cover: s.cover, source: s.source, num: s.num, page: s.page || undefined, ytId: s.ytId || undefined })),
         tiers: lobby.tiers, votes: lobby.votes
       }, lobby.savedId);
@@ -580,12 +592,12 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     if (typeof id !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(id)) return;
     const p = lobby.players[socket.id];
     try {
-      const list = await getTierList(id);
+      const list = await withPages(await getTierList(id));
       if (!list || !p) return;
       if (list.host !== p.username) return fail('Solo quien la creó puede editarla');
       lobby.host = socket.id;
       Object.assign(lobby, {
-        mode: list.mode, album: { slug: 'saved:' + list.id, title: list.title, covers: [] }, savedId: list.id,
+        mode: list.mode, album: { slug: list.slug || 'saved:' + list.id, title: list.title, covers: [] }, savedId: list.id,
         songs: list.songs.map((s, i) => ({ id: i, name: s.name, cover: s.cover, source: s.source, num: s.num, disc: 1, duration: '', page: s.page || null, ytId: s.ytId || null, mp3: null })),
         currentId: null, playback: { playing: false, position: 0, at: Date.now() },
         tiers: Object.fromEntries(TIERS.map(t => [t, ((list.tiers || {})[t] || []).filter(i => i < list.songs.length)])), trashed: [], votes: list.votes || {}
@@ -607,6 +619,18 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     const p = lobby.players[socket.id];
     if (!p || !lobby.songs[id]) return;
     socket.to(ROOM).volatile.emit('tlFall', { username: p.username, id: +id, x: +x || 0, y: +y || 0, gx: +gx || 0, gy: +gy || 0, vx: +vx || 0, rot: +rot || 0 });
+  });
+
+  socket.on('tlSavedPlay', async ({ id, index } = {}) => {
+    if (typeof id !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(id) || !Number.isInteger(index)) return;
+    try {
+      const list = await withPages(await getTierList(id));
+      const s = list && list.songs[index];
+      let mp3 = null;
+      if (s && s.source === 'kh' && s.page) mp3 = await resolveMp3(s);
+      else if (s && s.source === 'yt' && s.ytId && ytAvailable()) mp3 = await ytStreamUrl(s.ytId);
+      socket.emit('tlSavedSong', { id, index, mp3 });
+    } catch (e) { socket.emit('tlSavedSong', { id, index, mp3: null }); }
   });
 
   socket.on('tlHost', ({ username } = {}) => {
@@ -678,7 +702,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   return { handleDisconnect: leave };
 }
 
-module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl, tmSearch, tmTemplate, COLORS, DEFAULT_COLOR };
+module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl, tmSearch, tmTemplate, withPages, COLORS, DEFAULT_COLOR };
 
 if (require.main === module) {
   (async () => {

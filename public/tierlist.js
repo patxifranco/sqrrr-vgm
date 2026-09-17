@@ -98,7 +98,7 @@ function renderBoard() {
   $('tl-board').hidden = !hasList;
   $('tl-view-back').hidden = !viewing;
   $('tl-view-edit').hidden = !viewing || !tl.me || tl.view.host !== tl.me.username;
-  $('tl-album-title').textContent = viewing ? `${tl.view.title} · ${tl.view.host} · ${fmtDate(tl.view.createdAt)}` : (tl.album ? tl.album.title : '');
+  $('tl-album-title').textContent = viewing ? viewTitle() : (tl.album ? tl.album.title : '');
   if (!hasList) { $('tl-search-results').innerHTML = ''; renderSaved(); return; }
   const list = songs(), tt = tiers();
   for (const t of TIERS) $(`tl-drop-${t}`).innerHTML = (tt[t] || []).map(id => cardHtml(list[id])).join('');
@@ -143,6 +143,27 @@ function renderTrayStates() {
   });
 }
 
+function viewTitle() {
+  const v = tl.view;
+  const s = tl.viewPlaying !== null && v.songs[tl.viewPlaying];
+  return `${v.title} · ${v.host} · ${fmtDate(v.createdAt)}${s ? ` · ▶ ${s.name}` : ''}${tl.viewNoAudio ? ' · sin audio guardado' : ''}`;
+}
+function viewPlay(index) {
+  const same = tl.viewPlaying === index;
+  stopAudio();
+  tl.viewPlaying = same ? null : index;
+  tl.viewNoAudio = false;
+  document.querySelectorAll('.tl-drop .tl-card').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.viewPlaying));
+  $('tl-album-title').textContent = viewTitle();
+  if (!same) socket.emit('tlSavedPlay', { id: tl.view.id, index });
+}
+socket.on('tlSavedSong', ({ id, index, mp3 }) => {
+  if (!tl.view || tl.view.id !== id || tl.viewPlaying !== index) return;
+  if (!mp3) { tl.viewNoAudio = true; $('tl-album-title').textContent = viewTitle(); return; }
+  audio.src = proxied(mp3);
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+});
 function renderCurrent() {
   if (tl.view) return;
   document.querySelectorAll('.tl-drop .tl-card:not(.tl-vote)').forEach(c => c.classList.toggle('current', +c.dataset.id === tl.currentId));
@@ -407,7 +428,7 @@ function applyPlayback({ currentId, mp3, playback, serverNow }) {
 }
 
 setInterval(() => {
-  if (tl.playback && tl.playback.playing && !audio.paused && Math.abs(audio.currentTime - expectedTime()) > 0.75) {
+  if (!tl.view && tl.playback && tl.playback.playing && !audio.paused && Math.abs(audio.currentTime - expectedTime()) > 0.75) {
     audio.currentTime = expectedTime();
   }
 }, 3000);
@@ -420,6 +441,7 @@ audio.addEventListener('timeupdate', () => {
 });
 audio.addEventListener('durationchange', renderCurrent);
 audio.addEventListener('ended', () => {
+  if (tl.view) { tl.viewPlaying = null; document.querySelectorAll('.tl-drop .tl-card.current').forEach(c => c.classList.remove('current')); $('tl-album-title').textContent = viewTitle(); return; }
   if (!isHost()) return;
   socket.emit('tlPlayback', { playing: false, position: audio.duration || 0 });
   socket.emit('tlVerdictOpen');
@@ -766,7 +788,7 @@ socket.on('tlPlayers', ({ players, host }) => {
 socket.on('tlSearchResults', renderResults);
 socket.on('tlSearching', () => { if (!isHost()) $('tl-search-results').innerHTML = '<div class="tl-empty">Buscando</div>'; });
 socket.on('tlTyping', ({ q }) => { if (!isHost()) $('tl-search-input').value = q; });
-socket.on('tlPlayback', d => { setLoading(false); if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select', { volume: 0.2 }); applyPlayback(d); });
+socket.on('tlPlayback', d => { setLoading(false); if (tl.view) { tl.pendingPlayback = d; return; } if (d.currentId !== null && d.currentId !== tl.currentId) sfx('select', { volume: 0.2 }); applyPlayback(d); });
 socket.on('tlVotes', ({ songId, votes }) => { tl.votes[songId] = votes; if (songId === tl.currentId) renderVotes(); });
 socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   tl.tiers = tiers; tl.trashed = trashed || [];
@@ -810,7 +832,13 @@ socket.on('tlPingTier', ({ username, tier }) => {
   row.classList.add('pinged');
   setTimeout(() => { ring.remove(); row.classList.remove('pinged'); row.style.removeProperty('--c'); }, 1200);
 });
-socket.on('tlSaved', ({ list }) => { if (!list) return; tl.view = list; $('tl-verdict').hidden = true; stopAudio(); renderBoard(); });
+socket.on('tlSaved', ({ list }) => { if (!list) return; tl.view = list; tl.viewPlaying = null; tl.viewNoAudio = false; $('tl-verdict').hidden = true; stopAudio(); renderBoard(); });
+function leaveView() {
+  tl.view = null; tl.viewPlaying = null; tl.viewNoAudio = false;
+  stopAudio();
+  renderBoard();
+  if (tl.pendingPlayback) { const d = tl.pendingPlayback; tl.pendingPlayback = null; applyPlayback(d); }
+}
 socket.on('tlError', ({ message }) => { setLoading(false); $('tl-now').textContent = message; });
 socket.on('tlCursor', ({ username, x, y, gone, drag: d }) => {
   if (!tl.me || username === tl.me.username) return;
@@ -849,7 +877,7 @@ window.addEventListener('pagehide', () => {
   try { socket.emit('tlLeave'); navigator.sendBeacon('/tierlist/leave', socket.id); } catch {}
 });
 $('tl-finish-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlFinish'); });
-$('tl-view-back').addEventListener('click', () => { tl.view = null; renderBoard(); });
+$('tl-view-back').addEventListener('click', leaveView);
 $('tl-view-edit').addEventListener('click', () => { if (tl.view) socket.emit('tlSavedEdit', { id: tl.view.id }); });
 $('tl-players').addEventListener('click', e => {
   const a = e.target.closest('.tl-avatar');
@@ -899,7 +927,8 @@ $('tl-board').addEventListener('click', e => {
   const c = e.target.closest('.tl-card:not(.tl-vote)');
   if (!c) return;
   if (isGeneral()) showPreview(+c.dataset.id);
-  if (tl.view || (isGeneral() && !isHost())) return;
+  if (tl.view) { if (!isGeneral()) viewPlay(+c.dataset.id); return; }
+  if (isGeneral() && !isHost()) return;
   if (!isHost()) return socket.emit('tlPing', { songId: +c.dataset.id });
   if (c.classList.contains('trashed')) return socket.emit('tlRestore', { songId: +c.dataset.id });
   if (+c.dataset.id !== tl.currentId) socket.emit('tlSelect', { songId: +c.dataset.id });
