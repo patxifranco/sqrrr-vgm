@@ -59,9 +59,10 @@ function show(id) {
 function renderPlayers() {
   for (const p of tl.players) tl.colors[p.username] = p.color;
   $('tl-players').innerHTML = tl.players.map(p =>
-    `<span class="tl-avatar${p.username === tl.host ? ' host' : ''}" style="--c:${p.color}" title="${esc(p.username)}${p.username === tl.host ? ' (host)' : ''}"><img src="${esc(p.profilePicture)}" alt="${esc(p.username)}"></span>`
+    `<span class="tl-avatar${p.username === tl.host ? ' host' : ''}" data-user="${esc(p.username)}" style="--c:${p.color}" title="${esc(p.username)}${p.username === tl.host ? ' (host)' : isHost() ? ' · pasar el mando' : ''}"><img src="${esc(p.profilePicture)}" alt="${esc(p.username)}"><i class="tl-voted">✓</i></span>`
   ).join('');
   $('tl-stage').classList.toggle('is-host', isHost());
+  renderVoted();
   const input = $('tl-search-input');
   input.disabled = !isHost();
   input.placeholder = isHost() ? (PLACEHOLDER[tl.mode] || '') : `Esperando a que ${tl.host || 'el host'} elija algo`;
@@ -96,6 +97,7 @@ function renderBoard() {
   if (searchWasHidden && !$('tl-search').hidden && isHost()) $('tl-search-input').focus();
   $('tl-board').hidden = !hasList;
   $('tl-view-back').hidden = !viewing;
+  $('tl-view-edit').hidden = !viewing || !tl.me || tl.view.host !== tl.me.username;
   $('tl-album-title').textContent = viewing ? `${tl.view.title} · ${tl.view.host} · ${fmtDate(tl.view.createdAt)}` : (tl.album ? tl.album.title : '');
   if (!hasList) { $('tl-search-results').innerHTML = ''; renderSaved(); return; }
   const list = songs(), tt = tiers();
@@ -160,7 +162,13 @@ const token = u => `<span class="tl-token" style="--c:${colorOf(u)}" title="${es
 const votesFor = (id, tier) => Object.entries((tl.view ? tl.view.votes : tl.votes)[id] || {}).filter(([, t]) => t === tier).map(([u]) => u);
 const voteCardHtml = (u, s) => `<div class="tl-card tl-vote" data-id="${s.id}" data-user="${esc(u)}" style="--c:${colorOf(u)};background-image:url('${esc(s.cover || '')}')"><span class="tl-vote-badge">${esc(u[0].toUpperCase())}</span></div>`;
 
+function renderVoted() {
+  const votes = tl.currentId !== null && !isPlaced(tl.currentId) && !tl.view ? (tl.votes[tl.currentId] || {}) : {};
+  document.querySelectorAll('.tl-avatar').forEach(a => a.classList.toggle('voted', !!votes[a.dataset.user]));
+}
+
 function renderVotes() {
+  renderVoted();
   document.querySelectorAll('.tl-drop .tl-vote').forEach(el => el.remove());
   if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
   const song = tl.songs[tl.currentId];
@@ -202,11 +210,76 @@ function renderVerdict() {
 
 function decideVerdict(tier) {
   const panel = $('tl-verdict');
-  if (panel.hidden) return;
+  if (panel.hidden) return 0;
   sfx('select', { volume: 0.2 });
   panel.classList.add('decided');
   panel.querySelectorAll('.tl-verdict-row').forEach(r => r.classList.toggle('chosen', r.dataset.tier === tier));
   setTimeout(() => { panel.hidden = true; panel.classList.remove('decided'); }, 1200);
+  return 1200;
+}
+
+function spawn(cls, x, y, n, init) {
+  const fx = $('tl-fx');
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('i');
+    el.className = cls;
+    el.style.left = `${x}px`; el.style.top = `${y}px`;
+    init(el, i);
+    el.addEventListener('animationend', () => el.remove());
+    fx.appendChild(el);
+  }
+}
+const rnd = (a, b) => a + Math.random() * (b - a);
+function puff(x, y) {
+  spawn('tl-dust', x, y, 12, el => {
+    const ang = rnd(Math.PI * 1.05, Math.PI * 1.95), d = rnd(30, 80);
+    el.style.setProperty('--dx', `${Math.cos(ang) * d}px`); el.style.setProperty('--dy', `${Math.sin(ang) * d * 0.5}px`);
+    el.style.width = el.style.height = `${rnd(5, 11)}px`;
+  });
+}
+function confetti(x, y) {
+  const colors = tl.players.map(p => p.color);
+  if (!colors.length) return;
+  spawn('tl-confetti', x, y, 48, (el, i) => {
+    el.style.setProperty('--c', colors[i % colors.length]);
+    el.style.setProperty('--dx', `${rnd(-300, 300)}px`); el.style.setProperty('--dy', `${rnd(-330, -90)}px`);
+    el.style.setProperty('--r', `${rnd(-540, 540)}deg`);
+    el.style.animationDelay = `${rnd(0, 120)}ms`;
+  });
+}
+function land(dest, tier, id) {
+  const r = dest.getBoundingClientRect();
+  const p = toStage(r.left + r.width / 2, r.bottom - 4);
+  puff(p.x, p.y);
+  if (tier === 'S') confetti(p.x, p.y - r.height / stageScale / 2);
+  const badge = document.querySelector(`#tl-tray .tl-card[data-id="${id}"] .tl-tier-badge`);
+  if (badge) { badge.classList.remove('stamp'); void badge.offsetWidth; badge.classList.add('stamp'); }
+}
+function flyCard(id) {
+  const dest = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${id}"]`);
+  if (!dest) return;
+  const tier = tierOf(id);
+  const src = document.querySelector(`#tl-tray .tl-card[data-id="${id}"]`);
+  if (!src) { dest.style.visibility = ''; dest.classList.add('pop'); land(dest, tier, id); return; }
+  const a = src.getBoundingClientRect(), b = dest.getBoundingClientRect();
+  const from = toStage(a.left, a.top), to = toStage(b.left, b.top);
+  const k = b.width / a.width;
+  const fly = document.createElement('div');
+  fly.className = 'tl-card tl-fly';
+  fly.style.backgroundImage = dest.style.backgroundImage;
+  fly.style.width = `${a.width / stageScale}px`; fly.style.height = `${a.height / stageScale}px`;
+  $('tl-fx').appendChild(fly);
+  dest.style.visibility = 'hidden';
+  fly.animate([
+    { transform: `translate(${from.x}px, ${from.y}px) scale(1) rotate(0deg)` },
+    { transform: `translate(${(from.x + to.x) / 2}px, ${Math.min(from.y, to.y) - 140}px) scale(${(1 + k) / 2}) rotate(-10deg)`, offset: 0.5 },
+    { transform: `translate(${to.x}px, ${to.y}px) scale(${k}) rotate(0deg)` }
+  ], { duration: 560, easing: 'cubic-bezier(.3, 1.25, .5, 1)', fill: 'forwards' }).onfinish = () => {
+    fly.remove();
+    dest.style.visibility = '';
+    dest.classList.add('pop');
+    land(dest, tier, id);
+  };
 }
 
 function openVerdict() {
@@ -268,7 +341,9 @@ const wobble = () => 0.7 + Math.random() * 0.6;
 const thud = name => sfx(name, { rate: wobble(), volume: 0.25 });
 const pingSoundAt = {};
 
+audio.addEventListener('timeupdate', () => { $('tl-players').style.setProperty('--p', `${(audio.duration ? audio.currentTime / audio.duration * 100 : 0).toFixed(1)}%`); });
 function stopAudio() {
+  $('tl-players').style.setProperty('--p', '0%');
   audio.pause(); audio.removeAttribute('src');
   $('tl-clock').textContent = '00:00'; $('tl-seek').parentElement.style.setProperty('--f', '0'); $('tl-seek').value = 0;
 }
@@ -535,6 +610,10 @@ function tick(now) {
         c.ghost.rot += (c.ghost.rotTarget - c.ghost.rot) * 0.5;
         c.ghost.el.style.transform = `translate(${c.x - c.ghost.gx}px, ${c.y - c.ghost.gy}px) rotate(${c.ghost.rot}deg)`;
       }
+      if ((c.ghost || (c.key === ME && drag)) && now - (c.lastTrail || 0) > 35) {
+        c.lastTrail = now;
+        spawn('tl-trail', c.x, c.y, 1, el => el.style.setProperty('--c', colorOf(c.key === ME ? tl.me.username : c.key)));
+      }
     }
     if (drag) stepDrag(now);
     stepWave(now);
@@ -646,8 +725,17 @@ socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   renderBoard();
   if (placed !== null && placed !== undefined) {
     const card = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${placed}"]`);
-    if (card) card.classList.add('pop');
-    if (placed === tl.currentId) decideVerdict(TIERS.find(t => tiers[t].includes(placed)));
+    if (card) card.style.visibility = 'hidden';
+    const wait = placed === tl.currentId ? decideVerdict(TIERS.find(t => tiers[t].includes(placed))) : 0;
+    setTimeout(() => flyCard(placed), wait);
+  }
+});
+socket.on('tlCovers', ({ slug, covers }) => {
+  if (!tl.album || tl.album.slug !== slug) return;
+  for (const [id, url] of Object.entries(covers)) {
+    if (!tl.songs[id]) continue;
+    tl.songs[id].cover = url;
+    document.querySelectorAll(`.tl-card[data-id="${id}"]`).forEach(c => { c.style.backgroundImage = `url('${url}')`; });
   }
 });
 socket.on('tlVerdictOpen', openVerdict);
@@ -695,6 +783,11 @@ window.addEventListener('pagehide', () => {
 $('tl-cancel-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlReset'); });
 $('tl-finish-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlFinish'); });
 $('tl-view-back').addEventListener('click', () => { tl.view = null; renderBoard(); });
+$('tl-view-edit').addEventListener('click', () => { if (tl.view) socket.emit('tlSavedEdit', { id: tl.view.id }); });
+$('tl-players').addEventListener('click', e => {
+  const a = e.target.closest('.tl-avatar');
+  if (a && isHost() && a.dataset.user !== tl.me.username) socket.emit('tlHost', { username: a.dataset.user });
+});
 $('tl-saved').addEventListener('click', e => { const it = e.target.closest('.tl-saved-item'); if (it) socket.emit('tlSavedGet', { id: it.dataset.id }); });
 function load(source, id) { socket.emit('tlLoad', { source, id }); }
 function search() {

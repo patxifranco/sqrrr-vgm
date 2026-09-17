@@ -289,7 +289,7 @@ async function tmTemplate(slug) {
 
 const TierList = mongoose.models.TierList || mongoose.model('TierList', new mongoose.Schema({
   title: String, mode: String, host: String, players: [String], createdAt: { type: Date, default: Date.now },
-  songs: [{ name: String, cover: String, source: String, num: Number }],
+  songs: [{ name: String, cover: String, source: String, num: Number, page: String, ytId: String }],
   tiers: mongoose.Schema.Types.Mixed, votes: mongoose.Schema.Types.Mixed
 }));
 const dbReady = () => mongoose.connection.readyState === 1;
@@ -301,12 +301,69 @@ async function loadSavedIndex() {
   catch (e) { warn('TIERLIST', 'could not load saved tierlists', e.message); }
 }
 if (dbReady()) loadSavedIndex(); else mongoose.connection.once('connected', loadSavedIndex);
-async function saveTierList(doc) {
-  let saved = doc;
-  if (dbReady()) saved = (await TierList.create(doc)).toObject();
-  else { saved = { ...doc, id: String(Date.now()) }; savedMem.unshift(saved); }
-  savedIndex = [indexOf(saved), ...savedIndex].slice(0, 30);
+async function saveTierList(doc, id) {
+  let saved = null;
+  if (dbReady()) {
+    if (id) saved = await TierList.findByIdAndUpdate(id, doc, { new: true }).lean();
+    if (!saved) saved = (await TierList.create({ ...doc, createdAt: new Date() })).toObject();
+  } else {
+    const i = id ? savedMem.findIndex(s => s.id === id) : -1;
+    if (i >= 0) saved = savedMem[i] = { ...savedMem[i], ...doc };
+    else { saved = { ...doc, id: String(Date.now()), createdAt: new Date() }; savedMem.unshift(saved); }
+  }
+  const sid = String(saved._id || saved.id);
+  savedIndex = [indexOf(saved), ...savedIndex.filter(s => s.id !== sid)].slice(0, 30);
   return saved;
+}
+
+const artCache = new Map();
+const normName = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+async function trackArt(name, game) {
+  const key = normName(name + ' ' + game);
+  if (artCache.has(key)) return artCache.get(key);
+  let url = null, ok = true;
+  try {
+    const r = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(name + ' ' + game)}&limit=4`, { signal: AbortSignal.timeout(6000) });
+    const j = await r.json();
+    if (j.error) ok = false;
+    const n = normName(name);
+    const hit = (j.data || []).find(d => d.explicit_content_cover !== 1 && (normName(d.title).includes(n) || n.includes(normName(d.title))));
+    url = hit && hit.album ? hit.album.cover_medium : null;
+  } catch (e) { ok = false; }
+  if (ok) { if (artCache.size > 5000) artCache.clear(); artCache.set(key, url); }
+  return url;
+}
+const ytVidCache = new Map();
+async function ytFirstVideo(q) {
+  if (ytVidCache.has(q)) return ytVidCache.get(q);
+  let id = null;
+  try {
+    const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAQ%253D%253D&hl=en`, {
+      headers: { 'User-Agent': BROWSER_UA, 'Accept-Language': 'en-US,en;q=0.9', cookie: 'SOCS=CAI; CONSENT=YES+cb' },
+      signal: AbortSignal.timeout(10000)
+    });
+    const m = (await r.text()).match(/"videoRenderer":\{"videoId":"([\w-]{11})"/);
+    id = m ? m[1] : null;
+  } catch (e) { return null; }
+  if (ytVidCache.size > 5000) ytVidCache.clear();
+  ytVidCache.set(q, id);
+  return id;
+}
+async function fetchTrackArt(io, slug) {
+  const game = lobby.album.title.split(/ - | \(|: | soundtrack| ost/i)[0].trim();
+  let batch = {};
+  const live = () => lobby.album && lobby.album.slug === slug;
+  const flush = () => { if (live() && Object.keys(batch).length) io.to(ROOM).emit('tlCovers', { slug, covers: batch }); batch = {}; };
+  const timer = setInterval(flush, 800);
+  await mapLimit(lobby.songs, 3, async s => {
+    if (!live()) return;
+    const vid = ytAvailable() ? await ytFirstVideo(`${s.name} ${game}`) : null;
+    const url = vid ? `https://i.ytimg.com/vi/${vid}/mqdefault.jpg` : await trackArt(s.name, game);
+    await new Promise(r => setTimeout(r, 100));
+    if (url && live()) { s.cover = url; batch[s.id] = url; }
+  });
+  clearInterval(timer);
+  flush();
 }
 async function getTierList(id) {
   if (dbReady()) { const d = await TierList.findById(id).lean(); return d && { ...d, id: String(d._id), _id: undefined }; }
@@ -446,6 +503,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       } else return;
       if (!songs.length) { io.to(ROOM).emit('tlLoading', { on: false }); return fail('No hay canciones ahí'); }
       lobby.album = { slug: id, title, covers: [] };
+      lobby.savedId = null;
       lobby.songs = songs;
       lobby.currentId = null;
       lobby.playback = { playing: false, position: 0, at: Date.now() };
@@ -454,6 +512,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
       lobby.votes = {};
       log('TIERLIST', `loaded ${songs.length} songs from ${source}: ${title}`);
       io.to(ROOM).emit('tlState', publicState());
+      if (source === 'kh') fetchTrackArt(io, id).catch(() => {});
     } catch (e) { io.to(ROOM).emit('tlLoading', { on: false }); fail('No se pudo cargar eso', e); }
   });
 
@@ -498,14 +557,43 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     if (!placed) return fail('Coloca al menos una en algún tier');
     try {
       await saveTierList({
-        title: lobby.album.title, mode: lobby.mode, host: hostName(), players: playerList().map(p => p.username), createdAt: new Date(),
-        songs: lobby.songs.map(s => ({ name: s.name, cover: s.cover, source: s.source, num: s.num })),
+        title: lobby.album.title, mode: lobby.mode, host: hostName(), players: playerList().map(p => p.username),
+        songs: lobby.songs.map(s => ({ name: s.name, cover: s.cover, source: s.source, num: s.num, page: s.page || undefined, ytId: s.ytId || undefined })),
         tiers: lobby.tiers, votes: lobby.votes
-      });
+      }, lobby.savedId);
       log('TIERLIST', `saved: ${lobby.album.title} (${placed} placed)`);
-      Object.assign(lobby, { mode: null, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: Date.now() }, tiers: emptyTiers(), trashed: [], votes: {} });
+      Object.assign(lobby, { mode: null, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: Date.now() }, tiers: emptyTiers(), trashed: [], votes: {}, savedId: null });
       io.to(ROOM).emit('tlState', publicState());
     } catch (e) { fail('No se pudo guardar', e); }
+  });
+
+  socket.on('tlSavedEdit', async ({ id } = {}) => {
+    if (typeof id !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(id)) return;
+    const p = lobby.players[socket.id];
+    try {
+      const list = await getTierList(id);
+      if (!list || !p) return;
+      if (list.host !== p.username) return fail('Solo quien la creó puede editarla');
+      lobby.host = socket.id;
+      Object.assign(lobby, {
+        mode: list.mode, album: { slug: 'saved:' + list.id, title: list.title, covers: [] }, savedId: list.id,
+        songs: list.songs.map((s, i) => ({ id: i, name: s.name, cover: s.cover, source: s.source, num: s.num, disc: 1, duration: '', page: s.page || null, ytId: s.ytId || null, mp3: null })),
+        currentId: null, playback: { playing: false, position: 0, at: Date.now() },
+        tiers: Object.fromEntries(TIERS.map(t => [t, ((list.tiers || {})[t] || []).filter(i => i < list.songs.length)])), trashed: [], votes: list.votes || {}
+      });
+      io.to(ROOM).emit('tlState', publicState());
+      broadcastPlayers();
+      log('TIERLIST', `${p.username} edits saved list: ${list.title}`);
+    } catch (e) { fail('No se pudo abrir', e); }
+  });
+
+  socket.on('tlHost', ({ username } = {}) => {
+    if (!isHost()) return;
+    const sid = Object.keys(lobby.players).find(k => lobby.players[k].username === username);
+    if (!sid || sid === socket.id) return;
+    lobby.host = sid;
+    broadcastPlayers();
+    log('TIERLIST', `host handed to ${username}`);
   });
 
   socket.on('tlSavedGet', async ({ id } = {}) => {
