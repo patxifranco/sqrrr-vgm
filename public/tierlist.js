@@ -475,7 +475,7 @@ audio.addEventListener('ended', () => {
   socket.emit('tlVerdictOpen');
 });
 
-const TILT_GAIN = 22, TILT_MAX = 40, TILT_RETURN = 0.005, TILT_EASE = 12;
+const TILT_GAIN = 22, TILT_MAX = 40, TILT_RETURN = 0.0005, TILT_EASE = 18;
 function pushTilt(c, v) {
   const t = clamp(v * TILT_GAIN, -TILT_MAX, TILT_MAX);
   if (Math.abs(t) > Math.abs(c.tiltTarget) || t * c.tiltTarget < 0) c.tiltTarget = t;
