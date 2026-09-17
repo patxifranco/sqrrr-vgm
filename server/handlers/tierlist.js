@@ -456,9 +456,9 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
 
   socket.on('tlReset', () => {
     if (!isHost()) return;
-    Object.assign(lobby, { album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {} });
+    Object.assign(lobby, { mode: null, album: null, songs: [], currentId: null, playback: { playing: false, position: 0, at: 0 }, tiers: emptyTiers(), trashed: [], votes: {}, savedId: null });
     io.to(ROOM).emit('tlState', publicState());
-    log('TIERLIST', 'reset by host');
+    log('TIERLIST', 'everyone sent back to the lobby by the host');
   });
 
   socket.on('tlMode', ({ mode } = {}) => {

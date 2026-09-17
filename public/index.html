@@ -1704,7 +1704,6 @@
         <div id="tl-clock" class="tl-clock">00:00</div>
         <div class="tl-bar">
           <div class="tl-bar-side">
-            <button id="tl-cancel-btn" class="tl-round host-only" title="Resetear to' toito"><svg class="tl-ico" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg></button>
             <button id="tl-finish-btn" class="tl-round host-only" title="Terminar y guardar la tierlist" disabled><svg class="tl-ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></button>
             <button id="tl-verdict-btn" class="tl-round tl-round-big" title="Veredicto" disabled><svg class="tl-ico" viewBox="0 0 24 24"><path d="M13 3l8 8-4 4-8-8z"/><path d="M11 9l-8 8"/><path d="M3 21h10"/></svg></button>
           </div>
@@ -1722,11 +1721,19 @@
           <div class="tl-bar-side right"></div>
         </div>
       </div>
-      <div id="tl-fx" class="tl-fx"></div>
       <canvas id="tl-fxc" class="tl-fxc" width="1920" height="1080"></canvas>
       <div id="tl-dim" class="tl-dim" hidden></div>
       <div id="tl-loading" class="tl-loading" hidden><span>CARGANDO...</span></div>
       <div id="tl-preview" class="tl-preview" hidden><img alt=""></div>
+      <div id="tl-leave" class="tl-leave" hidden>
+        <div class="tl-leave-box">
+          <div class="tl-leave-title">¿Volver al menú?</div>
+          <div class="tl-leave-boxes">
+            <button id="tl-leave-all" class="tl-pick-box"><svg class="tl-ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="3"/><path d="M15.5 14.5a5.5 5.5 0 0 1 6 5.5"/></svg><b>To'l mundo pal lobby</b><small>Todos vuelven a elegir modo · sigues de host</small></button>
+            <button id="tl-leave-me" class="tl-pick-box"><svg class="tl-ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><b>Solo yo pal lobby</b><small>Te vas al menú · otro pasa a ser host</small></button>
+          </div>
+        </div>
+      </div>
       <div id="tl-cursors" class="tl-cursors"></div>
       <div id="tl-bubble" class="tl-bubble" hidden></div>
       <div id="tl-verdict" class="tl-verdict" hidden>
