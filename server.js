@@ -18,7 +18,6 @@ const vgmHandler = require('./server/handlers/vgm');
 const slotsHandler = require('./server/handlers/slots');
 const stackingHandler = require('./server/handlers/stacking');
 const fishingHandler = require('./server/handlers/fishing');
-const minigolfHandler = require('./server/handlers/minigolf');
 const cardsHandler = require('./server/handlers/cards');
 const wordleHandler = require('./server/handlers/wordle');
 const tierlistHandler = require('./server/handlers/tierlist');
@@ -432,7 +431,13 @@ app.use('/audio', (req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (/\.(png|jpe?g|gif|webp|ico|mp3|wav|ogg|woff2?|ttf)$/i.test(filePath) && !/[\\/]profiles[\\/]/.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    }
+  }
+}));
 
 let songs = [];
 try {
@@ -628,11 +633,6 @@ io.on('connection', (socket) => {
     saveUser: saveUser,
     getLoggedInUsername: authHelpers.getLoggedInUsername
   });
-  const minigolfCleanup = minigolfHandler.setupHandlers(io, socket, {
-    getUser: (username) => users[username],
-    saveUser: saveUser,
-    getLoggedInUsername: authHelpers.getLoggedInUsername
-  });
   cardsHandler.setupHandlers(io, socket, {
     getUser: (username) => users[username],
     saveUser: saveUser,
@@ -722,7 +722,6 @@ io.on('connection', (socket) => {
       drawingCleanup.handleDisconnect();
     }
 
-    minigolfCleanup.handleDisconnect();
 
     tierlistCleanup.handleDisconnect();
   });
@@ -926,7 +925,6 @@ async function initializeAndStart() {
   slotsHandler.init(io);
   stackingHandler.init(io);
   fishingHandler.init(io);
-  minigolfHandler.init(io);
   cardsHandler.init(io);
   authHandler.init(io);
   profileHandler.init(io);
