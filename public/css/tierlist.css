@@ -190,11 +190,18 @@
 .tl-verdict-title img { height: 96px; border: 2px solid #444; border-radius: 6px; vertical-align: middle; }
 #tl-verdict-rows { display: flex; flex-direction: column; gap: 4px; }
 .tl-verdict-row {
-  display: flex; align-items: stretch; height: 84px; padding: 0 14px 0 0; background: #111; border: 1px solid #2c2c2c; outline: 2px solid transparent;
-  color: #ddd; text-align: left; transition: outline-color .1s, background .1s;
+  position: relative; display: flex; align-items: stretch; height: 84px; padding: 0 14px 0 0; background: #111; border: 1px solid #2c2c2c; outline: 2px solid transparent;
+  color: #ddd; text-align: left; transition: outline-color .1s, background .1s, transform .35s, filter .35s;
 }
 .tl-verdict:not(.readonly) .tl-verdict-row:hover { outline-color: #fff; background: #151515; }
-.tl-verdict-row.top { outline-color: var(--glow); }
+.tl-verdict-row.avg { outline-color: #ffd54a; }
+.tl-verdict-row.split { outline-color: #4ade80; }
+.tl-verdict-tag { align-self: center; margin-right: 16px; font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #ffd54a; border: 1px solid currentColor; border-radius: 3px; padding: 2px 7px; }
+.tl-verdict-row.split .tl-verdict-tag { color: #4ade80; }
+.tl-verdict.decided .tl-verdict-row { pointer-events: none; transform: scale(.96); filter: brightness(.4); }
+.tl-verdict.decided .tl-verdict-row.chosen { transform: scale(1.04); filter: none; z-index: 1; outline-color: var(--tc); }
+.tl-verdict-row.chosen::after { content: ''; position: absolute; inset: -4px; border: 3px solid var(--tc); pointer-events: none; animation: tl-chosen 1s ease-out infinite; }
+@keyframes tl-chosen { 0% { inset: -4px; opacity: 1; } 100% { inset: -22px; opacity: 0; } }
 .tl-verdict-cards { flex: 1; display: flex; align-items: center; gap: 6px; padding: 0 8px; overflow: hidden; }
 .tl-verdict-row em { align-self: center; font-style: normal; font-weight: 700; font-size: 30px; min-width: 44px; text-align: right; color: var(--glow); }
 .tl-verdict-row kbd { align-self: center; margin-left: 12px; font: 600 13px 'Segoe UI', sans-serif; color: var(--grey); border: 1px solid #3a3a3a; border-radius: 4px; padding: 1px 7px; }

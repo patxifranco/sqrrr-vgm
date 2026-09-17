@@ -191,17 +191,30 @@ function setLoading(on) {
 function renderVerdict() {
   const id = tl.currentId;
   const counts = Object.fromEntries(TIERS.map(t => [t, votesFor(id, t).length]));
-  const max = Math.max(...Object.values(counts));
+  const ranks = TIERS.flatMap((t, i) => Array(counts[t]).fill(i));
+  const mean = ranks.length ? ranks.reduce((a, b) => a + b, 0) / ranks.length : null;
+  const mark = i => mean === null ? '' : Number.isInteger(mean) ? (i === mean ? ' avg' : '') : (i === Math.floor(mean) || i === Math.ceil(mean) ? ' split' : '');
   $('tl-verdict-title').innerHTML = isGeneral() ? `<img src="${esc(tl.songs[id].cover || '')}" alt="">` : esc(`${tl.songs[id].num}. ${tl.songs[id].name}`);
   $('tl-verdict-rows').innerHTML = TIERS.map((t, i) =>
-    `<button class="tl-verdict-row${counts[t] && counts[t] === max ? ' top' : ''}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><span class="tl-label">${t}</span><span class="tl-verdict-cards">${votesFor(id, t).map(u => voteCardHtml(u, tl.songs[id])).join('')}</span><em>${counts[t] || ''}</em><kbd>${i + 1}</kbd></button>`
+    `<button class="tl-verdict-row${mark(i)}" data-tier="${t}" style="--tc:${TIER_COLORS[t]}"><span class="tl-label">${t}</span><span class="tl-verdict-cards">${votesFor(id, t).map(u => voteCardHtml(u, tl.songs[id])).join('')}</span>${mark(i) ? '<i class="tl-verdict-tag">media</i>' : ''}<em>${counts[t] || ''}</em><kbd>${i + 1}</kbd></button>`
   ).join('');
+}
+
+function decideVerdict(tier) {
+  const panel = $('tl-verdict');
+  if (panel.hidden) return;
+  sfx('select', { volume: 0.2 });
+  panel.classList.add('decided');
+  panel.querySelectorAll('.tl-verdict-row').forEach(r => r.classList.toggle('chosen', r.dataset.tier === tier));
+  setTimeout(() => { panel.hidden = true; panel.classList.remove('decided'); }, 1200);
 }
 
 function openVerdict() {
   if (tl.view || tl.currentId === null || isPlaced(tl.currentId)) return;
   renderVerdict();
+  $('tl-verdict').classList.remove('decided');
   $('tl-verdict').classList.toggle('readonly', !isHost());
+  thud('pickup');
   $('tl-verdict-hint').innerHTML = `<b style="color:${colorOf(tl.host)}">${esc(tl.host || 'El host')}</b> elige el resultado final${isHost() ? ' · teclas 1-6' : ''}`;
   $('tl-verdict').hidden = false;
 }
@@ -634,7 +647,7 @@ socket.on('tlTiers', ({ tiers, trashed, placed }) => {
   if (placed !== null && placed !== undefined) {
     const card = document.querySelector(`.tl-drop .tl-card:not(.tl-vote)[data-id="${placed}"]`);
     if (card) card.classList.add('pop');
-    if (placed === tl.currentId) $('tl-verdict').hidden = true;
+    if (placed === tl.currentId) decideVerdict(TIERS.find(t => tiers[t].includes(placed)));
   }
 });
 socket.on('tlVerdictOpen', openVerdict);
