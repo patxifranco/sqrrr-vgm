@@ -269,7 +269,7 @@
 .tl-cursor {
   --h: 38px;
   position: absolute; left: 0; top: 0; height: var(--h); margin: -1px 0 0 calc(var(--h) * -0.205);
-  transform-origin: calc(var(--h) * 0.205) 1px; will-change: transform; filter: drop-shadow(0 2px 3px #000); z-index: 3;
+  transform-origin: 50% 100%; will-change: transform; filter: drop-shadow(0 2px 3px #000); z-index: 3;
 }
 .tl-cursor.me { --h: 44px; z-index: 4; }
 .tl-cursor-fallback {
