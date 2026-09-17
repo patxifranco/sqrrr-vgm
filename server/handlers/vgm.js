@@ -187,6 +187,7 @@ function createLobby(roomCode) {
   };
 }
 
+const { COLORS, DEFAULT_COLOR } = require('./tierlist');
 function getPlayerList(lobbies, roomCode) {
   const lobby = lobbies[roomCode];
   if (!lobby) return [];
@@ -199,7 +200,8 @@ function getPlayerList(lobbies, roomCode) {
     score: player.score,
     hintPoints: player.hintPoints,
     guessedGame: player.guessedGame,
-    streak: player.streak
+    streak: player.streak,
+    color: COLORS[player.username] || DEFAULT_COLOR
   }));
 }
 
@@ -437,6 +439,13 @@ function setupHandlers(io, socket, context) {
     getRandomSong,
     generateAudioToken
   } = context;
+
+  socket.on('vgmCursor', (pos) => {
+    const room = getCurrentRoom();
+    const username = getLoggedInUsername();
+    if (!room || !username || !pos) return;
+    socket.to(room).volatile.emit('vgmCursor', { username, x: +pos.x || 0, y: +pos.y || 0 });
+  });
 
   socket.on('joinVGM', () => {
     const loggedInUsername = getLoggedInUsername();

@@ -2,6 +2,7 @@ import { timerManager, socketManager, audioManager, logger, escapeHtml } from '.
 import { vgmChat } from './js/games/vgm/chat.js';
 import { vgmTimer } from './js/games/vgm/timer.js';
 import { windowControls } from './js/games/vgm/window-controls.js';
+import { createHands } from './js/hands.js';
 import { leaderboardUI } from './js/ui/leaderboard.js';
 import { createSlotPopupButton } from './js/ui/slot-popup.js';
 import { showCoinAnimation } from './js/ui/coin-animation.js';
@@ -295,8 +296,10 @@ function cleanupDocumentListeners() {
 
 let currentScreen = null;
 
+let hands = null;
 function showScreen(screenName) {
   const previousScreen = currentScreen;
+  if (hands && previousScreen === 'game' && screenName !== 'game') hands.clear();
 
   if (previousScreen === 'game' && screenName !== 'game') {
     timerManager.clearByPrefix('vgm-');
@@ -320,6 +323,7 @@ function showScreen(screenName) {
   if (screens[screenName]) {
     screens[screenName].classList.add('active');
     currentScreen = screenName;
+    if (hands && screenName === 'game') hands.fit();
   }
 }
 
@@ -362,7 +366,7 @@ function updatePlayerList(players, listElement) {
 
     const newContent = `
       <img src="${avatarSrc}" class="player-avatar-small" alt="">
-      <span class="player-name">${escapeHtml(player.name)}</span>
+      <span class="player-name" style="color:${player.color || ''}">${escapeHtml(player.name)}</span>
       <span class="player-score">${player.score} pts</span>
       ${streakHtml}
     `;
@@ -929,14 +933,14 @@ socketManager.on('lobbyCreated', ({ roomCode, playerName }) => {
   roomCodeDisplay.textContent = roomCode;
   gameRoomCode.textContent = roomCode;
   showScreen('lobby');
-}, 'vgm');
+});
 
 socketManager.on('lobbyJoined', ({ roomCode, playerName }) => {
   currentRoom = roomCode;
   roomCodeDisplay.textContent = roomCode;
   gameRoomCode.textContent = roomCode;
   showScreen('lobby');
-}, 'vgm');
+});
 
 socketManager.on('vgmJoined', ({ roomCode, playerName, roundActive: isRoundActive, autoPlayActive: isAutoPlayActive, roundNumber: currentRoundNum, currentAudioToken, roundStartTime: serverRoundStartTime, roundDuration: serverRoundDuration }) => {
   currentRoom = roomCode;
@@ -979,7 +983,7 @@ socketManager.on('vgmJoined', ({ roomCode, playerName, roundActive: isRoundActiv
     addMsnMessage('SQRRR', 'Bienvenido a SQRRR VGM', false);
     window.showStartButtonAfterHistory = true;
   }
-}, 'vgm');
+});
 
 socketManager.on('playerList', (players) => {
   if (players.length > lastPlayerCount && lastPlayerCount > 0) {
@@ -989,17 +993,18 @@ socketManager.on('playerList', (players) => {
 
   updatePlayerList(players, playerList);
   updatePlayerList(players, gamePlayerList);
+  if (hands) hands.keep(players.map(p => p.username));
 
   const me = players.find(p => p.id === socket.id);
   if (me && me.hintPoints !== undefined) {
     hintPoints = me.hintPoints;
     updateHintDisplay();
   }
-}, 'vgm');
+});
 
 socketManager.on('chatMessage', ({ system, message }) => {
   addMessage(chatMessages, message, system ? 'system-message' : '');
-}, 'vgm');
+});
 
 socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   log.info(`Round ${num} starting`);
@@ -1029,7 +1034,7 @@ socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
 
   startTimer(duration);
   guessInput.focus();
-}, 'vgm');
+});
 
 documentListeners.clickToPlay = (e) => {
   if (roundActive && audioPlayer.paused && audioPlayer.src &&
@@ -1067,10 +1072,10 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
   setTimeout(() => {
     guessInput.classList.remove('pulse', 'shake');
   }, 500);
-}, 'vgm');
+});
 
 socketManager.on('roundComplete', () => {
-}, 'vgm');
+});
 
 socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) => {
   if (currentUser && playerName !== currentUser.username) {
@@ -1081,7 +1086,7 @@ socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) 
       addSonicBonusMessage(playerName, sonicType);
     }
   }
-}, 'vgm');
+});
 
 socketManager.on('hintResult', ({ success, hint, hintPoints: newPoints, reason }) => {
   if (success) {
@@ -1092,13 +1097,13 @@ socketManager.on('hintResult', ({ success, hint, hintPoints: newPoints, reason }
   } else {
     addMsnMessage('SQRRR', reason, false);
   }
-}, 'vgm');
+});
 
 socketManager.on('playerUsedHint', ({ playerName }) => {
   if (currentUser && playerName !== currentUser.username) {
     addMsnMessage('', `${playerName} used a hint`, true);
   }
-}, 'vgm');
+});
 
 socketManager.on('roundEnd', ({ correctGame, correctSong, players }) => {
   log.info('Round ended', { correctGame, correctSong });
@@ -1118,7 +1123,7 @@ socketManager.on('roundEnd', ({ correctGame, correctSong, players }) => {
   if (gameStatusText) gameStatusText.textContent = '';
 
   if (startRoundBtnGame) startRoundBtnGame.disabled = false;
-}, 'vgm');
+});
 
 socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   if (isRecord) {
@@ -1134,12 +1139,12 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   if (message.includes('La canción era')) {
     vgmChat.revealFileName();
   }
-}, 'vgm');
+});
 
 socketManager.on('coinsEarned', ({ amount, total }) => {
   showCoinAnimation(amount);
   log.info(`Earned ${amount} $qr, total: ${total}`);
-}, 'vgm');
+});
 
 socketManager.on('sqrrrCountdown', ({ id, message }) => {
   let countdownDiv = countdownMessages[id];
@@ -1155,11 +1160,11 @@ socketManager.on('sqrrrCountdown', ({ id, message }) => {
   }
 
   gameMessages.scrollTop = gameMessages.scrollHeight;
-}, 'vgm');
+});
 
 socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings }) => {
   addMsnMessage(sender, message, false, { senderFontSettings: fontSettings });
-}, 'vgm');
+});
 
 socketManager.on('nudgeReceived', () => {
   audioManager.play('nudge', { volume: 0.1 });
@@ -1170,7 +1175,7 @@ socketManager.on('nudgeReceived', () => {
       gameScreen.classList.remove('msn-shake');
     }, 500);
   }
-}, 'vgm');
+});
 
 socketManager.on('closeGuess', ({ guess, type, percentage }) => {
   const div = document.createElement('div');
@@ -1180,7 +1185,7 @@ socketManager.on('closeGuess', ({ guess, type, percentage }) => {
   gameMessages.scrollTop = gameMessages.scrollHeight;
 
   audioManager.play('close', { volume: 0.8 });
-}, 'vgm');
+});
 
 socketManager.on('easterEgg', ({ type, message }) => {
   const div = document.createElement('div');
@@ -1188,21 +1193,21 @@ socketManager.on('easterEgg', ({ type, message }) => {
   div.innerHTML = `<span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">${escapeHtml(message)}</span>`;
   gameMessages.appendChild(div);
   gameMessages.scrollTop = gameMessages.scrollHeight;
-}, 'vgm');
+});
 
 socketManager.on('newRecord', ({ player, time, previousPlayer, previousTime }) => {
   audioManager.play('supersonic', { volume: 0.8 });
-}, 'vgm');
+});
 
 socketManager.on('audioDurationUpdate', ({ duration }) => {
   fullAudioDuration = duration;
-}, 'vgm');
+});
 
 socketManager.on('extendVotesUpdate', ({ votes, needed, totalPlayers }) => {
   if (extendVotesDisplay) {
     extendVotesDisplay.textContent = `${votes}/${needed}`;
   }
-}, 'vgm');
+});
 
 socketManager.on('roundExtended', ({ newDuration }) => {
   isExtended = true;
@@ -1214,7 +1219,7 @@ socketManager.on('roundExtended', ({ newDuration }) => {
     voteExtendBtn.style.opacity = '0.5';
   }
   addMsnMessage('SQRRR', 'La ronda se ha extendido hasta el final de la canción', false);
-}, 'vgm');
+});
 
 socketManager.on('chatHistory', (history) => {
   history.forEach(msg => {
@@ -1229,7 +1234,7 @@ socketManager.on('chatHistory', (history) => {
     window.showStartButtonAfterHistory = false;
     addStartVGMButton();
   }
-}, 'vgm');
+});
 
 socket.on('error', (message) => {
   alert(message);
@@ -1338,17 +1343,15 @@ documentListeners.emoticonPopupClose = (e) => {
 };
 document.addEventListener('click', documentListeners.emoticonPopupClose);
 
-const chatScreen = document.getElementById('game-screen');
-const gameWindow = chatScreen ? chatScreen.querySelector('.game-window') : null;
-const titlebar = gameWindow ? gameWindow.querySelector('.title-bar') : null;
-const resizeHandles = gameWindow ? Array.from(gameWindow.querySelectorAll('.resize-handle')) : [];
-
-windowControls.init({
-  gameWindow,
-  titlebar,
-  resizeHandles,
-  guessInput
-}, documentListeners);
+windowControls.init({ guessInput }, documentListeners);
+hands = createHands({
+  stage: document.getElementById('vgm-stage'),
+  layer: document.getElementById('vgm-cursors'),
+  socket,
+  event: 'vgmCursor',
+  isActive: () => currentScreen === 'game',
+  getMe: () => currentUser && currentUser.username
+});
 
 const typingIndicator = document.getElementById('typing-indicator');
 const typingIndicatorText = document.getElementById('typing-indicator-text');
@@ -1384,7 +1387,7 @@ socketManager.on('typingUpdate', ({ typing }) => {
     typingIndicatorText.textContent = `${othersTyping.join(', ')} y ${lastPerson} están escribiendo...`;
     typingIndicator.style.display = 'block';
   }
-}, 'vgm');
+});
 
 leaderboardUI.init({ emit: (event, data) => socket.emit(event, data) });
 

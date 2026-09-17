@@ -182,10 +182,30 @@ body {
 .game-window {
   width: 1000px;
   height: 700px;
-  max-height: 85vh;
   min-width: 600px;
   min-height: 500px;
   position: relative;
+}
+
+#game-screen {
+  overflow: hidden;
+}
+
+.vgm-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: center center;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vgm-stage, .vgm-stage * {
+  cursor: none !important;
 }
 
 .round-end-window {
