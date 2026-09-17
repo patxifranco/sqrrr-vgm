@@ -596,6 +596,13 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
     } catch (e) { fail('No se pudo abrir', e); }
   });
 
+  socket.on('tlPingTier', ({ tier } = {}) => {
+    const p = lobby.players[socket.id];
+    if (!p || !TIERS.includes(tier) || Date.now() - lastPing < 250) return;
+    lastPing = Date.now();
+    io.to(ROOM).emit('tlPingTier', { username: p.username, tier });
+  });
+
   socket.on('tlFall', ({ id, x, y, gx, gy, vx, rot } = {}) => {
     const p = lobby.players[socket.id];
     if (!p || !lobby.songs[id]) return;

@@ -791,12 +791,24 @@ socket.on('tlCovers', ({ slug, covers }) => {
   }
 });
 socket.on('tlVerdictOpen', openVerdict);
-socket.on('tlPing', ({ username, songId }) => {
-  pingCard(songId, colorOf(username));
+function pingSound(username) {
   const now = Date.now();
   if (now - (pingSoundAt[username] || 0) < 1500) return;
   pingSoundAt[username] = now;
   sfx('ping');
+}
+socket.on('tlPing', ({ username, songId }) => { pingCard(songId, colorOf(username)); pingSound(username); });
+socket.on('tlPingTier', ({ username, tier }) => {
+  pingSound(username);
+  const row = document.querySelector(`.tl-verdict-row[data-tier="${tier}"]`);
+  if (!row || $('tl-verdict').hidden) return;
+  const ring = document.createElement('span');
+  ring.className = 'tl-ping';
+  ring.style.setProperty('--c', colorOf(username));
+  row.style.setProperty('--c', colorOf(username));
+  row.appendChild(ring);
+  row.classList.add('pinged');
+  setTimeout(() => { ring.remove(); row.classList.remove('pinged'); row.style.removeProperty('--c'); }, 1200);
 });
 socket.on('tlSaved', ({ list }) => { if (!list) return; tl.view = list; $('tl-verdict').hidden = true; stopAudio(); renderBoard(); });
 socket.on('tlError', ({ message }) => { setLoading(false); $('tl-now').textContent = message; });
@@ -929,9 +941,14 @@ $('tl-next').addEventListener('click', () => {
 $('tl-verdict-btn').addEventListener('click', () => { if (isHost()) socket.emit('tlVerdictOpen'); else openVerdict(); });
 $('tl-verdict-rows').addEventListener('click', e => {
   const r = e.target.closest('.tl-verdict-row');
-  if (!r || !isHost()) return;
+  if (!r) return;
+  if (!isHost()) return socket.emit('tlPingTier', { tier: r.dataset.tier });
   thud('drop');
   socket.emit('tlVerdict', { songId: tl.currentId, tier: r.dataset.tier });
+});
+$('tl-verdict-rows').addEventListener('auxclick', e => {
+  const r = e.target.closest('.tl-verdict-row');
+  if (e.button === 1 && r) { e.preventDefault(); socket.emit('tlPingTier', { tier: r.dataset.tier }); }
 });
 $('tl-seek').addEventListener('pointerdown', () => { seekDragging = true; });
 $('tl-seek').addEventListener('input', e => { if (seekDragging) $('tl-clock').textContent = fmt(e.target.value / 1000 * (audio.duration || 0)); });

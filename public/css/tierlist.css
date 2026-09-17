@@ -218,7 +218,10 @@
 .tl-verdict-cards { flex: 1; display: flex; align-items: center; gap: 6px; padding: 0 8px; overflow: hidden; }
 .tl-verdict-row em { align-self: center; font-style: normal; font-weight: 700; font-size: 30px; min-width: 44px; text-align: right; color: var(--glow); }
 .tl-verdict-row kbd { align-self: center; margin-left: 12px; font: 600 13px 'Segoe UI', sans-serif; color: var(--grey); border: 1px solid #3a3a3a; border-radius: 4px; padding: 1px 7px; }
-.tl-verdict.readonly .tl-verdict-row { pointer-events: none; }
+.tl-verdict.readonly .tl-verdict-row:hover { outline-color: #555; }
+.tl-verdict-row.pinged { outline-color: var(--c); }
+.tl-verdict-row .tl-ping { border-radius: 4px; animation: tl-ping-row 1.2s ease-out forwards; }
+@keyframes tl-ping-row { 0% { inset: -3px; opacity: 1; } 100% { inset: -22px; opacity: 0; } }
 .tl-verdict-hint { color: var(--grey); text-align: center; margin-top: 12px; font-size: 14px; }
 
 .tl-loading { position: absolute; inset: -2000px; z-index: 85; background: rgba(0, 0, 0, .62); display: flex; align-items: center; justify-content: center; }
