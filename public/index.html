@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/cards.css">
   <link rel="stylesheet" href="css/wordle.css">
   <link rel="stylesheet" href="css/tierlist.css">
+  <link rel="stylesheet" href="css/vgmadd.css">
   <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
@@ -251,6 +252,87 @@
           <div id="chat-messages" class="chat-box"></div>
         </fieldset>
       </div>
+    </div>
+  </div>
+
+  <div id="vgm-choice-screen" class="screen-container">
+    <div class="window vgm-choice-window">
+      <div class="title-bar">
+        <div class="title-bar-text">SQRRR VGM</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close" id="vgm-choice-back"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="vgm-choice">
+          <button id="vgm-play-btn"><span>&#x266B;</span>Jugar<small>Adivina la canción</small></button>
+          <button id="vgm-add-btn"><span>&#x1F4BF;</span>Añadir canciones<small>Mete tus frikitones al juego</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="vgm-add-screen" class="screen-container">
+    <div class="window ie-window">
+      <div class="title-bar">
+        <div class="title-bar-text"><span class="ie-e">e</span>Añadir canciones al VGM - Microsoft Internet Explorer</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close" id="va-close"></button>
+        </div>
+      </div>
+      <div class="ie-menubar"><span>Archivo</span><span>Edición</span><span>Ver</span><span>Favoritos</span><span>Herramientas</span><span>Ayuda</span></div>
+      <div class="ie-toolbar">
+        <button id="va-back" class="ie-tb"><span class="ie-ico back">&#x25C4;</span>Atrás</button>
+        <button class="ie-tb" disabled><span class="ie-ico fwd">&#x25BA;</span></button>
+        <span class="ie-sep"></span>
+        <button class="ie-tb"><span class="ie-ico stop">&#x2715;</span></button>
+        <button class="ie-tb"><span class="ie-ico refresh">&#x21BB;</span></button>
+        <button id="va-home" class="ie-tb"><span class="ie-ico home">&#x2302;</span></button>
+        <span class="ie-sep"></span>
+        <button class="ie-tb">Búsqueda</button>
+        <button class="ie-tb">Favoritos</button>
+        <button class="ie-tb">Multimedia</button>
+      </div>
+      <div class="ie-address">Dirección <div class="ie-url"><span class="ie-e">e</span><span>http://www.sqrrr.com/vgm/anadir</span></div> <button class="ie-tb">Ir</button></div>
+      <div class="ie-page">
+        <div class="va-search">
+          <input id="va-q" type="text" autocomplete="off">
+          <button id="va-go">Buscar</button>
+          <button id="va-src" class="va-src" data-src="kh" title="khinsider / YouTube"><span class="va-src-side kh">khinsider <b></b></span><span class="va-src-track"><span class="va-src-knob"></span></span><span class="va-src-side yt"><b></b> YouTube</span></button>
+        </div>
+        <div class="va-body">
+          <div id="va-results" class="va-results"><p class="va-empty">Busca un juego o un álbum y elige la pista que quieras añadir.</p></div>
+          <div id="va-album" hidden>
+            <div class="va-album-head"><span id="va-album-cover" class="va-cover"></span><h3 id="va-album-title"></h3><button id="va-album-back">Volver a los resultados</button></div>
+            <table class="va-tracks"><tbody id="va-tracks"></tbody></table>
+          </div>
+        </div>
+        <div class="va-player">
+          <div id="va-lcd" class="va-lcd">Elige una pista</div>
+          <div class="va-seekwrap"><span id="va-clip" class="va-clip"></span><span id="va-marker" class="va-marker"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
+          <div class="va-controls">
+            <button id="va-play" class="va-round" title="Reproducir / pausa"><span class="ico-play">&#x25B6;</span><span class="ico-pause">&#x2016;</span></button>
+            <button id="va-stop" class="va-round" title="Parar">&#x25A0;</button>
+            <span id="va-time" class="va-time">0:00 / 0:00</span>
+            <button id="va-here" class="va-here">Empezar aquí</button>
+            <button id="va-preview">Escuchar el recorte</button>
+            <label>Vol <input id="va-vol" type="range" min="0" max="100" value="80"></label>
+          </div>
+        </div>
+        <div class="va-form">
+          <label for="va-game">Juego</label><input id="va-game" type="text" maxlength="80">
+          <label for="va-song">Canción</label><input id="va-song" type="text" maxlength="80">
+          <label for="va-start">Empieza en</label><input id="va-start" type="text" value="0:00">
+          <button id="va-submit">Añadir al VGM</button>
+        </div>
+        <div id="va-submit-msg" class="va-submit-msg"></div>
+      </div>
+      <div class="status-bar"><p id="va-status" class="status-bar-field">Listo</p><p class="status-bar-field">Internet</p></div>
+      <audio id="va-audio" preload="auto"></audio>
     </div>
   </div>
 
@@ -1732,5 +1814,6 @@
   <script type="module" src="cards.js"></script>
   <script type="module" src="wordle.js"></script>
   <script type="module" src="tierlist.js"></script>
+  <script type="module" src="vgmadd.js"></script>
 </body>
 </html>

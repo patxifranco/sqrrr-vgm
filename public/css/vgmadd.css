@@ -1,0 +1,72 @@
+.vgm-choice-window { width: 560px; }
+.vgm-choice-window .window-body { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.vgm-choice { display: flex; gap: 16px; }
+.vgm-choice button { flex: 1; height: 150px; font-size: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.vgm-choice button span { font-size: 40px; }
+.vgm-choice small { font-size: 12px; color: #444; }
+
+.ie-window { width: 1240px; height: 860px; display: flex; flex-direction: column; }
+.ie-window .title-bar-text { display: flex; align-items: center; gap: 6px; }
+.ie-menubar { display: flex; gap: 14px; padding: 3px 8px; background: #ece9d8; border-bottom: 1px solid #d4d0c8; font-size: 11px; }
+.ie-toolbar { display: flex; align-items: center; gap: 4px; padding: 3px 6px; background: #ece9d8; border-bottom: 1px solid #d4d0c8; }
+.ie-tb { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 3px 9px; font-size: 11px; background: transparent; border: 1px solid transparent; box-shadow: none; }
+.ie-tb:hover:not(:disabled) { border-color: #316ac5; background: #d7e5f8; }
+.ie-tb:disabled { color: #a0a0a0; }
+.ie-tb .ie-ico { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; }
+.ie-ico.back, .ie-ico.fwd { background: #2b8a3e; }
+.ie-ico.stop { background: #c62828; }
+.ie-ico.refresh { background: #2f6fc4; }
+.ie-ico.home { background: #b7791f; }
+.ie-sep { width: 1px; height: 22px; background: #c8c4bc; margin: 0 4px; }
+.ie-address { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: #ece9d8; border-bottom: 1px solid #d4d0c8; font-size: 11px; }
+.ie-url { flex: 1; display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #7f9db9; padding: 2px 4px; }
+.ie-e { width: 16px; height: 16px; border-radius: 50%; background: #2f6fc4; color: #fff; font: italic 700 12px Georgia, serif; display: inline-flex; align-items: center; justify-content: center; }
+.ie-url span:last-child { color: #333; }
+.ie-page { flex: 1; min-height: 0; overflow: hidden; background: #fff; padding: 14px 22px; display: flex; flex-direction: column; gap: 12px; }
+.ie-page [hidden] { display: none !important; }
+.va-body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
+.ie-window .status-bar { margin: 0; }
+
+.va-search { display: flex; align-items: center; gap: 10px; }
+.va-search input { flex: 1; font-size: 14px; padding: 4px 6px; }
+.va-src { display: flex; align-items: center; gap: 10px; background: transparent; border: 0; color: #999; padding: 2px 6px; min-width: 0; box-shadow: none; }
+.va-src-side { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; }
+.va-src[data-src="kh"] .kh { color: #111; }
+.va-src[data-src="yt"] .yt { color: #d21f1f; }
+.va-src-side b { color: #2f6fc4; min-width: 12px; }
+.va-src-track { position: relative; width: 44px; height: 20px; border-radius: 10px; background: #e6e6e6; border: 1px solid #9a9a9a; }
+.va-src-knob { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #2f6fc4; transition: left .15s; }
+.va-src[data-src="yt"] .va-src-knob { left: 26px; }
+.va-results { display: grid; grid-template-columns: repeat(auto-fill, 128px); gap: 12px; }
+.va-card { width: 128px; padding: 5px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; text-align: left; min-width: 0; }
+.va-cover { display: block; width: 100%; aspect-ratio: 1; background: #ddd center / cover no-repeat; }
+.va-card-title { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.va-card small { color: #666; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.va-empty { color: #666; }
+.va-album-head { display: flex; align-items: center; gap: 14px; }
+.va-album-head .va-cover { width: 64px; flex: none; }
+.va-album-head h3 { margin: 0; font-size: 16px; }
+.va-album-head button { margin-left: auto; }
+.va-tracks { width: 100%; border-collapse: collapse; font-size: 12px; }
+.va-tracks td { padding: 4px 8px; border-bottom: 1px solid #eee; cursor: pointer; }
+.va-tracks td:first-child { width: 48px; color: #777; }
+.va-tracks td:last-child { width: 70px; color: #777; text-align: right; }
+.va-tracks tr:hover td { background: #eaf2fc; }
+.va-tracks tr.on td { background: #316ac5; color: #fff; }
+
+.va-player { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 8px; background: linear-gradient(180deg, #5f8bd6, #2c5aa8 45%, #1d418c); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 2px 6px rgba(0, 0, 0, .35); color: #fff; }
+.va-lcd { font: 700 13px 'Segoe UI', sans-serif; letter-spacing: .5px; color: #9ff3ff; background: #08213f; border: 1px solid #0d3a6b; border-radius: 4px; padding: 6px 10px; text-shadow: 0 0 6px rgba(159, 243, 255, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.va-seekwrap { position: relative; height: 22px; }
+.va-seekwrap input { position: absolute; inset: 0; width: 100%; margin: 0; }
+.va-clip { position: absolute; top: 8px; height: 6px; background: rgba(255, 213, 74, .55); border-radius: 3px; pointer-events: none; }
+.va-marker { position: absolute; top: -2px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 9px solid #ffd54a; transform: translateX(-6px); pointer-events: none; }
+.va-controls { display: flex; align-items: center; gap: 10px; }
+.va-round { width: 34px; height: 34px; min-width: 0; padding: 0; border-radius: 50%; border: 1px solid #0d3a6b; background: radial-gradient(circle at 40% 35%, #eaf2ff, #7fa3d8 70%); color: #0d2f5c; font-size: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .4); }
+.va-round.playing .ico-play, .va-round:not(.playing) .ico-pause { display: none; }
+.va-time { font-family: Consolas, monospace; font-size: 12px; min-width: 90px; }
+.va-here { margin-left: auto; }
+.va-controls label { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.va-form { display: grid; grid-template-columns: auto 1fr auto 1fr auto auto; gap: 8px 10px; align-items: center; font-size: 12px; }
+.va-form input { padding: 3px 5px; }
+.va-form #va-start { width: 70px; }
+.va-submit-msg { font-size: 12px; color: #1d418c; min-height: 16px; }

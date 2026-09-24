@@ -12,3 +12,5 @@ Thumbs.db
 .idea/
 nul
 track-art.json
+songs-added.json
+public/audio/*.m4a

@@ -21,6 +21,7 @@ const fishingHandler = require('./server/handlers/fishing');
 const cardsHandler = require('./server/handlers/cards');
 const wordleHandler = require('./server/handlers/wordle');
 const tierlistHandler = require('./server/handlers/tierlist');
+const vgmAddHandler = require('./server/handlers/vgmadd');
 const authHandler = require('./server/handlers/auth');
 const profileHandler = require('./server/handlers/profile');
 const leaderboardsHandler = require('./server/handlers/leaderboards');
@@ -395,7 +396,7 @@ app.get('/audio-stream/:token', (req, res) => {
     return res.status(404).send('Not found');
   }
 
-  res.setHeader('Content-Type', 'audio/mpeg');
+  res.setHeader('Content-Type', tokenData.songFile.endsWith('.m4a') ? 'audio/mp4' : 'audio/mpeg');
   res.setHeader('Accept-Ranges', 'bytes');
 
   const stat = fs.statSync(audioPath);
@@ -446,6 +447,13 @@ try {
 } catch (err) {
   console.error('Error loading songs.json:', err.message);
 }
+const addedSongsPath = path.join(__dirname, 'songs-added.json');
+let addedSongs = [];
+try {
+  addedSongs = JSON.parse(fs.readFileSync(addedSongsPath, 'utf8'));
+  songs.push(...addedSongs);
+  console.log(`Loaded ${addedSongs.length} songs added by players`);
+} catch (err) {}
 
 const lobbies = {};
 const loggedInUsers = {};
@@ -641,6 +649,16 @@ io.on('connection', (socket) => {
   const tierlistCleanup = tierlistHandler.setupHandlers(io, socket, {
     getUser: (username) => users[username],
     getLoggedInUsername: authHelpers.getLoggedInUsername
+  });
+  vgmAddHandler.setupHandlers(io, socket, {
+    getLoggedInUsername: authHelpers.getLoggedInUsername,
+    songs,
+    addSong: (entry) => {
+      songs.push(entry);
+      addedSongs.push(entry);
+      fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
+    },
+    VGM_ROOM: 'VGM'
   });
   wordleHandler.setupHandlers(io, socket, {
     getUser: (username) => users[username],

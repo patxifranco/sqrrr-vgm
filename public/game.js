@@ -84,6 +84,8 @@ const screens = {
   menu: document.getElementById('menu-screen'),
   lobby: document.getElementById('lobby-screen'),
   game: document.getElementById('game-screen'),
+  vgmChoice: document.getElementById('vgm-choice-screen'),
+  vgmAdd: document.getElementById('vgm-add-screen'),
   roundEnd: document.getElementById('round-end-screen'),
   drawingLobby: document.getElementById('drawing-lobby-screen'),
   drawingGame: document.getElementById('drawing-game-screen'),
@@ -606,7 +608,19 @@ socket.on('kicked', ({ reason }) => {
 });
 
 vgmBtn.addEventListener('click', () => {
+  showScreen('vgmChoice');
+});
+document.getElementById('vgm-play-btn').addEventListener('click', () => {
   socket.emit('joinVGM');
+});
+document.getElementById('vgm-add-btn').addEventListener('click', () => {
+  showScreen('vgmAdd');
+});
+document.getElementById('vgm-choice-back').addEventListener('click', () => {
+  showScreen('hub');
+});
+document.addEventListener('showScreen', (e) => {
+  showScreen(e.detail);
 });
 
 backToHubBtn.addEventListener('click', () => {

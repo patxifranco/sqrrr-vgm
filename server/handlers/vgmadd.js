@@ -1,0 +1,102 @@
+const fs = require('fs');
+const path = require('path');
+const { spawn } = require('child_process');
+const tl = require('./tierlist');
+const { log, warn } = require('../utils');
+
+const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg';
+const AUDIO_DIR = path.join(__dirname, '..', '..', 'public', 'audio');
+const CLIP = 41;
+const FADE = 3;
+const PAGE_RE = /^\/game-soundtracks\/album\/[A-Za-z0-9._%-]+\/[^\s"'<>]+$/;
+const YT_ID = /^[A-Za-z0-9_-]{11}$/;
+
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const slug = s => norm(s).replace(/ /g, '-').slice(0, 60) || 'x';
+const clean = s => String(s || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+
+function ffmpegClip(url, start, out) {
+  return new Promise((resolve, reject) => {
+    const args = ['-y', '-loglevel', 'error', '-ss', String(start), '-t', String(CLIP), '-i', url, '-vn',
+      '-af', `afade=t=out:st=${CLIP - FADE}:d=${FADE}`, '-ar', '44100', '-ac', '2', '-c:a', 'aac', '-b:a', '80k', '-movflags', '+faststart', out];
+    const p = spawn(FFMPEG, args);
+    let err = '';
+    p.stderr.on('data', d => { err += d; });
+    const timer = setTimeout(() => { p.kill('SIGKILL'); reject(new Error('ffmpeg timeout')); }, 180000);
+    p.on('error', e => { clearTimeout(timer); reject(e); });
+    p.on('close', code => { clearTimeout(timer); code === 0 ? resolve() : reject(new Error(err.trim().split('\n').pop() || `ffmpeg exit ${code}`)); });
+  });
+}
+
+let chain = Promise.resolve();
+const queued = job => { const run = chain.then(job, job); chain = run.catch(() => {}); return run; };
+
+function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_ROOM }) {
+  const fail = (message, e) => { if (e) warn('VGMADD', message, e.message); socket.emit('vaError', { message }); };
+
+  socket.on('vaSearch', async ({ q } = {}) => {
+    const query = String(q || '').trim().slice(0, 100);
+    if (!getLoggedInUsername() || !query) return;
+    const [kh, yt] = await Promise.all([
+      tl.searchAlbums(query).catch(e => { warn('VGMADD', 'khinsider search failed', e.message); return { results: [] }; }),
+      tl.ytSearch(query).catch(e => { warn('VGMADD', 'youtube search failed', e.message); return []; })
+    ]);
+    socket.emit('vaResults', { q: query, kh: kh.results, yt });
+  });
+
+  socket.on('vaOpen', async ({ source, id } = {}) => {
+    if (!getLoggedInUsername()) return;
+    try {
+      if (source === 'kh') {
+        const a = await tl.loadAlbum(String(id));
+        socket.emit('vaTracks', { source, id, title: a.title, cover: a.covers[0] || null, tracks: a.songs.map(s => ({ name: s.name, duration: s.duration, page: s.page, disc: s.disc, num: s.num })) });
+      } else if (source === 'yt') {
+        const l = await tl.ytList(`https://www.youtube.com/playlist?list=${String(id)}`);
+        socket.emit('vaTracks', { source, id, title: l.title, cover: (l.entries[0] || {}).thumb || null, tracks: l.entries.map((e, i) => ({ name: e.title, duration: e.duration, ytId: e.id, disc: 1, num: i + 1, thumb: e.thumb })) });
+      }
+    } catch (e) { fail('No se pudo abrir eso', e); }
+  });
+
+  socket.on('vaStream', async ({ source, page, ytId } = {}) => {
+    if (!getLoggedInUsername()) return;
+    try {
+      const url = await tl.resolveMp3(source === 'yt' ? { source: 'yt', ytId: String(ytId) } : { source: 'kh', page: String(page) });
+      socket.emit('vaStreamUrl', { page, ytId, url });
+    } catch (e) { fail('No se pudo cargar la canción', e); }
+  });
+
+  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song } = {}) => {
+    const username = getLoggedInUsername();
+    if (!username) return;
+    const gameName = clean(game), songName = clean(song), at = Math.max(0, Math.min(36000, Number(start) || 0));
+    if (!gameName || !songName) return fail('Pon el juego y el nombre de la canción');
+    if (source === 'kh' ? !PAGE_RE.test(String(page || '')) : !(source === 'yt' && YT_ID.test(String(ytId || '')))) return fail('Canción no válida');
+    if (songs.some(s => norm(s.game) === norm(gameName) && norm(s.song) === norm(songName))) return fail('Esa canción ya está en el VGM');
+    const file = `${slug(gameName)}-${slug(songName)}.m4a`;
+    if (fs.existsSync(path.join(AUDIO_DIR, file))) return fail('Ya hay un archivo con ese nombre');
+    socket.emit('vaProgress', { message: 'En cola...' });
+    try {
+      await queued(async () => {
+        socket.emit('vaProgress', { message: 'Descargando...' });
+        const url = await tl.resolveMp3(source === 'yt' ? { source: 'yt', ytId } : { source: 'kh', page });
+        socket.emit('vaProgress', { message: 'Recortando y convirtiendo...' });
+        await ffmpegClip(url, at, path.join(AUDIO_DIR, file));
+        const size = fs.statSync(path.join(AUDIO_DIR, file)).size;
+        if (size < 20000) { fs.unlinkSync(path.join(AUDIO_DIR, file)); throw new Error('clip too small'); }
+        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, gameAliases: [norm(gameName)], song: songName, addedBy: username };
+        addSong(entry);
+        log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
+        socket.emit('vaDone', { song: entry, total: songs.length });
+        io.to(VGM_ROOM).emit('chatMessage', { system: true, message: `${username} ha añadido "${songName}" (${gameName}) al VGM` });
+      });
+    } catch (e) { fail('No se pudo añadir: ' + e.message, e); }
+  });
+}
+
+module.exports = { setupHandlers, ffmpegClip, CLIP };
+
+if (require.main === module) {
+  const [url, start] = process.argv.slice(2);
+  const out = path.join(require('os').tmpdir(), 'vgmadd-test.m4a');
+  ffmpegClip(url, Number(start) || 0, out).then(() => { console.log('ok', out, fs.statSync(out).size, 'bytes'); process.exit(0); }).catch(e => { console.error('fail', e.message); process.exit(1); });
+}
