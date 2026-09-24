@@ -4,12 +4,51 @@ const socket = socketManager.socket;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const fmt2 = s => { s = Math.max(0, Math.floor(s || 0)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 const parseTime = t => { const m = /^(\d+):(\d{1,2})$/.exec(String(t).trim()); if (m) return +m[1] * 60 + +m[2]; const n = Number(t); return isNaN(n) ? 0 : n; };
 const proxied = url => new URL(`/tierlist/audio?u=${encodeURIComponent(url)}`, location.href).href;
 const CLIP = 41;
 
 const audio = $('va-audio');
-let src = 'kh', results = null, album = null, track = null, start = 0, busy = false;
+let src = 'kh', results = null, album = null, track = null, trackIndex = -1, start = 0, busy = false;
+let actx = null, analyser = null, freq = null, visAngle = 0;
+const vis = $('va-vis'), vctx = vis.getContext('2d');
+function ensureVis() {
+  if (actx || !window.AudioContext) return;
+  try {
+    actx = new AudioContext();
+    const node = actx.createMediaElementSource(audio);
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.8;
+    node.connect(analyser);
+    analyser.connect(actx.destination);
+    freq = new Uint8Array(analyser.frequencyBinCount);
+  } catch (e) { actx = null; analyser = null; }
+}
+function drawVis() {
+  const w = vis.width, h = vis.height;
+  let level = 0;
+  if (analyser && !audio.paused) { analyser.getByteFrequencyData(freq); for (let i = 0; i < 16; i++) level += freq[i]; level = level / (16 * 255); }
+  vctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  vctx.fillRect(0, 0, w, h);
+  vctx.globalCompositeOperation = 'lighter';
+  visAngle += 0.01 + level * 0.04;
+  for (let i = 0; i < 3; i++) {
+    const a = visAngle * (i % 2 ? -1 : 1) + i * 2.1;
+    const cx = w / 2 + Math.cos(a) * (40 + i * 25), cy = h / 2 + Math.sin(a * 1.3) * (20 + i * 10);
+    const r = 40 + level * 120 + i * 18;
+    const g = vctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, `rgba(255, 190, 90, ${0.35 + level * 0.5})`);
+    g.addColorStop(0.5, `rgba(230, 110, 20, ${0.18 + level * 0.3})`);
+    g.addColorStop(1, 'rgba(120, 40, 0, 0)');
+    vctx.fillStyle = g;
+    vctx.beginPath(); vctx.arc(cx, cy, r, 0, 6.2832); vctx.fill();
+  }
+  vctx.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(drawVis);
+}
+requestAnimationFrame(drawVis);
 
 const status = t => { $('va-status').textContent = t; };
 const gameFromTitle = t => String(t || '').split(/ - | \(|: | soundtrack| ost | original | music from/i)[0].replace(/\s+(gamerip|soundtrack|ost)$/i, '').trim();
@@ -34,6 +73,9 @@ function renderAlbum() {
 }
 
 function pickTrack(i) {
+  if (!album || !album.tracks[i]) return;
+  ensureVis();
+  trackIndex = i;
   track = album.tracks[i];
   [...$('va-tracks').rows].forEach(r => r.classList.toggle('on', +r.dataset.i === i));
   audio.pause(); audio.removeAttribute('src');
@@ -94,8 +136,11 @@ $('va-start').addEventListener('change', e => { setStart(parseTime(e.target.valu
 $('va-seek').addEventListener('input', e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
 $('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; });
 audio.volume = 0.8;
+$('va-prev').addEventListener('click', () => pickTrack(trackIndex - 1));
+$('va-next').addEventListener('click', () => pickTrack(trackIndex + 1));
+$('va-mute').addEventListener('click', () => { audio.muted = !audio.muted; $('va-mute').classList.toggle('muted', audio.muted); });
 audio.addEventListener('timeupdate', () => {
-  $('va-time').textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
+  $('va-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
   if (audio.duration) $('va-seek').value = Math.round(audio.currentTime / audio.duration * 1000);
   $('va-clip').style.left = audio.duration ? `${(start / audio.duration) * 100}%` : '0';
   $('va-clip').style.width = audio.duration ? `${Math.min(100, (CLIP / audio.duration) * 100)}%` : '0';

@@ -267,8 +267,8 @@
       </div>
       <div class="window-body">
         <div class="vgm-choice">
-          <button id="vgm-play-btn"><span>&#x266B;</span>Jugar<small>Adivina la canción</small></button>
-          <button id="vgm-add-btn"><span>&#x1F4BF;</span>Añadir canciones<small>Mete tus frikitones al juego</small></button>
+          <button id="vgm-play-btn"><span>&#x266B;</span>Jugar</button>
+          <button id="vgm-add-btn"><span>&#x1F4BF;</span>Añadir canciones</button>
         </div>
       </div>
     </div>
@@ -311,23 +311,39 @@
             <table class="va-tracks"><tbody id="va-tracks"></tbody></table>
           </div>
         </div>
-        <div class="va-player">
-          <div id="va-lcd" class="va-lcd">Elige una pista</div>
-          <div class="va-seekwrap"><span id="va-clip" class="va-clip"></span><span id="va-marker" class="va-marker"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
-          <div class="va-controls">
-            <button id="va-play" class="va-round" title="Reproducir / pausa"><span class="ico-play">&#x25B6;</span><span class="ico-pause">&#x2016;</span></button>
-            <button id="va-stop" class="va-round" title="Parar">&#x25A0;</button>
-            <span id="va-time" class="va-time">0:00 / 0:00</span>
-            <button id="va-here" class="va-here">Empezar aquí</button>
-            <button id="va-preview">Escuchar el recorte</button>
-            <label>Vol <input id="va-vol" type="range" min="0" max="100" value="80"></label>
+        <div class="va-bottom">
+          <div class="window wmp">
+            <div class="title-bar">
+              <div class="title-bar-text"><span class="wmp-logo"></span>Reproductor de Windows Media</div>
+              <div class="title-bar-controls"><button aria-label="Minimize"></button><button aria-label="Maximize"></button><button aria-label="Close"></button></div>
+            </div>
+            <div class="wmp-menu"><span>Archivo</span><span>Ver</span><span>Reproducir</span><span>Herramientas</span><span>Ayuda</span></div>
+            <div class="wmp-frame">
+              <div class="wmp-vis"><canvas id="va-vis" width="720" height="180"></canvas></div>
+              <div class="wmp-info"><span class="wmp-now">Pista: <span id="va-lcd">Elige una pista</span></span><span id="va-time" class="wmp-time">00:00 / 00:00</span></div>
+              <div class="wmp-seek"><span id="va-clip" class="va-clip"></span><span id="va-marker" class="va-marker"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
+              <div class="wmp-ctl">
+                <button id="va-play" class="wmp-big" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
+                <button id="va-stop" class="wmp-small wmp-stop" title="Detener"></button>
+                <button id="va-prev" class="wmp-small wmp-prev" title="Anterior"></button>
+                <button id="va-next" class="wmp-small wmp-next" title="Siguiente"></button>
+                <button id="va-mute" class="wmp-small wmp-mute" title="Silencio"></button>
+                <input id="va-vol" class="wmp-vol" type="range" min="0" max="100" value="80" title="Volumen">
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="va-form">
-          <label for="va-game">Juego</label><input id="va-game" type="text" maxlength="80">
-          <label for="va-song">Canción</label><input id="va-song" type="text" maxlength="80">
-          <label for="va-start">Empieza en</label><input id="va-start" type="text" value="0:00">
-          <button id="va-submit">Añadir al VGM</button>
+          <div class="va-side">
+            <div class="va-form">
+              <label for="va-game">Juego</label><input id="va-game" type="text" maxlength="80">
+              <label for="va-song">Canción</label><input id="va-song" type="text" maxlength="80">
+              <label for="va-start">Empieza en</label><input id="va-start" type="text" value="0:00">
+            </div>
+            <div class="va-actions">
+              <button id="va-here">Empezar aquí</button>
+              <button id="va-preview">Escuchar el recorte</button>
+              <button id="va-submit">Añadir al VGM</button>
+            </div>
+          </div>
         </div>
         <div id="va-submit-msg" class="va-submit-msg"></div>
       </div>
