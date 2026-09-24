@@ -284,20 +284,6 @@
           <button aria-label="Close" id="va-close"></button>
         </div>
       </div>
-      <div class="ie-menubar"><span>Archivo</span><span>Edición</span><span>Ver</span><span>Favoritos</span><span>Herramientas</span><span>Ayuda</span></div>
-      <div class="ie-toolbar">
-        <button id="va-back" class="ie-tb"><span class="ie-ico back">&#x25C4;</span>Atrás</button>
-        <button class="ie-tb" disabled><span class="ie-ico fwd">&#x25BA;</span></button>
-        <span class="ie-sep"></span>
-        <button class="ie-tb"><span class="ie-ico stop">&#x2715;</span></button>
-        <button class="ie-tb"><span class="ie-ico refresh">&#x21BB;</span></button>
-        <button id="va-home" class="ie-tb"><span class="ie-ico home">&#x2302;</span></button>
-        <span class="ie-sep"></span>
-        <button class="ie-tb">Búsqueda</button>
-        <button class="ie-tb">Favoritos</button>
-        <button class="ie-tb">Multimedia</button>
-      </div>
-      <div class="ie-address">Dirección <div class="ie-url"><span class="ie-e">e</span><span>http://www.sqrrr.com/vgm/anadir</span></div> <button class="ie-tb">Ir</button></div>
       <div class="ie-page">
         <div class="va-search">
           <input id="va-q" type="text" autocomplete="off">
@@ -321,31 +307,26 @@
             <div class="wmp-frame">
               <div class="wmp-vis"><canvas id="va-vis" width="720" height="180"></canvas></div>
               <div class="wmp-info"><span class="wmp-now">Pista: <span id="va-lcd">Elige una pista</span></span><span id="va-time" class="wmp-time">00:00 / 00:00</span></div>
-              <div class="wmp-seek"><span id="va-clip" class="va-clip"></span><span id="va-marker" class="va-marker"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
-              <div class="wmp-ctl">
-                <button id="va-play" class="wmp-big" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
-                <button id="va-stop" class="wmp-small wmp-stop" title="Detener"></button>
-                <button id="va-prev" class="wmp-small wmp-prev" title="Anterior"></button>
-                <button id="va-next" class="wmp-small wmp-next" title="Siguiente"></button>
-                <button id="va-mute" class="wmp-small wmp-mute" title="Silencio"></button>
-                <input id="va-vol" class="wmp-vol" type="range" min="0" max="100" value="80" title="Volumen">
+              <div class="wmp-deck">
+                <div class="wmp-seek"><span id="va-clip" class="va-clip"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
+                <div class="wmp-ctl">
+                  <button id="va-play" class="wmp-btn wmp-big" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
+                  <button id="va-stop" class="wmp-btn wmp-small wmp-stop" title="Detener"></button>
+                  <span class="wmp-gap"></span>
+                  <button id="va-prev" class="wmp-btn wmp-small wmp-prev" title="Anterior"></button>
+                  <button id="va-next" class="wmp-btn wmp-small wmp-next" title="Siguiente"></button>
+                  <button id="va-mute" class="wmp-btn wmp-mute" title="Silencio"></button>
+                  <input id="va-vol" class="wmp-vol" type="range" min="0" max="100" value="80" title="Volumen">
+                </div>
               </div>
             </div>
           </div>
           <div class="va-side">
-            <div class="va-form">
-              <label for="va-game">Juego</label><input id="va-game" type="text" maxlength="80">
-              <label for="va-song">Canción</label><input id="va-song" type="text" maxlength="80">
-              <label for="va-start">Empieza en</label><input id="va-start" type="text" value="0:00">
-            </div>
-            <div class="va-actions">
-              <button id="va-here">Empezar aquí</button>
-              <button id="va-preview">Escuchar el recorte</button>
-              <button id="va-submit">Añadir al VGM</button>
-            </div>
+            <div class="va-meta"><span>Juego</span><b id="va-game"></b><span>Canción</span><b id="va-song"></b><span>Recorte</span><b id="va-range"></b></div>
+            <button id="va-submit" disabled>Añadir al VGM</button>
+            <div id="va-submit-msg" class="va-submit-msg"></div>
           </div>
         </div>
-        <div id="va-submit-msg" class="va-submit-msg"></div>
       </div>
       <div class="status-bar"><p id="va-status" class="status-bar-field">Listo</p><p class="status-bar-field">Internet</p></div>
       <audio id="va-audio" preload="auto"></audio>

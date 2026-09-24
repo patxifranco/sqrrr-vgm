@@ -14,6 +14,28 @@ const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const slug = s => norm(s).replace(/ /g, '-').slice(0, 60) || 'x';
 const clean = s => String(s || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+const NOISE = /\b(the\s+)?(original|official|complete|full|video\s*game|game)?\s*(sound\s*tracks?|ost|score|bgm|gamerip|music|soundtracks?)\b.*$/i;
+function deriveGame(title) {
+  let g = String(title || '').replace(/\[.*?\]/g, ' ').replace(/\(.*?\)/g, ' ');
+  g = g.split(/\s+[-\u2013|]\s+|:\s+/)[0];
+  g = g.replace(NOISE, '').replace(/\s+(vol\.?|volume)\s*\S*$/i, '').replace(/\s+\d{4}$/, '').replace(/\s+/g, ' ').trim();
+  return clean(g || title);
+}
+const songParts = name => String(name || '').replace(/^\s*\d+[\s.)-]+/, '').replace(/\[.*?\]/g, ' ').replace(/\((official|hd|hq|ost|soundtrack|extended|lyrics?|audio|music)[^)]*\)/gi, ' ').replace(/\s+/g, ' ').trim().split(/\s+[-\u2013|]\s+/).map(p => p.trim()).filter(Boolean);
+function deriveSongs(names, game) {
+  const all = names.map(songParts);
+  const freq = new Map();
+  for (const parts of all) for (const p of new Set(parts.map(norm))) freq.set(p, (freq.get(p) || 0) + 1);
+  const g = norm(game);
+  const common = p => all.length >= 3 && freq.get(norm(p)) >= Math.max(2, all.length * 0.4);
+  const gameLike = p => { const n = norm(p); return !!g && (n.includes(g) || g.includes(n)); };
+  return all.map((parts, i) => {
+    let rest = parts.filter(p => !common(p) && !gameLike(p));
+    if (!rest.length) rest = parts.filter(p => !common(p));
+    if (!rest.length) rest = parts;
+    return clean(rest[0] || names[i]);
+  });
+}
 
 function ffmpegClip(url, start, out) {
   return new Promise((resolve, reject) => {
@@ -49,10 +71,14 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
     try {
       if (source === 'kh') {
         const a = await tl.loadAlbum(String(id));
-        socket.emit('vaTracks', { source, id, title: a.title, cover: a.covers[0] || null, tracks: a.songs.map(s => ({ name: s.name, duration: s.duration, page: s.page, disc: s.disc, num: s.num })) });
+        const game = deriveGame(a.title);
+        const songs = deriveSongs(a.songs.map(s => s.name), game);
+        socket.emit('vaTracks', { source, id, title: a.title, game, cover: a.covers[0] || null, tracks: a.songs.map((s, i) => ({ name: s.name, song: songs[i], duration: s.duration, page: s.page, disc: s.disc, num: s.num })) });
       } else if (source === 'yt') {
         const l = await tl.ytList(`https://www.youtube.com/playlist?list=${String(id)}`);
-        socket.emit('vaTracks', { source, id, title: l.title, cover: (l.entries[0] || {}).thumb || null, tracks: l.entries.map((e, i) => ({ name: e.title, duration: e.duration, ytId: e.id, disc: 1, num: i + 1, thumb: e.thumb })) });
+        const game = deriveGame(l.title);
+        const songs = deriveSongs(l.entries.map(e => e.title), game);
+        socket.emit('vaTracks', { source, id, title: l.title, game, cover: (l.entries[0] || {}).thumb || null, tracks: l.entries.map((e, i) => ({ name: e.title, song: songs[i], duration: e.duration, ytId: e.id, disc: 1, num: i + 1, thumb: e.thumb })) });
       }
     } catch (e) { fail('No se pudo abrir eso', e); }
   });
@@ -93,7 +119,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
   });
 }
 
-module.exports = { setupHandlers, ffmpegClip, CLIP };
+module.exports = { setupHandlers, ffmpegClip, deriveGame, deriveSongs, CLIP };
 
 if (require.main === module) {
   const [url, start] = process.argv.slice(2);

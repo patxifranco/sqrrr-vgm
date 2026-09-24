@@ -3,16 +3,20 @@ import { socketManager } from './js/core/index.js';
 const socket = socketManager.socket;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const fmt2 = s => { s = Math.max(0, Math.floor(s || 0)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
-const parseTime = t => { const m = /^(\d+):(\d{1,2})$/.exec(String(t).trim()); if (m) return +m[1] * 60 + +m[2]; const n = Number(t); return isNaN(n) ? 0 : n; };
 const proxied = url => new URL(`/tierlist/audio?u=${encodeURIComponent(url)}`, location.href).href;
 const CLIP = 41;
 
 const audio = $('va-audio');
-let src = 'kh', results = null, album = null, track = null, trackIndex = -1, start = 0, busy = false;
+let src = 'kh', results = null, album = null, track = null, trackIndex = -1, busy = false;
 let actx = null, analyser = null, freq = null, visAngle = 0;
 const vis = $('va-vis'), vctx = vis.getContext('2d');
+
+const status = t => { $('va-status').textContent = t; };
+function show(view) {
+  for (const v of ['results', 'album']) $(`va-${v}`).hidden = v !== view;
+}
+
 function ensureVis() {
   if (actx || !window.AudioContext) return;
   try {
@@ -50,13 +54,6 @@ function drawVis() {
 }
 requestAnimationFrame(drawVis);
 
-const status = t => { $('va-status').textContent = t; };
-const gameFromTitle = t => String(t || '').split(/ - | \(|: | soundtrack| ost | original | music from/i)[0].replace(/\s+(gamerip|soundtrack|ost)$/i, '').trim();
-
-function show(view) {
-  for (const v of ['results', 'album']) $(`va-${v}`).hidden = v !== view;
-}
-
 function renderResults() {
   if (!results) return;
   const list = src === 'kh' ? results.kh.map(r => ({ id: r.slug, title: r.title, thumb: r.thumb, meta: [r.type, r.year].filter(Boolean).join(' · ') })) : results.yt.map(r => ({ id: r.id, title: r.title, thumb: r.thumb, meta: `${r.count} vídeos · ${r.channel}` }));
@@ -72,6 +69,14 @@ function renderAlbum() {
   show('album');
 }
 
+function renderMeta() {
+  $('va-game').textContent = track ? album.game : '';
+  $('va-song').textContent = track ? track.song : '';
+  const cur = audio.src ? audio.currentTime : 0;
+  $('va-range').textContent = track ? `${fmt2(cur)} – ${fmt2(cur + CLIP)}` : '';
+  $('va-submit').disabled = !track || busy || !audio.src;
+}
+
 function pickTrack(i) {
   if (!album || !album.tracks[i]) return;
   ensureVis();
@@ -80,16 +85,9 @@ function pickTrack(i) {
   [...$('va-tracks').rows].forEach(r => r.classList.toggle('on', +r.dataset.i === i));
   audio.pause(); audio.removeAttribute('src');
   $('va-lcd').textContent = 'Cargando...';
-  $('va-game').value = $('va-game').value || gameFromTitle(album.title);
-  $('va-song').value = track.name;
-  setStart(0);
+  $('va-submit-msg').textContent = '';
+  renderMeta();
   socket.emit('vaStream', album.source === 'yt' ? { source: 'yt', ytId: track.ytId } : { source: 'kh', page: track.page });
-}
-
-function setStart(s) {
-  start = Math.max(0, s);
-  $('va-start').value = fmt(start);
-  $('va-marker').style.left = audio.duration ? `${(start / audio.duration) * 100}%` : '0%';
 }
 
 socket.on('vaResults', data => { results = data; status(`${data.kh.length + data.yt.length} resultados para "${data.q}"`); renderResults(); });
@@ -98,15 +96,17 @@ socket.on('vaStreamUrl', ({ page, ytId, url }) => {
   if (!track || (track.page !== page && track.ytId !== ytId)) return;
   audio.src = proxied(url);
   audio.play().catch(() => {});
-  $('va-lcd').textContent = track.name;
+  $('va-lcd').textContent = track.song;
+  renderMeta();
 });
 socket.on('vaProgress', ({ message }) => { status(message); $('va-submit-msg').textContent = message; });
 socket.on('vaDone', ({ song, total }) => {
-  busy = false; $('va-submit').disabled = false;
+  busy = false;
+  renderMeta();
   $('va-submit-msg').textContent = `Añadida. El VGM tiene ahora ${total} canciones.`;
   status(`"${song.song}" añadida`);
 });
-socket.on('vaError', ({ message }) => { busy = false; $('va-submit').disabled = false; $('va-submit-msg').textContent = message; status(message); });
+socket.on('vaError', ({ message }) => { busy = false; renderMeta(); $('va-submit-msg').textContent = message; status(message); });
 
 function search() {
   const q = $('va-q').value.trim();
@@ -129,33 +129,31 @@ $('va-album-back').addEventListener('click', () => { audio.pause(); show('result
 $('va-tracks').addEventListener('click', e => { const r = e.target.closest('tr'); if (r) pickTrack(+r.dataset.i); });
 
 $('va-play').addEventListener('click', () => { if (!audio.src) return; audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
-$('va-stop').addEventListener('click', () => { if (!audio.src) return; audio.pause(); audio.currentTime = start; });
-$('va-here').addEventListener('click', () => { if (audio.src) setStart(audio.currentTime); });
-$('va-preview').addEventListener('click', () => { if (!audio.src) return; audio.currentTime = start; audio.play().catch(() => {}); });
-$('va-start').addEventListener('change', e => { setStart(parseTime(e.target.value)); if (audio.src) audio.currentTime = start; });
-$('va-seek').addEventListener('input', e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
-$('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; });
-audio.volume = 0.8;
+$('va-stop').addEventListener('click', () => { if (!audio.src) return; audio.pause(); audio.currentTime = 0; });
 $('va-prev').addEventListener('click', () => pickTrack(trackIndex - 1));
 $('va-next').addEventListener('click', () => pickTrack(trackIndex + 1));
 $('va-mute').addEventListener('click', () => { audio.muted = !audio.muted; $('va-mute').classList.toggle('muted', audio.muted); });
+$('va-seek').addEventListener('input', e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
+$('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; });
+audio.volume = 0.8;
 audio.addEventListener('timeupdate', () => {
   $('va-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
-  if (audio.duration) $('va-seek').value = Math.round(audio.currentTime / audio.duration * 1000);
-  $('va-clip').style.left = audio.duration ? `${(start / audio.duration) * 100}%` : '0';
-  $('va-clip').style.width = audio.duration ? `${Math.min(100, (CLIP / audio.duration) * 100)}%` : '0';
+  if (audio.duration) {
+    $('va-seek').value = Math.round(audio.currentTime / audio.duration * 1000);
+    $('va-clip').style.left = `${(audio.currentTime / audio.duration) * 100}%`;
+    $('va-clip').style.width = `${Math.min(100 - (audio.currentTime / audio.duration) * 100, (CLIP / audio.duration) * 100)}%`;
+  }
+  renderMeta();
 });
 audio.addEventListener('play', () => $('va-play').classList.add('playing'));
 audio.addEventListener('pause', () => $('va-play').classList.remove('playing'));
-audio.addEventListener('durationchange', () => setStart(start));
 
 $('va-submit').addEventListener('click', () => {
-  if (!track || busy) return;
-  const game = $('va-game').value.trim(), song = $('va-song').value.trim();
-  if (!game || !song) { $('va-submit-msg').textContent = 'Pon el juego y el nombre de la canción.'; return; }
-  busy = true; $('va-submit').disabled = true;
+  if (!track || busy || !audio.src) return;
+  busy = true;
+  renderMeta();
   $('va-submit-msg').textContent = 'Enviando...';
-  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start, game, song });
+  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game: album.game, song: track.song });
 });
 
 function leave() {
@@ -163,5 +161,3 @@ function leave() {
   document.dispatchEvent(new CustomEvent('showScreen', { detail: 'vgmChoice' }));
 }
 $('va-close').addEventListener('click', leave);
-$('va-back').addEventListener('click', leave);
-$('va-home').addEventListener('click', () => { audio.pause(); audio.removeAttribute('src'); document.dispatchEvent(new CustomEvent('showScreen', { detail: 'hub' })); });
