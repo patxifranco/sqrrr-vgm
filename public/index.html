@@ -275,60 +275,66 @@
   </div>
 
   <div id="vgm-add-screen" class="screen-container">
-    <div class="window ie-window">
+    <div class="window wmp-win">
       <div class="title-bar">
-        <div class="title-bar-text"><span class="ie-e">e</span>Añadir canciones al VGM - Microsoft Internet Explorer</div>
+        <div class="title-bar-text"><span class="wmp-logo"></span>Reproductor de Windows Media</div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
           <button aria-label="Close" id="va-close"></button>
         </div>
       </div>
-      <div class="ie-page">
-        <div class="va-search">
-          <input id="va-q" type="text" autocomplete="off">
-          <button id="va-go">Buscar</button>
-          <button id="va-src" class="va-src" data-src="kh" title="khinsider / YouTube"><span class="va-src-side kh">khinsider <b></b></span><span class="va-src-track"><span class="va-src-knob"></span></span><span class="va-src-side yt"><b></b> YouTube</span></button>
+      <div class="wmp-menu"><span>Archivo</span><span>Ver</span><span>Reproducir</span><span>Herramientas</span><span>Ayuda</span></div>
+      <div class="wmp-shell">
+        <div class="wmp-taskbar">
+          <button class="wmp-task">Reproducción en curso</button>
+          <button class="wmp-task">Guía multimedia</button>
+          <button class="wmp-task">Copiar desde CD</button>
+          <button class="wmp-task on">Biblioteca multimedia</button>
+          <button class="wmp-task">Radio</button>
+          <button class="wmp-task">Copiar a CD o dispositivo</button>
+          <button class="wmp-task">Servicios premium</button>
+          <button class="wmp-task">Selector de máscara</button>
         </div>
-        <div class="va-body">
-          <div id="va-results" class="va-results"><p class="va-empty">Busca un juego o un álbum y elige la pista que quieras añadir.</p></div>
-          <div id="va-album" hidden>
-            <div class="va-album-head"><span id="va-album-cover" class="va-cover"></span><h3 id="va-album-title"></h3><button id="va-album-back">Volver a los resultados</button></div>
-            <table class="va-tracks"><tbody id="va-tracks"></tbody></table>
-          </div>
-        </div>
-        <div class="va-bottom">
-          <div class="window wmp">
-            <div class="title-bar">
-              <div class="title-bar-text"><span class="wmp-logo"></span>Reproductor de Windows Media</div>
-              <div class="title-bar-controls"><button aria-label="Minimize"></button><button aria-label="Maximize"></button><button aria-label="Close"></button></div>
+        <div class="wmp-main">
+          <div class="wmp-lib">
+            <div class="wmp-libbar">
+              <span class="wmp-libtitle">Biblioteca multimedia</span>
+              <input id="va-q" type="text" autocomplete="off">
+              <button id="va-go">Buscar</button>
+              <button id="va-src" class="va-src" data-src="kh" title="khinsider / YouTube"><span class="va-src-side kh">khinsider <b></b></span><span class="va-src-track"><span class="va-src-knob"></span></span><span class="va-src-side yt"><b></b> YouTube</span></button>
             </div>
-            <div class="wmp-menu"><span>Archivo</span><span>Ver</span><span>Reproducir</span><span>Herramientas</span><span>Ayuda</span></div>
-            <div class="wmp-frame">
-              <div class="wmp-vis"><canvas id="va-vis" width="720" height="180"></canvas></div>
-              <div class="wmp-info"><span class="wmp-now">Pista: <span id="va-lcd">Elige una pista</span></span><span id="va-time" class="wmp-time">00:00 / 00:00</span></div>
-              <div class="wmp-deck">
-                <div class="wmp-seek"><span id="va-clip" class="va-clip"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
-                <div class="wmp-ctl">
-                  <button id="va-play" class="wmp-btn wmp-big" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
-                  <button id="va-stop" class="wmp-btn wmp-small wmp-stop" title="Detener"></button>
-                  <span class="wmp-gap"></span>
-                  <button id="va-prev" class="wmp-btn wmp-small wmp-prev" title="Anterior"></button>
-                  <button id="va-next" class="wmp-btn wmp-small wmp-next" title="Siguiente"></button>
-                  <button id="va-mute" class="wmp-btn wmp-mute" title="Silencio"></button>
-                  <input id="va-vol" class="wmp-vol" type="range" min="0" max="100" value="80" title="Volumen">
-                </div>
+            <div class="wmp-libbody">
+              <div id="va-results" class="va-results"><p class="va-empty">Busca un juego o un álbum y elige la pista que quieras añadir al VGM.</p></div>
+              <div id="va-album" hidden>
+                <div class="va-album-head"><span id="va-album-cover" class="va-cover"></span><h3 id="va-album-title"></h3><button id="va-album-back">Volver a los resultados</button></div>
+                <table class="va-tracks"><tbody id="va-tracks"></tbody></table>
               </div>
             </div>
+            <div id="va-status" class="wmp-libstatus">Listo</div>
           </div>
-          <div class="va-side">
-            <div class="va-meta"><span>Juego</span><b id="va-game"></b><span>Canción</span><b id="va-song"></b><span>Recorte</span><b id="va-range"></b></div>
-            <button id="va-submit" disabled>Añadir al VGM</button>
-            <div id="va-submit-msg" class="va-submit-msg"></div>
+          <div class="wmp-nowrow">
+            <div class="wmp-vis"><canvas id="va-vis" width="560" height="130"></canvas></div>
+            <div class="wmp-addpanel">
+              <div class="wmp-info"><span class="wmp-now">Pista: <span id="va-lcd">Elige una pista</span></span><span id="va-time" class="wmp-time">00:00 / 00:00</span></div>
+              <div class="va-meta"><span>Juego</span><b id="va-game"></b><span>Canción</span><b id="va-song"></b><span>Recorte</span><b id="va-range"></b></div>
+              <div class="wmp-addrow"><button id="va-submit" class="wmp-add" disabled>Añadir al VGM</button><span id="va-submit-msg" class="va-submit-msg"></span></div>
+            </div>
+          </div>
+          <div class="wmp-deck">
+            <div class="wmp-seek"><span id="va-clip" class="va-clip"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
+            <div class="wmp-ctl">
+              <button id="va-play" class="wmp-btn wmp-big" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
+              <button id="va-stop" class="wmp-btn wmp-small wmp-stop" title="Detener"></button>
+              <span class="wmp-gap"></span>
+              <button id="va-prev" class="wmp-btn wmp-small wmp-prev" title="Anterior"></button>
+              <button id="va-next" class="wmp-btn wmp-small wmp-next" title="Siguiente"></button>
+              <button id="va-mute" class="wmp-btn wmp-mute" title="Silencio"></button>
+              <input id="va-vol" class="wmp-vol" type="range" min="0" max="100" value="80" title="Volumen">
+            </div>
           </div>
         </div>
       </div>
-      <div class="status-bar"><p id="va-status" class="status-bar-field">Listo</p><p class="status-bar-field">Internet</p></div>
       <audio id="va-audio" preload="auto"></audio>
     </div>
   </div>
