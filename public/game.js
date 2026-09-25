@@ -1427,7 +1427,6 @@ if (gameToolbar) {
   tiendaBtn.className = 'slot-popup-btn tienda-btn';
   tiendaBtn.title = 'Tienda';
   tiendaBtn.innerHTML = '\u{1F4B2}';
-  tiendaBtn.style.marginLeft = 'auto';
   gameToolbar.appendChild(tiendaBtn);
 
   shopUI.init(socket);

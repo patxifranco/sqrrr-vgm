@@ -62,7 +62,8 @@ function calculateSimilarity(str1, str2) {
 }
 
 function checkGuess(guess, correctAnswer) {
-  return normalizeText(guess) === normalizeText(correctAnswer);
+  const letters = text => normalizeText(text).replace(/ /g, '');
+  return letters(guess) === letters(correctAnswer);
 }
 
 function getCloseGuessPercentage(guess, correctAnswer) {

@@ -4157,6 +4157,10 @@ body:has(#arcraiders-screen.active) {
   align-items: center;
 }
 
+#game-add-song-btn {
+  margin-left: auto;
+}
+
 .title-bar {
   display: flex;
   align-items: center;
