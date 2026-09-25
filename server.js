@@ -650,6 +650,7 @@ io.on('connection', (socket) => {
     getUser: (username) => users[username],
     getLoggedInUsername: authHelpers.getLoggedInUsername
   });
+  const saveSongs = () => fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
   vgmAddHandler.setupHandlers(io, socket, {
     getLoggedInUsername: authHelpers.getLoggedInUsername,
     getUser: (username) => users[username],
@@ -658,15 +659,16 @@ io.on('connection', (socket) => {
     addSong: (entry) => {
       songs.push(entry);
       addedSongs.push(entry);
-      fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
+      saveSongs();
     },
     removeSong: (entry) => {
       for (const list of [songs, addedSongs]) {
         const i = list.indexOf(entry);
         if (i >= 0) list.splice(i, 1);
       }
-      fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
+      saveSongs();
     },
+    saveSongs,
     generateAudioToken,
     VGM_ROOM: 'VGM'
   });

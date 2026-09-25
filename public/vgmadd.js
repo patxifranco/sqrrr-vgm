@@ -143,7 +143,7 @@ socket.on('vaMineList', ({ admin, songs }) => {
   loading(null);
   if (mineId !== null && !songs.some(s => s.id === mineId)) stopMine();
   $('va-mine').innerHTML = songs.length
-    ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Inicio</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Inicio</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
     : `<p class="va-empty">${admin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
   status(`${songs.length} ${songs.length === 1 ? 'canción' : 'canciones'}`);
   show('mine');
@@ -181,6 +181,7 @@ $('va-lib-btn').addEventListener('click', () => { show(libView); status('Listo')
 $('va-mine').addEventListener('click', e => {
   const b = e.target.closest('.va-x');
   const row = e.target.closest('tr[data-id]');
+  if (e.target.closest('.va-edit')) return openDlg('edit', +row.dataset.id, row.cells[1].textContent, row.cells[0].textContent);
   if (!b) {
     if (!row) return;
     const id = +row.dataset.id;
@@ -225,16 +226,24 @@ audio.addEventListener('play', () => { $('va-play').classList.add('playing'); $(
 audio.addEventListener('pause', () => { $('va-play').classList.remove('playing'); $('va-dlg-play').classList.remove('playing'); });
 
 const dlg = $('va-dlg');
-function closeDlg() { dlg.hidden = true; audio.pause(); }
+let editId = null;
+function openDlg(mode, id, game, song) {
+  editId = mode === 'edit' ? id : null;
+  dlg.dataset.mode = mode;
+  dlg.querySelector('.title-bar-text').textContent = mode === 'edit' ? 'Editar canción' : 'Añadir al VGM';
+  $('va-dlg-ok').textContent = mode === 'edit' ? 'Guardar' : 'Añadir';
+  $('va-dlg-game').value = game;
+  $('va-dlg-song').value = song;
+  dlg.hidden = false;
+  $('va-dlg-game').focus();
+}
+function closeDlg() { dlg.hidden = true; if (editId === null) audio.pause(); editId = null; }
 $('va-submit').addEventListener('click', () => {
   if (!track || busy || !audio.src) return;
   audio.pause();
-  $('va-dlg-game').value = album.game;
-  $('va-dlg-song').value = track.song;
   $('va-dlg-seek').value = audio.duration ? Math.round(audio.currentTime / audio.duration * 1000) : 0;
   $('va-dlg-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
-  dlg.hidden = false;
-  $('va-dlg-game').focus();
+  openDlg('add', null, album.game, track.song);
 });
 $('va-dlg-play').addEventListener('click', () => { audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
 $('va-dlg-seek').addEventListener('pointerdown', () => { seeking = true; });
@@ -248,7 +257,9 @@ $('va-dlg-x').addEventListener('click', closeDlg);
 $('va-dlg-cancel').addEventListener('click', closeDlg);
 $('va-dlg-ok').addEventListener('click', () => {
   const game = $('va-dlg-game').value.trim(), song = $('va-dlg-song').value.trim();
-  if (!track || busy || !audio.src || !game || !song) return;
+  if (!game || !song) return;
+  if (editId !== null) { socket.emit('vaRename', { id: editId, game, song }); return closeDlg(); }
+  if (!track || busy || !audio.src) return;
   busy = true;
   renderMeta();
   closeDlg();
