@@ -243,7 +243,6 @@ $('va-dlg-seek').addEventListener('change', e => {
   seeking = false;
   if (!audio.duration) return;
   audio.currentTime = e.target.value / 1000 * audio.duration;
-  audio.play().catch(() => {});
 });
 $('va-dlg-x').addEventListener('click', closeDlg);
 $('va-dlg-cancel').addEventListener('click', closeDlg);
