@@ -4,7 +4,7 @@
 .vgm-choice button { flex: 1; height: 150px; font-size: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .vgm-choice button span { font-size: 40px; }
 
-.wmp-win { width: 1260px; height: 880px; display: flex; flex-direction: column; }
+.wmp-win { width: 1260px; height: 880px; display: flex; flex-direction: column; padding: 0 3px 3px; }
 .wmp-win .title-bar-text { display: flex; align-items: center; gap: 6px; }
 .wmp-logo { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #f7941d 45%, #1d4fb8 48%, #0c2d6e); display: inline-block; }
 .wmp-menu { display: flex; gap: 14px; padding: 2px 8px; background: #ece9d8; font-size: 11px; border-bottom: 1px solid #b9b4a6; }

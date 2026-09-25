@@ -179,6 +179,11 @@ body {
   max-height: 90vh;
 }
 
+.game-window .title-bar,
+.game-body {
+  zoom: 1.2;
+}
+
 .game-window {
   width: 1640px;
   height: 940px;
