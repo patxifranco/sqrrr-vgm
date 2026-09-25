@@ -60,7 +60,7 @@ function ffmpegClip(url, start, out) {
 let chain = Promise.resolve();
 const queued = job => { const run = chain.then(job, job); chain = run.catch(() => {}); return run; };
 
-function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedSongs, addSong, removeSong, VGM_ROOM }) {
+function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedSongs, addSong, removeSong, generateAudioToken, VGM_ROOM }) {
   const fail = (message, e) => { if (e) warn('VGMADD', message, e.message); socket.emit('vaError', { message }); };
   const isAdmin = username => !!(getUser(username) || {}).isAdmin;
   const sendMine = () => {
@@ -71,6 +71,14 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
   };
 
   socket.on('vaMine', () => { if (getLoggedInUsername()) sendMine(); });
+
+  socket.on('vaPlayMine', ({ id } = {}) => {
+    const username = getLoggedInUsername();
+    if (!username) return;
+    const entry = addedSongs.find(s => s.id === Number(id));
+    if (!entry || !(entry.addedBy === username || isAdmin(username))) return;
+    socket.emit('vaMineUrl', { id: entry.id, url: `/audio-stream/${generateAudioToken(entry.file)}` });
+  });
 
   socket.on('vaRemove', ({ id } = {}) => {
     const username = getLoggedInUsername();

@@ -54,7 +54,8 @@
 .va-tracks tr.on td { background: #316ac5; color: #fff; }
 .wmp-lib[data-view="mine"] .va-src, .wmp-lib[data-view="mine"] #va-q, .wmp-lib[data-view="mine"] #va-go { display: none; }
 .va-mine th { text-align: left; font-size: 11px; color: #14306a; padding: 4px 8px; border-bottom: 1px solid #93b0e2; }
-.va-mine td { cursor: default; }
+.va-mine td { cursor: pointer; }
+.va-mine tr.on td b { color: #fff !important; }
 .va-mine tr:hover td { background: #f3f7ff; }
 .va-mine td:first-child { width: auto; color: inherit; }
 .va-mine td:nth-child(3) { width: 70px; color: #777; }

@@ -31,8 +31,16 @@ function loading(text) {
   bar.hidden = false;
   if (!loadTimer) loadTimer = setInterval(() => { loadPos = (loadPos + 1) % SEG; segs.forEach((s, i) => s.classList.toggle('filled', (i - loadPos + SEG) % SEG < 4)); }, 80);
 }
-let seeking = false, libView = 'results';
+let seeking = false, libView = 'results', mineId = null;
+function stopMine() {
+  if (mineId === null) return;
+  mineId = null;
+  audio.pause(); audio.removeAttribute('src');
+  $('va-lcd').textContent = 'Elige una pista';
+  for (const r of $('va-mine').querySelectorAll('tr.on')) r.classList.remove('on');
+}
 function show(view) {
+  if (view !== 'mine') stopMine();
   for (const v of ['results', 'album', 'mine']) $(`va-${v}`).hidden = v !== view;
   if (view !== 'mine') libView = view;
   document.querySelector('.wmp-lib').dataset.view = view;
@@ -134,11 +142,18 @@ socket.on('vaDone', ({ song, total }) => {
 });
 socket.on('vaMineList', ({ admin, songs }) => {
   loading(null);
+  if (mineId !== null && !songs.some(s => s.id === mineId)) stopMine();
   $('va-mine').innerHTML = songs.length
     ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Duración</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.duration)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
     : `<p class="va-empty">${admin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
   status(`${songs.length} ${songs.length === 1 ? 'canción' : 'canciones'}`);
   show('mine');
+  if (mineId !== null) $('va-mine').querySelector(`tr[data-id="${mineId}"]`).classList.add('on');
+});
+socket.on('vaMineUrl', ({ id, url }) => {
+  if (id !== mineId) return;
+  audio.src = url;
+  audio.play().catch(() => {});
 });
 socket.on('vaError', ({ message }) => { busy = false; loading(null); renderMeta(); $('va-submit-msg').textContent = message; status(message); });
 
@@ -166,7 +181,19 @@ $('va-mine-btn').addEventListener('click', () => { loading('Cargando...'); socke
 $('va-lib-btn').addEventListener('click', () => { show(libView); status('Listo'); });
 $('va-mine').addEventListener('click', e => {
   const b = e.target.closest('.va-x');
-  if (!b) return;
+  const row = e.target.closest('tr[data-id]');
+  if (!b) {
+    if (!row) return;
+    const id = +row.dataset.id;
+    if (id === mineId) return stopMine();
+    stopMine();
+    ensureVis();
+    mineId = id;
+    row.classList.add('on');
+    $('va-lcd').textContent = `${row.cells[0].textContent} - ${row.cells[1].textContent}`;
+    socket.emit('vaPlayMine', { id });
+    return;
+  }
   if (b.classList.contains('arm')) { socket.emit('vaRemove', { id: +b.closest('tr').dataset.id }); return; }
   b.classList.add('arm');
   b.textContent = '¿Seguro?';
@@ -189,6 +216,7 @@ audio.addEventListener('timeupdate', () => {
   $('va-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
   if (audio.duration && !seeking) {
     $('va-seek').value = Math.round(audio.currentTime / audio.duration * 1000);
+    $('va-clip').style.display = track ? '' : 'none';
     $('va-clip').style.left = `${(audio.currentTime / audio.duration) * 100}%`;
     $('va-clip').style.width = `${Math.min(100 - (audio.currentTime / audio.duration) * 100, (CLIP / audio.duration) * 100)}%`;
   }
@@ -221,6 +249,7 @@ function closeMini() {
   if (!mini) return;
   mini = false;
   undrag(); undrag = null;
+  stopMine();
   loading(null);
   audio.pause(); audio.removeAttribute('src');
   win.classList.remove('va-mini');
@@ -229,6 +258,7 @@ function closeMini() {
 }
 function leave() {
   if (mini) return closeMini();
+  stopMine();
   loading(null);
   audio.pause(); audio.removeAttribute('src');
   document.dispatchEvent(new CustomEvent('showScreen', { detail: 'vgmChoice' }));

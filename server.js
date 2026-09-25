@@ -667,6 +667,7 @@ io.on('connection', (socket) => {
       }
       fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
     },
+    generateAudioToken,
     VGM_ROOM: 'VGM'
   });
   wordleHandler.setupHandlers(io, socket, {
