@@ -114,9 +114,30 @@ async function searchAlbums(q) {
   return out;
 }
 
+let khBlockedUntil = 0;
+async function albumHtml(slug) {
+  const url = `${KH}/game-soundtracks/album/${slug}`;
+  if (Date.now() > khBlockedUntil) {
+    try { return await getHtml(url); } catch (e) {
+      if (!/khinsider 403/.test(e.message)) throw e;
+      khBlockedUntil = Date.now() + 600e3;
+      warn('TIERLIST', 'khinsider blocks album pages, reading the archive for 10 min');
+    }
+  }
+  const opts = { headers: { 'User-Agent': BROWSER_UA }, signal: AbortSignal.timeout(30000) };
+  const snap = await (await fetch(`https://archive.org/wayback/available?url=${encodeURIComponent(url)}`, opts)).json().catch(() => ({}));
+  const at = ((snap.archived_snapshots || {}).closest || {}).timestamp;
+  if (!at) throw new Error(`no archived copy of ${slug}`);
+  const res = await fetch(`https://web.archive.org/web/${at}id_/${url}`, opts);
+  if (!res.ok) throw new Error(`archive ${res.status} for ${slug}`);
+  const html = await res.text();
+  if (!html.includes('id="songlist"')) throw new Error(`archived copy of ${slug} has no track list`);
+  return html.replace(/href="(\/game-soundtracks\/[^"]*)"/g, (m, h) => `href="${h.replace(/%25([0-9A-Fa-f]{2})/g, '%$1')}"`);
+}
+
 async function loadAlbum(slug) {
   if (cache.album.has(slug)) return cache.album.get(slug);
-  const html = await getHtml(`${KH}/game-soundtracks/album/${slug}`);
+  const html = await albumHtml(slug);
   const title = unescapeHtml((html.match(/<h2>([^<]+)<\/h2>/) || [])[1] || slug);
   const covers = [...html.matchAll(/class="albumImage">\s*<a[^>]*>\s*<img src="([^"]+)"/g)].map(m => m[1]);
   const songs = [];
