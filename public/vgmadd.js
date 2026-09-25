@@ -13,6 +13,18 @@ let actx = null, analyser = null, freq = null, visAngle = 0;
 const vis = $('va-vis'), vctx = vis.getContext('2d');
 
 const status = t => { $('va-status').textContent = t; };
+const SEG = 24;
+$('va-loading-bar').innerHTML = Array(SEG).fill('<div class="msn-file-progress-segment"></div>').join('');
+const segs = [...$('va-loading-bar').children];
+let loadTimer = null, loadPos = 0;
+function loading(text) {
+  const el = $('va-loading');
+  if (!text) { el.hidden = true; clearInterval(loadTimer); loadTimer = null; return; }
+  $('va-loading-text').textContent = text;
+  el.hidden = false;
+  if (!loadTimer) loadTimer = setInterval(() => { loadPos = (loadPos + 1) % SEG; segs.forEach((s, i) => s.classList.toggle('filled', (i - loadPos + SEG) % SEG < 4)); }, 80);
+}
+let seeking = false;
 function show(view) {
   for (const v of ['results', 'album']) $(`va-${v}`).hidden = v !== view;
 }
@@ -86,12 +98,13 @@ function pickTrack(i) {
   audio.pause(); audio.removeAttribute('src');
   $('va-lcd').textContent = 'Cargando...';
   $('va-submit-msg').textContent = '';
+  loading(`Cargando "${track.song}"...`);
   renderMeta();
   socket.emit('vaStream', album.source === 'yt' ? { source: 'yt', ytId: track.ytId } : { source: 'kh', page: track.page });
 }
 
-socket.on('vaResults', data => { results = data; status(`${data.kh.length + data.yt.length} resultados para "${data.q}"`); renderResults(); });
-socket.on('vaTracks', data => { album = data; status(`${data.tracks.length} pistas`); renderAlbum(); });
+socket.on('vaResults', data => { results = data; loading(null); status(`${data.kh.length + data.yt.length} resultados para "${data.q}"`); renderResults(); });
+socket.on('vaTracks', data => { album = data; loading(null); status(`${data.tracks.length} pistas`); renderAlbum(); });
 socket.on('vaStreamUrl', ({ page, ytId, url }) => {
   if (!track || (track.page !== page && track.ytId !== ytId)) return;
   audio.src = proxied(url);
@@ -99,6 +112,7 @@ socket.on('vaStreamUrl', ({ page, ytId, url }) => {
   $('va-lcd').textContent = track.song;
   renderMeta();
 });
+audio.addEventListener('canplay', () => loading(null));
 socket.on('vaProgress', ({ message }) => { status(message); $('va-submit-msg').textContent = message; });
 socket.on('vaDone', ({ song, total }) => {
   busy = false;
@@ -106,14 +120,15 @@ socket.on('vaDone', ({ song, total }) => {
   $('va-submit-msg').textContent = `Añadida. El VGM tiene ahora ${total} canciones.`;
   status(`"${song.song}" añadida`);
 });
-socket.on('vaError', ({ message }) => { busy = false; renderMeta(); $('va-submit-msg').textContent = message; status(message); });
+socket.on('vaError', ({ message }) => { busy = false; loading(null); renderMeta(); $('va-submit-msg').textContent = message; status(message); });
 
 function search() {
   const q = $('va-q').value.trim();
   if (!q) return;
   status('Buscando...');
-  $('va-results').innerHTML = '<p class="va-empty">Buscando...</p>';
+  $('va-results').innerHTML = '';
   show('results');
+  loading(`Buscando "${q}"...`);
   socket.emit('vaSearch', { q });
 }
 $('va-go').addEventListener('click', search);
@@ -123,6 +138,7 @@ $('va-results').addEventListener('click', e => {
   const c = e.target.closest('.va-card');
   if (!c) return;
   status('Abriendo...');
+  loading(`Abriendo "${c.querySelector('.va-card-title').textContent}"...`);
   socket.emit('vaOpen', { source: src, id: c.dataset.id });
 });
 $('va-album-back').addEventListener('click', () => { audio.pause(); show('results'); });
@@ -133,12 +149,15 @@ $('va-stop').addEventListener('click', () => { if (!audio.src) return; audio.pau
 $('va-prev').addEventListener('click', () => pickTrack(trackIndex - 1));
 $('va-next').addEventListener('click', () => pickTrack(trackIndex + 1));
 $('va-mute').addEventListener('click', () => { audio.muted = !audio.muted; $('va-mute').classList.toggle('muted', audio.muted); });
-$('va-seek').addEventListener('input', e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
+$('va-seek').addEventListener('pointerdown', () => { seeking = true; });
+window.addEventListener('pointerup', () => { seeking = false; });
+$('va-seek').addEventListener('input', e => { if (audio.duration) $('va-time').textContent = `${fmt2(e.target.value / 1000 * audio.duration)} / ${fmt2(audio.duration)}`; });
+$('va-seek').addEventListener('change', e => { seeking = false; if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
 $('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; });
 audio.volume = 0.8;
 audio.addEventListener('timeupdate', () => {
   $('va-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
-  if (audio.duration) {
+  if (audio.duration && !seeking) {
     $('va-seek').value = Math.round(audio.currentTime / audio.duration * 1000);
     $('va-clip').style.left = `${(audio.currentTime / audio.duration) * 100}%`;
     $('va-clip').style.width = `${Math.min(100 - (audio.currentTime / audio.duration) * 100, (CLIP / audio.duration) * 100)}%`;
@@ -157,6 +176,7 @@ $('va-submit').addEventListener('click', () => {
 });
 
 function leave() {
+  loading(null);
   audio.pause(); audio.removeAttribute('src');
   document.dispatchEvent(new CustomEvent('showScreen', { detail: 'vgmChoice' }));
 }

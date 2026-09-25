@@ -30,6 +30,7 @@
 .va-src-knob { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(180deg, #6d9df0, #2b5fc6); transition: left .15s; }
 .va-src[data-src="yt"] .va-src-knob { left: 26px; }
 .wmp-libbody { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+.va-loading { margin: 0 0 12px; max-width: 420px; }
 .wmp-libstatus { font-size: 11px; color: #33415c; padding: 3px 10px; background: #e6eefb; border-top: 1px solid #93b0e2; }
 .va-results { display: grid; grid-template-columns: repeat(auto-fill, 128px); gap: 12px; }
 .va-card { width: 128px; min-height: 0; padding: 5px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; text-align: left; min-width: 0; }
@@ -88,6 +89,6 @@
 .wmp-mute::before { content: ''; position: absolute; left: 8px; top: 11px; width: 5px; height: 8px; background: #20304f; }
 .wmp-mute::after { content: ''; position: absolute; left: 12px; top: 7px; border-right: 8px solid #20304f; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
 .wmp-mute.muted { opacity: .45; }
-.wmp-vol { width: 130px; margin: 0; -webkit-appearance: none; appearance: none; background: transparent; }
+.wmp-ctl input.wmp-vol { width: 110px; height: 16px; flex: none; margin: 0; -webkit-appearance: none; appearance: none; background: transparent; }
 .wmp-vol::-webkit-slider-runnable-track { height: 7px; border-radius: 4px; background: linear-gradient(180deg, #8f9fb4, #c9d4e2 60%, #f2f5f9); border: 1px solid #7d8da4; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35); }
 .wmp-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 15px; margin-top: -5px; border-radius: 5px; background: linear-gradient(180deg, #8ff08f 0%, #21b331 45%, #0e8b1f 100%); border: 1px solid #16702a; }
