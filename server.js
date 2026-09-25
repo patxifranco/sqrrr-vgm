@@ -652,10 +652,19 @@ io.on('connection', (socket) => {
   });
   vgmAddHandler.setupHandlers(io, socket, {
     getLoggedInUsername: authHelpers.getLoggedInUsername,
+    getUser: (username) => users[username],
     songs,
+    addedSongs,
     addSong: (entry) => {
       songs.push(entry);
       addedSongs.push(entry);
+      fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
+    },
+    removeSong: (entry) => {
+      for (const list of [songs, addedSongs]) {
+        const i = list.indexOf(entry);
+        if (i >= 0) list.splice(i, 1);
+      }
       fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
     },
     VGM_ROOM: 'VGM'

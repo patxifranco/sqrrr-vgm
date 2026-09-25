@@ -31,9 +31,14 @@ function loading(text) {
   bar.hidden = false;
   if (!loadTimer) loadTimer = setInterval(() => { loadPos = (loadPos + 1) % SEG; segs.forEach((s, i) => s.classList.toggle('filled', (i - loadPos + SEG) % SEG < 4)); }, 80);
 }
-let seeking = false;
+let seeking = false, libView = 'results';
 function show(view) {
-  for (const v of ['results', 'album']) $(`va-${v}`).hidden = v !== view;
+  for (const v of ['results', 'album', 'mine']) $(`va-${v}`).hidden = v !== view;
+  if (view !== 'mine') libView = view;
+  document.querySelector('.wmp-lib').dataset.view = view;
+  $('va-lib-btn').classList.toggle('on', view !== 'mine');
+  $('va-mine-btn').classList.toggle('on', view === 'mine');
+  $('va-libtitle').textContent = view === 'mine' ? 'Canciones añadidas' : 'Biblioteca multimedia';
 }
 
 function ensureVis() {
@@ -127,6 +132,14 @@ socket.on('vaDone', ({ song, total }) => {
   $('va-submit-msg').textContent = `Añadida. El VGM tiene ahora ${total} canciones.`;
   status(`"${song.song}" añadida`);
 });
+socket.on('vaMineList', ({ admin, songs }) => {
+  loading(null);
+  $('va-mine').innerHTML = songs.length
+    ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Duración</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.duration)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    : `<p class="va-empty">${admin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
+  status(`${songs.length} ${songs.length === 1 ? 'canción' : 'canciones'}`);
+  show('mine');
+});
 socket.on('vaError', ({ message }) => { busy = false; loading(null); renderMeta(); $('va-submit-msg').textContent = message; status(message); });
 
 function search() {
@@ -149,6 +162,16 @@ $('va-results').addEventListener('click', e => {
   socket.emit('vaOpen', { source: src, id: c.dataset.id, kind: c.dataset.kind });
 });
 $('va-album-back').addEventListener('click', () => { audio.pause(); show('results'); });
+$('va-mine-btn').addEventListener('click', () => { loading('Cargando...'); socket.emit('vaMine'); });
+$('va-lib-btn').addEventListener('click', () => { show(libView); status('Listo'); });
+$('va-mine').addEventListener('click', e => {
+  const b = e.target.closest('.va-x');
+  if (!b) return;
+  if (b.classList.contains('arm')) { socket.emit('vaRemove', { id: +b.closest('tr').dataset.id }); return; }
+  b.classList.add('arm');
+  b.textContent = '¿Seguro?';
+  setTimeout(() => { b.classList.remove('arm'); b.innerHTML = '&#x2715;'; }, 3000);
+});
 $('va-tracks').addEventListener('click', e => { const r = e.target.closest('tr'); if (r) pickTrack(+r.dataset.i); });
 
 $('va-play').addEventListener('click', () => { if (!audio.src) return; audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
@@ -179,7 +202,7 @@ $('va-submit').addEventListener('click', () => {
   busy = true;
   renderMeta();
   $('va-submit-msg').textContent = 'Enviando...';
-  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game: album.game, song: track.song });
+  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, duration: audio.duration, game: album.game, song: track.song });
 });
 
 const win = document.querySelector('#vgm-add-screen .wmp-win');

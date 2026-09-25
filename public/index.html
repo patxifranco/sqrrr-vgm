@@ -292,7 +292,8 @@
           <button class="wmp-task">Reproducción en curso</button>
           <button class="wmp-task">Guía multimedia</button>
           <button class="wmp-task">Copiar desde CD</button>
-          <button class="wmp-task on">Biblioteca multimedia</button>
+          <button id="va-lib-btn" class="wmp-task on">Biblioteca multimedia</button>
+          <button id="va-mine-btn" class="wmp-task">Canciones añadidas</button>
           <button class="wmp-task">Radio</button>
           <button class="wmp-task">Copiar a CD o dispositivo</button>
           <button class="wmp-task">Servicios premium</button>
@@ -301,7 +302,7 @@
         <div class="wmp-main">
           <div class="wmp-lib">
             <div class="wmp-libbar">
-              <span class="wmp-libtitle">Biblioteca multimedia</span>
+              <span id="va-libtitle" class="wmp-libtitle">Biblioteca multimedia</span>
               <button id="va-src" class="va-src" data-src="kh" title="khinsider / YouTube"><span class="va-src-side kh"><i class="va-src-ico"></i><b></b></span><span class="va-src-track"><span class="va-src-knob"></span></span><span class="va-src-side yt"><b></b><i class="va-src-ico"></i></span></button>
               <input id="va-q" type="text" autocomplete="off">
               <button id="va-go">Buscar</button>
@@ -312,6 +313,7 @@
                 <div class="va-album-head"><span id="va-album-cover" class="va-cover"></span><h3 id="va-album-title"></h3><button id="va-album-back">Volver a los resultados</button></div>
                 <table class="va-tracks"><tbody id="va-tracks"></tbody></table>
               </div>
+              <div id="va-mine" hidden></div>
             </div>
             <div class="wmp-libstatus"><span id="va-status">Listo</span><div id="va-loading-bar" class="msn-file-progress va-loadbar" hidden></div></div>
           </div>

@@ -60,8 +60,28 @@ function ffmpegClip(url, start, out) {
 let chain = Promise.resolve();
 const queued = job => { const run = chain.then(job, job); chain = run.catch(() => {}); return run; };
 
-function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_ROOM }) {
+function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedSongs, addSong, removeSong, VGM_ROOM }) {
   const fail = (message, e) => { if (e) warn('VGMADD', message, e.message); socket.emit('vaError', { message }); };
+  const isAdmin = username => !!(getUser(username) || {}).isAdmin;
+  const sendMine = () => {
+    const username = getLoggedInUsername();
+    const admin = isAdmin(username);
+    const list = addedSongs.filter(s => admin || s.addedBy === username);
+    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, duration: s.duration || CLIP, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
+  };
+
+  socket.on('vaMine', () => { if (getLoggedInUsername()) sendMine(); });
+
+  socket.on('vaRemove', ({ id } = {}) => {
+    const username = getLoggedInUsername();
+    if (!username) return;
+    const entry = addedSongs.find(s => s.id === Number(id));
+    if (!entry || !(entry.addedBy === username || isAdmin(username))) return;
+    removeSong(entry);
+    fs.unlink(path.join(AUDIO_DIR, entry.file), () => {});
+    log('VGMADD', `${username} removed "${entry.song}" (${entry.game}) added by ${entry.addedBy}`);
+    sendMine();
+  });
 
   socket.on('vaSearch', async ({ q } = {}) => {
     const query = String(q || '').trim().slice(0, 100);
@@ -98,7 +118,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
     } catch (e) { fail('No se pudo cargar la canción', e); }
   });
 
-  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song } = {}) => {
+  socket.on('vaSubmit', async ({ source, page, ytId, start, duration, game, song } = {}) => {
     const username = getLoggedInUsername();
     if (!username) return;
     const gameName = clean(game), songName = clean(song), at = Math.max(0, Math.min(36000, Number(start) || 0));
@@ -116,7 +136,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
         await ffmpegClip(url, at, path.join(AUDIO_DIR, file));
         const size = fs.statSync(path.join(AUDIO_DIR, file)).size;
         if (size < 20000) { fs.unlinkSync(path.join(AUDIO_DIR, file)); throw new Error('clip too small'); }
-        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username };
+        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username, duration: Math.round(Math.min(CLIP, Number(duration) > at ? Number(duration) - at : CLIP)) };
         addSong(entry);
         log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
         socket.emit('vaDone', { song: entry, total: songs.length });
