@@ -6,6 +6,7 @@ const { log, warn } = require('../utils');
 
 const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg';
 const AUDIO_DIR = path.join(__dirname, '..', '..', 'public', 'audio');
+fs.mkdirSync(AUDIO_DIR, { recursive: true });
 const CLIP = 41;
 const FADE = 3;
 const PAGE_RE = /^\/game-soundtracks\/album\/[A-Za-z0-9._%-]+\/[^\s"'<>]+$/;
