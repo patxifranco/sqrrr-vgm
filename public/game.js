@@ -307,6 +307,7 @@ function showScreen(screenName) {
     timerManager.clearByPrefix('vgm-');
     socketManager.cleanupScope('vgm');
     cleanupDocumentListeners();
+    document.dispatchEvent(new CustomEvent('vaMini', { detail: false }));
     if (audioPlayer) {
       audioPlayer.pause();
       audioPlayer.src = '';
@@ -618,6 +619,12 @@ document.getElementById('vgm-add-btn').addEventListener('click', () => {
 });
 document.getElementById('vgm-choice-back').addEventListener('click', () => {
   showScreen('hub');
+});
+document.getElementById('vgm-choice-menu').addEventListener('click', () => {
+  showScreen('hub');
+});
+document.getElementById('game-add-song-btn').addEventListener('click', () => {
+  document.dispatchEvent(new CustomEvent('vaMini', { detail: true }));
 });
 document.addEventListener('showScreen', (e) => {
   showScreen(e.detail);
@@ -1047,7 +1054,7 @@ socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   audioManager.resume();
 
   startTimer(duration);
-  guessInput.focus();
+  if (!document.activeElement?.closest('.va-mini')) guessInput.focus();
 });
 
 documentListeners.clickToPlay = (e) => {
@@ -1150,6 +1157,9 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
     addMsnMessage('SQRRR', message, false, { isBold: isBold });
   }
 
+  if (message.startsWith('No hay canciones')) {
+    vgmChat.addStartButton();
+  }
   if (message.includes('La canción era')) {
     vgmChat.revealFileName();
   }

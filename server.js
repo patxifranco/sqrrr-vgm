@@ -426,7 +426,7 @@ app.post('/tierlist/leave', express.text({ type: '*/*' }), (req, res) => {
 });
 
 app.use('/audio', (req, res, next) => {
-  if (req.path.endsWith('.mp3')) {
+  if (/\.(mp3|m4a)$/i.test(req.path)) {
     return res.status(403).send('Access denied');
   }
   next();

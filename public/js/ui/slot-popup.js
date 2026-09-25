@@ -3,6 +3,7 @@ import { BlockStackingGame } from '../games/stacking/block-stacking.js';
 import { leaderboardUI } from './leaderboard.js';
 import { cardAlbumUI } from './card-album.js';
 import { shopUI } from './shop.js';
+import { makeDraggable } from './drag.js';
 
 const FACTO_QUOTES = [
   'Facto: Al apostar puedes ganar hasta 2000% y solo perder el 100%',
@@ -18,7 +19,6 @@ export class SlotPopup {
     this.slotMachine = null;
     this.stackingGame = null;
     this.popup = null;
-    this.isDragging = false;
     this.factoIndex = 0;
     this.currentGame = null;
   }
@@ -266,52 +266,7 @@ export class SlotPopup {
   }
 
   setupDrag() {
-    let startX, startY, startLeft, startTop;
-
-    const onMouseDown = (e) => {
-      const titlebar = e.target.closest('.slot-popup-titlebar');
-      if (!titlebar || e.target.closest('.title-bar-controls')) return;
-
-      this.isDragging = true;
-
-      const rect = this.popup.getBoundingClientRect();
-      this.popup.style.transform = 'none';
-      this.popup.style.left = rect.left + 'px';
-      this.popup.style.top = rect.top + 'px';
-
-      startX = e.clientX;
-      startY = e.clientY;
-      startLeft = rect.left;
-      startTop = rect.top;
-
-      document.body.style.userSelect = 'none';
-      e.preventDefault();
-    };
-
-    const onMouseMove = (e) => {
-      if (!this.isDragging) return;
-
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      this.popup.style.left = (startLeft + dx) + 'px';
-      this.popup.style.top = (startTop + dy) + 'px';
-    };
-
-    const onMouseUp = () => {
-      this.isDragging = false;
-      document.body.style.userSelect = '';
-    };
-
-    this.popup.addEventListener('mousedown', onMouseDown);
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-
-    this._dragCleanup = () => {
-      this.popup?.removeEventListener('mousedown', onMouseDown);
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
+    this._dragCleanup = makeDraggable(this.popup, '.slot-popup-titlebar');
   }
 
   destroy() {

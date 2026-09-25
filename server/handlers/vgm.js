@@ -61,21 +61,11 @@ function calculateSimilarity(str1, str2) {
   return Math.round((1 - distance / maxLen) * 100);
 }
 
-function checkGuess(guess, correctAnswer, aliases) {
-  const normalizedGuess = normalizeText(guess);
-  const normalizedCorrect = normalizeText(correctAnswer);
-
-  if (normalizedGuess === normalizedCorrect) return true;
-
-  for (const alias of aliases || []) {
-    const normalizedAlias = normalizeText(alias);
-    if (normalizedGuess === normalizedAlias) return true;
-  }
-
-  return false;
+function checkGuess(guess, correctAnswer) {
+  return normalizeText(guess) === normalizeText(correctAnswer);
 }
 
-function getCloseGuessPercentage(guess, correctAnswer, aliases) {
+function getCloseGuessPercentage(guess, correctAnswer) {
   const normalizedGuess = normalizeText(guess);
   const normalizedCorrect = normalizeText(correctAnswer);
 
@@ -114,33 +104,6 @@ function getCloseGuessPercentage(guess, correctAnswer, aliases) {
   const threshold = Math.max(2, Math.floor(normalizedCorrect.length * 0.3));
   if (distance > 0 && distance <= threshold) {
     bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedCorrect));
-  }
-
-  for (const alias of aliases || []) {
-    const normalizedAlias = normalizeText(alias);
-    const aliasWords = normalizedAlias.split(' ');
-
-    for (const guessWord of guessWords) {
-      if (guessWord.length < 3) continue;
-      for (const aliasWord of aliasWords) {
-        if (aliasWord.length < 3) continue;
-        if (guessWord === aliasWord) {
-          bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedAlias));
-        }
-        if (aliasWord.startsWith(guessWord) && guessWord.length >= 4) {
-          bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedAlias));
-        }
-      }
-    }
-
-    if (normalizedAlias.startsWith(normalizedGuess) && normalizedGuess.length >= normalizedAlias.length * 0.4) {
-      bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedAlias));
-    }
-
-    const aliasDistance = levenshteinDistance(normalizedGuess, normalizedAlias);
-    if (aliasDistance > 0 && aliasDistance <= Math.max(2, Math.floor(normalizedAlias.length * 0.3))) {
-      bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedAlias));
-    }
   }
 
   return bestPercentage;
@@ -372,7 +335,8 @@ function startNextRound(roomCode, context) {
 
   const song = getRandomSong(lobby.recentSongs);
   if (!song) {
-    _io.to(roomCode).emit('sqrrrMessage', { message: 'No hay más canciones disponibles' });
+    lobby.autoPlayActive = false;
+    _io.to(roomCode).emit('sqrrrMessage', { message: 'No hay canciones en el VGM. Añade alguna con "Añadir canción".', isBold: true });
     return;
   }
 
@@ -608,7 +572,7 @@ function setupHandlers(io, socket, context) {
     const isSuperSonico = timeSinceStart <= 4000 && !isUltraSonico;
 
     if (!player.guessedGame) {
-      if (checkGuess(guess, song.game, song.gameAliases)) {
+      if (checkGuess(guess, song.game)) {
         player.guessedGame = true;
         player.guessTime = timeSinceStart / 1000;
         player.score += 1;
@@ -702,7 +666,7 @@ function setupHandlers(io, socket, context) {
             fontSettings: { size: 13, color: '#666666', nameColor: '#0000ff', effect: 'none' }
           });
         } else {
-          const closePercentage = getCloseGuessPercentage(guess, song.game, song.gameAliases);
+          const closePercentage = getCloseGuessPercentage(guess, song.game);
           if (closePercentage > 0) {
             if (!player.closeGuesses) player.closeGuesses = [];
             player.closeGuesses.push(guess);

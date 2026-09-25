@@ -7,7 +7,7 @@ function init(elements, documentListeners) {
   const guessInput = elements.guessInput;
 
   listeners.windowFocus = () => {
-    if (guessInput && !guessInput.disabled) {
+    if (guessInput && !guessInput.disabled && !document.activeElement?.closest('.va-mini')) {
       guessInput.focus();
     }
   };
@@ -15,7 +15,7 @@ function init(elements, documentListeners) {
   if (documentListeners) documentListeners.windowFocus = listeners.windowFocus;
 
   listeners.visibilityChange = () => {
-    if (!document.hidden && guessInput && !guessInput.disabled) {
+    if (!document.hidden && guessInput && !guessInput.disabled && !document.activeElement?.closest('.va-mini')) {
       setTimeout(() => guessInput.focus(), 100);
     }
   };

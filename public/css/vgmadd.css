@@ -3,6 +3,7 @@
 .vgm-choice { display: flex; gap: 16px; }
 .vgm-choice button { flex: 1; height: 150px; font-size: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .vgm-choice button span { font-size: 40px; }
+.vgm-choice-back { align-self: flex-start; }
 
 .wmp-win { width: 1260px; height: 880px; display: flex; flex-direction: column; padding: 0 3px 3px; }
 .wmp-win .title-bar-text { display: flex; align-items: center; gap: 6px; }
@@ -15,6 +16,7 @@
 .wmp-task { min-width: 0; min-height: 0; text-align: left; font-size: 11px; line-height: 1.15; color: #fff; padding: 7px 8px; border-radius: 6px; border: 1px solid #1d47a0; background: linear-gradient(180deg, #6d9df0 0%, #3f74d6 50%, #2b5fc6 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 1px 1px rgba(0, 0, 0, .3); }
 .wmp-task:hover { background: linear-gradient(180deg, #86b0f6 0%, #5588e0 50%, #3d71d0 100%); }
 .wmp-task.on { color: #14306a; font-weight: 700; background: linear-gradient(180deg, #fbfdff 0%, #dbe8ff 50%, #c1d6fb 100%); border-color: #7f9fd6; }
+.va-back { font-weight: 700; margin-bottom: 8px; }
 
 .wmp-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 .wmp-lib { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fff; border: 2px solid #1a3d86; border-radius: 4px; overflow: hidden; }
@@ -94,3 +96,24 @@
 .wmp-ctl input.wmp-vol { width: 110px; height: 16px; flex: none; margin: 0; -webkit-appearance: none; appearance: none; background: transparent; }
 .wmp-vol::-webkit-slider-runnable-track { height: 7px; border-radius: 4px; background: linear-gradient(180deg, #8f9fb4, #c9d4e2 60%, #f2f5f9); border: 1px solid #7d8da4; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35); }
 .wmp-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 15px; margin-top: -5px; border-radius: 5px; background: linear-gradient(180deg, #8ff08f 0%, #21b331 45%, #0e8b1f 100%); border: 1px solid #16702a; }
+
+.wmp-win.va-mini { position: fixed; z-index: 10000; width: 460px; height: auto; box-shadow: 0 5px 25px rgba(0, 0, 0, .5); }
+.va-mini .title-bar { cursor: move; }
+.va-mini .wmp-menu, .va-mini .wmp-taskbar, .va-mini .wmp-vis, .va-mini .wmp-libtitle, .va-mini .wmp-mute, .va-mini .wmp-ctl .wmp-vol, .va-mini .wmp-gap { display: none; }
+.va-mini .wmp-shell { padding: 6px; gap: 6px; }
+.va-mini .wmp-main { gap: 6px; }
+.va-mini .wmp-lib { flex: none; height: 260px; }
+.va-mini .wmp-libbar { padding: 5px 6px; gap: 6px; }
+.va-mini .wmp-libbody { padding: 6px; }
+.va-mini .va-results { display: flex; flex-direction: column; gap: 2px; }
+.va-mini .va-card { width: auto; flex-direction: row; align-items: center; gap: 8px; padding: 3px 6px; }
+.va-mini .va-cover { width: 30px; flex: none; }
+.va-mini .va-card-title { flex: 1; }
+.va-mini .va-album-head { gap: 8px; }
+.va-mini .va-album-head .va-cover { width: 40px; }
+.va-mini .va-album-head h3 { font-size: 13px; }
+.va-mini .wmp-nowrow { height: auto; }
+.va-mini .wmp-addpanel { width: auto; flex: 1; gap: 5px; }
+.va-mini .wmp-deck { padding: 8px 10px 10px; border-radius: 10px; }
+.va-mini .wmp-seek { margin-bottom: 8px; }
+.va-mini .wmp-ctl { zoom: .75; }

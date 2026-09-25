@@ -1,4 +1,5 @@
 import { socketManager } from './js/core/index.js';
+import { makeDraggable } from './js/ui/drag.js';
 
 const socket = socketManager.socket;
 const $ = id => document.getElementById(id);
@@ -181,9 +182,34 @@ $('va-submit').addEventListener('click', () => {
   socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game: album.game, song: track.song });
 });
 
+const win = document.querySelector('#vgm-add-screen .wmp-win');
+let mini = false, undrag = null;
+function openMini() {
+  if (mini) return;
+  mini = true;
+  win.classList.add('va-mini');
+  win.style.left = `${Math.max(0, Math.round((innerWidth - 460) / 2))}px`;
+  win.style.top = '90px';
+  document.body.appendChild(win);
+  undrag = makeDraggable(win, '.title-bar');
+  $('va-q').focus();
+}
+function closeMini() {
+  if (!mini) return;
+  mini = false;
+  undrag(); undrag = null;
+  loading(null);
+  audio.pause(); audio.removeAttribute('src');
+  win.classList.remove('va-mini');
+  win.style.left = win.style.top = win.style.transform = '';
+  $('vgm-add-screen').appendChild(win);
+}
 function leave() {
+  if (mini) return closeMini();
   loading(null);
   audio.pause(); audio.removeAttribute('src');
   document.dispatchEvent(new CustomEvent('showScreen', { detail: 'vgmChoice' }));
 }
 $('va-close').addEventListener('click', leave);
+$('va-back').addEventListener('click', leave);
+document.addEventListener('vaMini', e => (e.detail ? openMini() : closeMini()));

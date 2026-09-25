@@ -109,11 +109,11 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
         await ffmpegClip(url, at, path.join(AUDIO_DIR, file));
         const size = fs.statSync(path.join(AUDIO_DIR, file)).size;
         if (size < 20000) { fs.unlinkSync(path.join(AUDIO_DIR, file)); throw new Error('clip too small'); }
-        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, gameAliases: [norm(gameName)], song: songName, addedBy: username };
+        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username };
         addSong(entry);
         log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
         socket.emit('vaDone', { song: entry, total: songs.length });
-        io.to(VGM_ROOM).emit('chatMessage', { system: true, message: `${username} ha añadido "${songName}" (${gameName}) al VGM` });
+        io.to(VGM_ROOM).emit('sqrrrMessage', { message: `${username} ha añadido "${songName}" (${gameName}) al VGM`, isBold: true });
       });
     } catch (e) { fail('No se pudo añadir: ' + e.message, e); }
   });
