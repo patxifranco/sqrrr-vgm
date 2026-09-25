@@ -7,6 +7,12 @@ const fmt2 = s => { s = Math.max(0, Math.floor(s || 0)); return `${String(Math.f
 const proxied = url => new URL(`/tierlist/audio?u=${encodeURIComponent(url)}`, location.href).href;
 const CLIP = 41;
 
+const SRC_ICON = {
+  kh: '<svg class="tl-ico" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  yt: '<svg class="tl-ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>'
+};
+$('va-src').querySelector('.kh .va-src-ico').innerHTML = SRC_ICON.kh;
+$('va-src').querySelector('.yt .va-src-ico').innerHTML = SRC_ICON.yt;
 const audio = $('va-audio');
 let src = 'kh', results = null, album = null, track = null, trackIndex = -1, busy = false;
 let actx = null, analyser = null, freq = null, visAngle = 0;
@@ -18,10 +24,10 @@ $('va-loading-bar').innerHTML = Array(SEG).fill('<div class="msn-file-progress-s
 const segs = [...$('va-loading-bar').children];
 let loadTimer = null, loadPos = 0;
 function loading(text) {
-  const el = $('va-loading');
-  if (!text) { el.hidden = true; clearInterval(loadTimer); loadTimer = null; return; }
-  $('va-loading-text').textContent = text;
-  el.hidden = false;
+  const bar = $('va-loading-bar');
+  if (!text) { bar.hidden = true; clearInterval(loadTimer); loadTimer = null; return; }
+  status(text);
+  bar.hidden = false;
   if (!loadTimer) loadTimer = setInterval(() => { loadPos = (loadPos + 1) % SEG; segs.forEach((s, i) => s.classList.toggle('filled', (i - loadPos + SEG) % SEG < 4)); }, 80);
 }
 let seeking = false;
@@ -112,7 +118,7 @@ socket.on('vaStreamUrl', ({ page, ytId, url }) => {
   $('va-lcd').textContent = track.song;
   renderMeta();
 });
-audio.addEventListener('canplay', () => loading(null));
+audio.addEventListener('canplay', () => { loading(null); if (track) status(track.song); });
 socket.on('vaProgress', ({ message }) => { status(message); $('va-submit-msg').textContent = message; });
 socket.on('vaDone', ({ song, total }) => {
   busy = false;
