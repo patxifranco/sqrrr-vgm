@@ -286,6 +286,9 @@ function startAutoPlayCountdown(roomCode, context) {
   if (record) {
     revealMessage += `\nEl récord es de <b>${record.player}</b> con <b>${record.time.toFixed(2)}</b> segundos`;
   }
+  if (lobby.currentSong.addedBy) {
+    revealMessage += `<br>Canción añadida por <b style="color:${COLORS[lobby.currentSong.addedBy] || '#000'}">${lobby.currentSong.addedBy}</b>`;
+  }
 
   _io.to(roomCode).emit('sqrrrMessage', {
     message: revealMessage,

@@ -75,9 +75,9 @@ requestAnimationFrame(drawVis);
 
 function renderResults() {
   if (!results) return;
-  const list = src === 'kh' ? results.kh.map(r => ({ id: r.slug, title: r.title, thumb: r.thumb, meta: [r.type, r.year].filter(Boolean).join(' · ') })) : results.yt.map(r => ({ id: r.id, title: r.title, thumb: r.thumb, meta: `${r.count} vídeos · ${r.channel}` }));
+  const list = src === 'kh' ? results.kh.map(r => ({ id: r.slug, title: r.title, thumb: r.thumb, meta: [r.type, r.year].filter(Boolean).join(' · ') })) : results.yt.map(r => ({ id: r.id, kind: r.kind, title: r.title, thumb: r.thumb, meta: `${r.kind === 'video' ? r.duration : r.count + ' vídeos'} · ${r.channel}` }));
   for (const s of ['kh', 'yt']) $('va-src').querySelector(`.${s} b`).textContent = (s === 'kh' ? results.kh : results.yt).length || '';
-  $('va-results').innerHTML = list.length ? list.map(r => `<button class="va-card" data-id="${esc(r.id)}"><span class="va-cover" style="background-image:url('${esc(r.thumb || '')}')"></span><span class="va-card-title">${esc(r.title)}</span><small>${esc(r.meta)}</small></button>`).join('') : '<p class="va-empty">No se encontró nada.</p>';
+  $('va-results').innerHTML = list.length ? list.map(r => `<button class="va-card" data-id="${esc(r.id)}" data-kind="${esc(r.kind || '')}"><span class="va-cover" style="background-image:url('${esc(r.thumb || '')}')"></span><span class="va-card-title">${esc(r.title)}</span><small>${esc(r.meta)}</small></button>`).join('') : '<p class="va-empty">No se encontró nada.</p>';
   show('results');
 }
 
@@ -111,7 +111,7 @@ function pickTrack(i) {
 }
 
 socket.on('vaResults', data => { results = data; loading(null); status(`${data.kh.length + data.yt.length} resultados para "${data.q}"`); renderResults(); });
-socket.on('vaTracks', data => { album = data; loading(null); status(`${data.tracks.length} pistas`); renderAlbum(); });
+socket.on('vaTracks', data => { album = data; loading(null); status(`${data.tracks.length} pistas`); renderAlbum(); if (data.tracks.length === 1) pickTrack(0); });
 socket.on('vaStreamUrl', ({ page, ytId, url }) => {
   if (!track || (track.page !== page && track.ytId !== ytId)) return;
   audio.src = proxied(url);
@@ -146,7 +146,7 @@ $('va-results').addEventListener('click', e => {
   if (!c) return;
   status('Abriendo...');
   loading(`Abriendo "${c.querySelector('.va-card-title').textContent}"...`);
-  socket.emit('vaOpen', { source: src, id: c.dataset.id });
+  socket.emit('vaOpen', { source: src, id: c.dataset.id, kind: c.dataset.kind });
 });
 $('va-album-back').addEventListener('click', () => { audio.pause(); show('results'); });
 $('va-tracks').addEventListener('click', e => { const r = e.target.closest('tr'); if (r) pickTrack(+r.dataset.i); });

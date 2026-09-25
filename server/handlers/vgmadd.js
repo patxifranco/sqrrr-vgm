@@ -14,15 +14,19 @@ const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const slug = s => norm(s).replace(/ /g, '-').slice(0, 60) || 'x';
-const clean = s => String(s || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+const clean = s => String(s || '').replace(/[<>]/g, '').replace(/^[\s\-\u2013|:]+|[\s\-\u2013|:]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
 const NOISE = /\b(the\s+)?(original|official|complete|full|video\s*game|game)?\s*(sound\s*tracks?|ost|score|bgm|gamerip|music|soundtracks?)\b.*$/i;
+const JUNK = /^(official|original|hd|hq|4k|ost|soundtrack|extended|lyrics?|audio|music|theme|main theme|title|intro|opening|ending|credits|remaster(ed)?|arrange(d|ment)?|orchestral|piano|8.?bit|instrumental|remix|cover|loop(ed)?|slowed|reverb|ver(sion)?|edit|mix|high quality|full|complete|part\s*\d+|\d+\s*(h|hours?|min|minutes?)|\d{4})\b/i;
+const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function deriveGame(title) {
-  let g = String(title || '').replace(/\[.*?\]/g, ' ').replace(/\(.*?\)/g, ' ');
-  g = g.split(/\s+[-\u2013|]\s+|:\s+/)[0];
-  g = g.replace(NOISE, '').replace(/\s+(vol\.?|volume)\s*\S*$/i, '').replace(/\s+\d{4}$/, '').replace(/\s+/g, ' ').trim();
+  const t = String(title || '').replace(/\[.*?\]/g, ' ');
+  const parts = t.replace(/\(.*?\)/g, ' ').split(/\s+[-\u2013|]\s+|:\s+/).map(p => p.trim()).filter(Boolean);
+  const paren = (t.match(/\(([^)]+)\)/g) || []).map(p => p.slice(1, -1).trim()).filter(p => p && !JUNK.test(p));
+  let g = parts.find(p => NOISE.test(p)) || (parts.length < 2 && paren[0]) || parts[0] || '';
+  g = g.replace(NOISE, '').replace(/\s+(vol\.?|volume)\s*\S*$/i, '').replace(/\s+(version|edition)$/i, '').replace(/\s+\d{4}$/, '').replace(/\s+/g, ' ').trim();
   return clean(g || title);
 }
-const songParts = name => String(name || '').replace(/^\s*\d+[\s.)-]+/, '').replace(/\[.*?\]/g, ' ').replace(/\((official|hd|hq|ost|soundtrack|extended|lyrics?|audio|music)[^)]*\)/gi, ' ').replace(/\s+/g, ' ').trim().split(/\s+[-\u2013|]\s+/).map(p => p.trim()).filter(Boolean);
+const songParts = name => String(name || '').replace(/^\s*\d+[\s.)-]+/, '').replace(/\[.*?\]/g, ' ').replace(/\((official|hd|hq|ost|soundtrack|extended|lyrics?|audio|music)[^)]*\)/gi, ' ').replace(/\s+/g, ' ').trim().split(/\s+[-\u2013|]\s+|:\s+/).map(p => p.trim()).filter(Boolean);
 function deriveSongs(names, game) {
   const all = names.map(songParts);
   const freq = new Map();
@@ -34,7 +38,9 @@ function deriveSongs(names, game) {
     let rest = parts.filter(p => !common(p) && !gameLike(p));
     if (!rest.length) rest = parts.filter(p => !common(p));
     if (!rest.length) rest = parts;
-    return clean(rest[0] || names[i]);
+    const song = (rest[0] || names[i]).replace(new RegExp(escapeRe(game), 'i'), '').trim();
+    const bare = song.replace(/\(\s*([^)]*)\)/g, (m, inner) => !inner.trim() || JUNK.test(inner.trim()) ? '' : m).trim();
+    return clean((bare || song).replace(/^\((.*)\)$/, '$1')) || clean(rest[0] || names[i]);
   });
 }
 
@@ -62,12 +68,12 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
     if (!getLoggedInUsername() || !query) return;
     const [kh, yt] = await Promise.all([
       tl.searchAlbums(query).catch(e => { warn('VGMADD', 'khinsider search failed', e.message); return { results: [] }; }),
-      tl.ytSearch(query).catch(e => { warn('VGMADD', 'youtube search failed', e.message); return []; })
+      tl.ytSearchAll(query + ' ost').catch(e => { warn('VGMADD', 'youtube search failed', e.message); return []; })
     ]);
     socket.emit('vaResults', { q: query, kh: kh.results, yt });
   });
 
-  socket.on('vaOpen', async ({ source, id } = {}) => {
+  socket.on('vaOpen', async ({ source, id, kind } = {}) => {
     if (!getLoggedInUsername()) return;
     try {
       if (source === 'kh') {
@@ -76,7 +82,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, songs, addSong, VGM_RO
         const songs = deriveSongs(a.songs.map(s => s.name), game);
         socket.emit('vaTracks', { source, id, title: a.title, game, cover: a.covers[0] || null, tracks: a.songs.map((s, i) => ({ name: s.name, song: songs[i], duration: s.duration, page: s.page, disc: s.disc, num: s.num })) });
       } else if (source === 'yt') {
-        const l = await tl.ytList(`https://www.youtube.com/playlist?list=${String(id)}`);
+        const l = await tl.ytList(kind === 'video' ? `https://www.youtube.com/watch?v=${String(id)}` : `https://www.youtube.com/playlist?list=${String(id)}`);
         const game = deriveGame(l.title);
         const songs = deriveSongs(l.entries.map(e => e.title), game);
         socket.emit('vaTracks', { source, id, title: l.title, game, cover: (l.entries[0] || {}).thumb || null, tracks: l.entries.map((e, i) => ({ name: e.title, song: songs[i], duration: e.duration, ytId: e.id, disc: 1, num: i + 1, thumb: e.thumb })) });

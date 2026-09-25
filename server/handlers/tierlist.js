@@ -180,8 +180,8 @@ function mapLimit(items, limit, fn) {
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } });
   return Promise.all(workers).then(() => out);
 }
-async function ytSearchPage(q) {
-  const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAw%253D%253D&hl=en`, {
+async function ytSearchPage(q, all = false) {
+  const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}${all ? '' : '&sp=EgIQAw%253D%253D'}&hl=en`, {
     headers: { 'User-Agent': BROWSER_UA, 'Accept-Language': 'en-US,en;q=0.9', cookie: 'SOCS=CAI; CONSENT=YES+cb' },
     signal: AbortSignal.timeout(15000)
   });
@@ -193,14 +193,19 @@ async function ytSearchPage(q) {
     if (Array.isArray(o)) return o.forEach(walk);
     if (o.playlistRenderer) {
       const p = o.playlistRenderer;
-      out.push({ id: p.playlistId, title: p.title.simpleText || (p.title.runs || []).map(x => x.text).join(''), count: Number(p.videoCount) || 0,
+      out.push({ kind: 'playlist', id: p.playlistId, title: p.title.simpleText || (p.title.runs || []).map(x => x.text).join(''), count: Number(p.videoCount) || 0,
         channel: (((p.shortBylineText || {}).runs || [])[0] || {}).text || '', thumb: ((((p.thumbnails || [])[0] || {}).thumbnails || []).slice(-1)[0] || {}).url || null });
-    } else if (o.lockupViewModel && o.lockupViewModel.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') {
-      const l = o.lockupViewModel, s = JSON.stringify(l);
-      out.push({ id: l.contentId, title: ((((l.metadata || {}).lockupMetadataViewModel || {}).title || {}).content) || l.contentId,
+    } else if (o.videoRenderer && o.videoRenderer.videoId) {
+      const v = o.videoRenderer;
+      out.push({ kind: 'video', id: v.videoId, title: ((v.title || {}).runs || []).map(x => x.text).join('') || v.videoId, duration: ((v.lengthText || {}).simpleText) || '',
+        channel: ((((v.ownerText || {}).runs || [])[0]) || {}).text || '', thumb: ytThumb(v.videoId) });
+    } else if (o.lockupViewModel && /^LOCKUP_CONTENT_TYPE_(PLAYLIST|VIDEO)$/.test(o.lockupViewModel.contentType)) {
+      const l = o.lockupViewModel, s = JSON.stringify(l), video = l.contentType === 'LOCKUP_CONTENT_TYPE_VIDEO';
+      out.push({ kind: video ? 'video' : 'playlist', id: l.contentId, title: ((((l.metadata || {}).lockupMetadataViewModel || {}).title || {}).content) || l.contentId,
         count: Number(((s.match(/"text":"(\d[\d,]*) (?:videos?|episodes?)"/) || [])[1] || '').replace(/,/g, '')) || 0,
+        duration: (s.match(/"text":"(\d+:\d{2}(?::\d{2})?)"/) || [])[1] || '',
         channel: (s.match(/"metadataParts":\[\{"text":\{"content":"([^"]+)"/) || [])[1] || '',
-        thumb: (s.match(/"url":"(https:\/\/i\.ytimg\.com\/[^"]+)"/) || [])[1] || null });
+        thumb: video ? ytThumb(l.contentId) : (s.match(/"url":"(https:\/\/i\.ytimg\.com\/[^"]+)"/) || [])[1] || null });
     }
     for (const v of Object.values(o)) walk(v);
   };
@@ -226,6 +231,24 @@ async function ytSearch(q) {
     cands = cands.map((c, i) => ({ ...c, count: counts[i] }));
   }
   const out = cands.filter(c => c.count > 1).slice(0, 12);
+  cache.search.set(key, out);
+  return out;
+}
+
+async function ytSearchAll(q) {
+  if (!ytAvailable()) return [];
+  const key = 'ytall:' + q.toLowerCase();
+  if (cache.search.has(key)) return cache.search.get(key);
+  let out;
+  try {
+    out = (await ytSearchPage(q, true)).filter(e => e.kind === 'video' ? YT_ID.test(e.id) : (YT_PL_ID.test(e.id) && !YT_ID.test(e.id) && e.count > 1));
+  } catch (e) {
+    warn('TIERLIST', 'youtube page search failed, using yt-dlp', e.message);
+    const j = JSON.parse(await ytdlp([`ytsearch15:${q}`, '--flat-playlist', '-J']));
+    out = (j.entries || []).filter(e => e && e.id && YT_ID.test(e.id)).map(e => ({ kind: 'video', ...ytEntry(e) }));
+  }
+  const seen = new Set();
+  out = out.filter(e => !seen.has(e.id) && seen.add(e.id)).slice(0, 20);
   cache.search.set(key, out);
   return out;
 }
@@ -702,7 +725,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   return { handleDisconnect: leave };
 }
 
-module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytList, ytStreamUrl, tmSearch, tmTemplate, withPages, COLORS, DEFAULT_COLOR };
+module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytSearchAll, ytList, ytStreamUrl, tmSearch, tmTemplate, withPages, COLORS, DEFAULT_COLOR };
 
 if (require.main === module) {
   (async () => {
