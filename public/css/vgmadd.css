@@ -108,8 +108,11 @@
 
 .wmp-win.va-mini { position: fixed; z-index: 10000; width: 460px; height: auto; box-shadow: 0 5px 25px rgba(0, 0, 0, .5); }
 .va-mini .title-bar { cursor: move; }
-.va-mini .wmp-menu, .va-mini .wmp-taskbar, .va-mini .wmp-vis, .va-mini .wmp-libtitle, .va-mini .wmp-mute, .va-mini .wmp-ctl .wmp-vol, .va-mini .wmp-gap { display: none; }
-.va-mini .wmp-shell { padding: 6px; gap: 6px; }
+.va-mini .wmp-menu, .va-mini .va-back, .va-mini .wmp-vis, .va-mini .wmp-libtitle, .va-mini .wmp-mute, .va-mini .wmp-ctl .wmp-vol, .va-mini .wmp-gap { display: none; }
+.va-mini .wmp-shell { flex-direction: column; padding: 6px; gap: 6px; }
+.va-mini .wmp-taskbar { flex-direction: row; width: auto; padding-top: 0; gap: 4px; }
+.va-mini .wmp-task { flex: 1; text-align: center; padding: 4px 8px; }
+.va-mini .va-mine th:nth-child(3), .va-mini .va-mine td:nth-child(3) { display: none; }
 .va-mini .wmp-main { gap: 6px; }
 .va-mini .wmp-lib { flex: none; height: 260px; }
 .va-mini .wmp-libbar { padding: 5px 6px; gap: 6px; }
