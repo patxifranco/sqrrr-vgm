@@ -275,7 +275,7 @@ async function ytSearchAll(q) {
 }
 
 async function ytList(url) {
-  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J', '--playlist-end', '50']));
+  const j = JSON.parse(await ytdlp([url, '--flat-playlist', '-J', '--playlist-end', '300']));
   const entries = j._type === 'playlist' ? (j.entries || []) : [j];
   return { title: j.title || 'YouTube', entries: entries.filter(e => e && e.id && YT_ID.test(e.id)).map(ytEntry) };
 }
