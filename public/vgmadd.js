@@ -6,7 +6,6 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt2 = s => { s = Math.max(0, Math.floor(s || 0)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 const proxied = url => new URL(`/tierlist/audio?u=${encodeURIComponent(url)}`, location.href).href;
-const CLIP = 41;
 
 const SRC_ICON = {
   kh: '<svg class="tl-ico" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
@@ -40,6 +39,7 @@ function stopMine() {
   for (const r of $('va-mine').querySelectorAll('tr.on')) r.classList.remove('on');
 }
 function show(view) {
+  $('va-dlg').hidden = true;
   if (view !== 'mine') stopMine();
   for (const v of ['results', 'album', 'mine']) $(`va-${v}`).hidden = v !== view;
   if (view !== 'mine') libView = view;
@@ -104,8 +104,6 @@ function renderAlbum() {
 function renderMeta() {
   $('va-game').textContent = track ? album.game : '';
   $('va-song').textContent = track ? track.song : '';
-  const cur = audio.src ? audio.currentTime : 0;
-  $('va-range').textContent = track ? `${fmt2(cur)} – ${fmt2(cur + CLIP)}` : '';
   $('va-submit').disabled = !track || busy || !audio.src;
 }
 
@@ -114,6 +112,7 @@ function pickTrack(i) {
   ensureVis();
   trackIndex = i;
   track = album.tracks[i];
+  $('va-dlg').hidden = true;
   [...$('va-tracks').rows].forEach(r => r.classList.toggle('on', +r.dataset.i === i));
   audio.pause(); audio.removeAttribute('src');
   $('va-lcd').textContent = 'Cargando...';
@@ -144,7 +143,7 @@ socket.on('vaMineList', ({ admin, songs }) => {
   loading(null);
   if (mineId !== null && !songs.some(s => s.id === mineId)) stopMine();
   $('va-mine').innerHTML = songs.length
-    ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Duración</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.duration)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Inicio</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
     : `<p class="va-empty">${admin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
   status(`${songs.length} ${songs.length === 1 ? 'canción' : 'canciones'}`);
   show('mine');
@@ -213,24 +212,53 @@ $('va-seek').addEventListener('change', e => { seeking = false; if (audio.durati
 $('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; });
 audio.volume = 0.8;
 audio.addEventListener('timeupdate', () => {
-  $('va-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
+  const t = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
+  $('va-time').textContent = t;
   if (audio.duration && !seeking) {
     $('va-seek').value = Math.round(audio.currentTime / audio.duration * 1000);
-    $('va-clip').style.display = track ? '' : 'none';
-    $('va-clip').style.left = `${(audio.currentTime / audio.duration) * 100}%`;
-    $('va-clip').style.width = `${Math.min(100 - (audio.currentTime / audio.duration) * 100, (CLIP / audio.duration) * 100)}%`;
+    $('va-dlg-seek').value = $('va-seek').value;
+    $('va-dlg-time').textContent = t;
   }
   renderMeta();
 });
-audio.addEventListener('play', () => $('va-play').classList.add('playing'));
-audio.addEventListener('pause', () => $('va-play').classList.remove('playing'));
+audio.addEventListener('play', () => { $('va-play').classList.add('playing'); $('va-dlg-play').classList.add('playing'); });
+audio.addEventListener('pause', () => { $('va-play').classList.remove('playing'); $('va-dlg-play').classList.remove('playing'); });
 
+const dlg = $('va-dlg');
+function closeDlg() { dlg.hidden = true; audio.pause(); }
 $('va-submit').addEventListener('click', () => {
   if (!track || busy || !audio.src) return;
+  audio.pause();
+  $('va-dlg-game').value = album.game;
+  $('va-dlg-song').value = track.song;
+  $('va-dlg-seek').value = audio.duration ? Math.round(audio.currentTime / audio.duration * 1000) : 0;
+  $('va-dlg-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
+  dlg.hidden = false;
+  $('va-dlg-game').focus();
+});
+$('va-dlg-play').addEventListener('click', () => { audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
+$('va-dlg-seek').addEventListener('pointerdown', () => { seeking = true; });
+$('va-dlg-seek').addEventListener('input', e => { if (audio.duration) $('va-dlg-time').textContent = `${fmt2(e.target.value / 1000 * audio.duration)} / ${fmt2(audio.duration)}`; });
+$('va-dlg-seek').addEventListener('change', e => {
+  seeking = false;
+  if (!audio.duration) return;
+  audio.currentTime = e.target.value / 1000 * audio.duration;
+  audio.play().catch(() => {});
+});
+$('va-dlg-x').addEventListener('click', closeDlg);
+$('va-dlg-cancel').addEventListener('click', closeDlg);
+$('va-dlg-ok').addEventListener('click', () => {
+  const game = $('va-dlg-game').value.trim(), song = $('va-dlg-song').value.trim();
+  if (!track || busy || !audio.src || !game || !song) return;
   busy = true;
   renderMeta();
+  closeDlg();
   $('va-submit-msg').textContent = 'Enviando...';
-  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, duration: audio.duration, game: album.game, song: track.song });
+  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game, song });
+});
+dlg.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDlg();
+  else if (e.key === 'Enter' && e.target.type === 'text') $('va-dlg-ok').click();
 });
 
 const win = document.querySelector('#vgm-add-screen .wmp-win');
@@ -249,6 +277,7 @@ function closeMini() {
   if (!mini) return;
   mini = false;
   undrag(); undrag = null;
+  dlg.hidden = true;
   stopMine();
   loading(null);
   audio.pause(); audio.removeAttribute('src');
@@ -258,6 +287,7 @@ function closeMini() {
 }
 function leave() {
   if (mini) return closeMini();
+  dlg.hidden = true;
   stopMine();
   loading(null);
   audio.pause(); audio.removeAttribute('src');

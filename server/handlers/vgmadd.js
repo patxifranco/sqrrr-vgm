@@ -67,7 +67,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     const username = getLoggedInUsername();
     const admin = isAdmin(username);
     const list = addedSongs.filter(s => admin || s.addedBy === username);
-    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, duration: s.duration || CLIP, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
+    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, start: s.start || 0, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
   };
 
   socket.on('vaMine', () => { if (getLoggedInUsername()) sendMine(); });
@@ -126,7 +126,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     } catch (e) { fail('No se pudo cargar la canción', e); }
   });
 
-  socket.on('vaSubmit', async ({ source, page, ytId, start, duration, game, song } = {}) => {
+  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song } = {}) => {
     const username = getLoggedInUsername();
     if (!username) return;
     const gameName = clean(game), songName = clean(song), at = Math.max(0, Math.min(36000, Number(start) || 0));
@@ -144,7 +144,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
         await ffmpegClip(url, at, path.join(AUDIO_DIR, file));
         const size = fs.statSync(path.join(AUDIO_DIR, file)).size;
         if (size < 20000) { fs.unlinkSync(path.join(AUDIO_DIR, file)); throw new Error('clip too small'); }
-        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username, duration: Math.round(Math.min(CLIP, Number(duration) > at ? Number(duration) - at : CLIP)) };
+        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username, start: Math.round(at) };
         addSong(entry);
         log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
         socket.emit('vaDone', { song: entry, total: songs.length });

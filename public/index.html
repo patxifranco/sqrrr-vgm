@@ -314,12 +314,12 @@
             <div class="wmp-vis"><canvas id="va-vis" width="560" height="130"></canvas></div>
             <div class="wmp-addpanel">
               <div class="wmp-info"><span class="wmp-now">Pista: <span id="va-lcd">Elige una pista</span></span><span id="va-time" class="wmp-time">00:00 / 00:00</span></div>
-              <div class="va-meta"><span>Juego</span><b id="va-game"></b><span>Canción</span><b id="va-song"></b><span>Recorte</span><b id="va-range"></b></div>
+              <div class="va-meta"><span>Juego</span><b id="va-game"></b><span>Canción</span><b id="va-song"></b></div>
               <div class="wmp-addrow"><button id="va-submit" class="wmp-add" disabled>Añadir al VGM</button><span id="va-submit-msg" class="va-submit-msg"></span></div>
             </div>
           </div>
           <div class="wmp-deck">
-            <div class="wmp-seek"><span id="va-clip" class="va-clip"></span><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
+            <div class="wmp-seek"><input id="va-seek" type="range" min="0" max="1000" value="0"></div>
             <div class="wmp-ctl">
               <button id="va-play" class="wmp-btn wmp-big" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
               <button id="va-stop" class="wmp-btn wmp-small wmp-stop" title="Detener"></button>
@@ -329,6 +329,25 @@
               <button id="va-mute" class="wmp-btn wmp-mute" title="Silencio"></button>
               <input id="va-vol" class="wmp-vol" type="range" min="0" max="100" value="80" title="Volumen">
             </div>
+          </div>
+        </div>
+      </div>
+      <div id="va-dlg" class="va-dlg" hidden>
+        <div class="window va-dlg-win">
+          <div class="title-bar">
+            <div class="title-bar-text">Añadir al VGM</div>
+            <div class="title-bar-controls"><button aria-label="Close" id="va-dlg-x"></button></div>
+          </div>
+          <div class="window-body va-dlg-body">
+            <div class="field-row-stacked"><label for="va-dlg-game">Juego</label><input id="va-dlg-game" type="text" maxlength="80" autocomplete="off"></div>
+            <div class="field-row-stacked"><label for="va-dlg-song">Canción</label><input id="va-dlg-song" type="text" maxlength="80" autocomplete="off"></div>
+            <span class="va-dlg-q">¿Dónde quieres que empiece?</span>
+            <div class="va-dlg-deck">
+              <button id="va-dlg-play" class="wmp-btn wmp-big va-dlg-play" title="Reproducir / pausa"><span class="ico-play"></span><span class="ico-pause"></span></button>
+              <div class="wmp-seek va-dlg-seek"><input id="va-dlg-seek" type="range" min="0" max="1000" value="0"></div>
+              <span id="va-dlg-time" class="va-dlg-time">00:00 / 00:00</span>
+            </div>
+            <div class="va-dlg-btns"><button id="va-dlg-ok">Añadir</button><button id="va-dlg-cancel">Cancelar</button></div>
           </div>
         </div>
       </div>
