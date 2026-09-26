@@ -38,7 +38,7 @@ function replaceEmoticons(text) {
   return result;
 }
 
-function createWaveText(text) {
+function letterSpans(text, cls, delayFor) {
   const emoticons = [];
   let processedText = text;
 
@@ -69,8 +69,7 @@ function createWaveText(text) {
       result += ' ';
       i++;
     } else {
-      const delay = (letterIndex * 0.05) % 0.6;
-      result += `<span class="wave-letter" style="animation-delay: ${delay}s">${escapeHtml(processedText[i])}</span>`;
+      result += `<span class="${cls}" style="animation-delay: ${delayFor(letterIndex)}">${escapeHtml(processedText[i])}</span>`;
       letterIndex++;
       i++;
     }
@@ -78,6 +77,11 @@ function createWaveText(text) {
 
   return result;
 }
+
+const createWaveText = text => letterSpans(text, 'wave-letter', i => `${(i * 0.05) % 0.6}s`);
+const WD = Array.from('♠♣♥♦☺☻♪♫☼►◄▲▼○●□■☆★✈✉✂✓✗☎☂');
+const wingdings = text => Array.from(text).map(ch => { const i = ch.toLowerCase().charCodeAt(0) - 97; return i >= 0 && i < 26 ? WD[i] : ch; }).join('');
+const EFFECT_CLASS = { rainbow: 'rainbow-text', blink: 'fx-blink', fire: 'fx-fire', ice: 'fx-ice', gold: 'fx-gold', flip: 'fx-flip', mirror: 'fx-mirror', spoiler: 'fx-spoiler' };
 
 const PROGRESS_SEGMENT_COUNT = 20;
 const MAX_MESSAGES = 100;
@@ -148,17 +152,29 @@ class VGMChat {
       div.innerHTML = `<span class="msg-sender sqrrr-msg">${escapeHtml(sender)} dice:</span><br><span class="msg-text">${message}</span>`;
     } else if (options.isRainbow) {
       div.innerHTML = `<span class="msg-sender">${escapeHtml(sender)} dice:</span><br><span class="msg-text rainbow-text">${processMessage(message)}</span>`;
+    } else if (options.action) {
+      div.innerHTML = `<span class="msg-action">* ${escapeHtml(sender)} ${processMessage(message)}</span>`;
     } else {
       const fs = options.senderFontSettings || { size: 13, color: '#000000', nameColor: '#0000ff', effect: 'none' };
+      const curse = options.curse;
+      const font = curse === 'comic' ? 'comic' : (fs.font || 'normal');
+      const onFire = (options.streak || 0) >= 3;
+      const classes = ['msg-text', font !== 'normal' ? `font-${font}` : '', curse === 'mini' ? 'curse-mini' : '', curse === 'reves' ? 'fx-flip' : '', onFire ? 'on-fire' : ''];
+      const effect = fs.effect || 'none';
+      let inner;
+      if (options.ink) inner = `<img class="ink-msg" src="${options.ink}" alt="">`;
+      else if (effect === 'wave') { inner = createWaveText(message); classes.push('wave-text'); }
+      else if (effect === 'quake') { inner = letterSpans(message, 'fx-letter', () => `-${(Math.random() * 0.15).toFixed(2)}s`); classes.push('fx-quake'); }
+      else if (effect === 'type') { inner = letterSpans(message, 'fx-letter', i => `${(i * 0.04).toFixed(2)}s`); classes.push('fx-type'); }
+      else if (effect === 'marquee') { inner = `<span>${processMessage(message)}</span>`; classes.push('fx-marquee'); }
+      else if (effect === 'wingdings') inner = `<span class="fx-wd" data-t="${escapeHtml(message)}">${escapeHtml(wingdings(message))}</span>`;
+      else { inner = processMessage(message); if (EFFECT_CLASS[effect]) classes.push(EFFECT_CLASS[effect]); }
       const style = `font-size: ${fs.size}px; color: ${fs.color};`;
       const nameStyle = `color: ${fs.nameColor};`;
-
-      if (fs.effect === 'wave') {
-        const waveContent = createWaveText(message);
-        div.innerHTML = `<span class="msg-sender" style="${nameStyle}">${escapeHtml(sender)} dice:</span><br><span class="msg-text wave-text" style="${style}">${waveContent}</span>`;
-      } else {
-        div.innerHTML = `<span class="msg-sender" style="${nameStyle}">${escapeHtml(sender)} dice:</span><br><span class="msg-text" style="${style}">${processMessage(message)}</span>`;
-      }
+      const verb = options.whisper ? `susurra a ${escapeHtml(options.whisper)}:` : 'dice:';
+      if (options.whisper) div.classList.add('msg-whisper');
+      div.innerHTML = `${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} ${verb}</span><br><span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span>`;
+      if (options.burn) setTimeout(() => { div.style.transition = 'opacity 1s'; div.style.opacity = '0'; setTimeout(() => div.remove(), 1000); }, 5000);
     }
 
     this.container.appendChild(div);
@@ -237,7 +253,7 @@ class VGMChat {
     div.className = 'chat-msg';
 
     if (sonicType === 'ultra' || sonicType === 'super') {
-      div.innerHTML = `<span class="rainbow-horizontal">${escapeHtml(message)}</span>`;
+      div.innerHTML = `<span class="rainbow-horizontal${sonicType === 'ultra' ? ' ultra-msg' : ''}">${escapeHtml(message)}</span>`;
     } else {
       div.innerHTML = `<span class="correct-guess-msg">${escapeHtml(message)}</span>`;
     }

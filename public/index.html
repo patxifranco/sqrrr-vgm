@@ -435,7 +435,56 @@
                         <select id="font-effect-select">
                           <option value="none" selected>Ninguno</option>
                           <option value="wave">Ola</option>
+                          <option value="rainbow">Arcoíris</option>
+                          <option value="quake">Terremoto</option>
+                          <option value="type">Máquina de escribir</option>
+                          <option value="blink">Parpadeo</option>
+                          <option value="marquee">Marquesina</option>
+                          <option value="fire">Fuego</option>
+                          <option value="ice">Hielo</option>
+                          <option value="gold">Oro</option>
+                          <option value="flip">Boca abajo</option>
+                          <option value="mirror">Espejo</option>
+                          <option value="wingdings">Wingdings</option>
+                          <option value="spoiler">Spoiler</option>
                         </select>
+                      </div>
+                      <div class="field-row">
+                        <label for="font-family-select">Fuente:</label>
+                        <select id="font-family-select">
+                          <option value="normal" selected>Normal</option>
+                          <option value="comic">Comic Sans</option>
+                          <option value="papyrus">Papyrus</option>
+                          <option value="impact">Impact</option>
+                        </select>
+                      </div>
+                      <div class="field-row">
+                        <label for="font-mode-select">Modo:</label>
+                        <select id="font-mode-select">
+                          <option value="normal" selected>Normal</option>
+                          <option value="uwu">uwu</option>
+                          <option value="leet">l33t</option>
+                          <option value="caps">GRITAR</option>
+                          <option value="reverse">Al revés</option>
+                          <option value="bilbao">Bilbao</option>
+                        </select>
+                      </div>
+                      <div class="field-row">
+                        <label for="font-sound-select">Sonido:</label>
+                        <select id="font-sound-select">
+                          <option value="correct" selected>Normal</option>
+                          <option value="supersonic">Sonic</option>
+                          <option value="logon">XP</option>
+                          <option value="notify">Aviso</option>
+                          <option value="nudge">Zumbido</option>
+                          <option value="ping">Ping</option>
+                          <option value="select">Select</option>
+                          <option value="drop">Drop</option>
+                        </select>
+                      </div>
+                      <div class="field-row">
+                        <input type="checkbox" id="font-burn-input">
+                        <label for="font-burn-input">Autodestrucción</label>
                       </div>
                       <button id="font-save-btn">Guardar</button>
                     </fieldset>
@@ -450,6 +499,23 @@
                 <button id="nudge-btn" class="msn-toolbar-btn" title="Zumbido">
                   <img src="nudge.png" class="msn-toolbar-nudge-icon" alt="nudge">
                 </button>
+                <span class="msn-toolbar-divider"></span>
+                <div class="font-btn-wrapper">
+                  <button id="wink-btn" class="msn-toolbar-btn" title="Guiños"><span class="msn-toolbar-icon">&#x1F609;</span> Guiños</button>
+                  <div id="wink-popup" class="emoticon-popup wink-popup" style="display: none;">
+                    <button data-wink="paloma">Paloma</button>
+                    <button data-wink="confeti">Confeti</button>
+                    <button data-wink="error">Error</button>
+                  </div>
+                </div>
+                <span class="msn-toolbar-divider"></span>
+                <div class="font-btn-wrapper">
+                  <button id="ink-btn" class="msn-toolbar-btn" title="Tinta"><span class="msn-toolbar-icon">&#x270F;</span> Tinta</button>
+                  <div id="ink-popup" class="emoticon-popup ink-popup" style="display: none;">
+                    <canvas id="ink-canvas" width="280" height="90"></canvas>
+                    <div class="ink-btns"><button id="ink-clear">Borrar</button><button id="ink-send">Enviar</button></div>
+                  </div>
+                </div>
 
                 <div class="msn-toolbar-spacer"></div>
 

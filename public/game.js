@@ -54,6 +54,9 @@ audioManager.preload('supersonic', 'supersonic.mp3');
 audioManager.preload('nudge', 'msn_nudge_sound.mp3');
 audioManager.preload('correct', 'correct.mp3');
 audioManager.preload('close', 'close.mp3');
+audioManager.preload('ping', 'tierlist/audio/ping.wav');
+audioManager.preload('select', 'tierlist/audio/select.wav');
+audioManager.preload('drop', 'tierlist/audio/drop.wav');
 
 function playNotifySound() {
   audioManager.play('notify', { volume: 0.6 });
@@ -240,6 +243,10 @@ let userFontSize = localStorage.getItem('chatFontSize') || '13';
 let userFontColor = localStorage.getItem('chatFontColor') || '#000000';
 let userNameColor = localStorage.getItem('chatNameColor') || '#0000ff';
 let userTextEffect = localStorage.getItem('chatTextEffect') || 'none';
+let userFont = localStorage.getItem('chatFont') || 'normal';
+let userMode = localStorage.getItem('chatMode') || 'normal';
+let userSound = localStorage.getItem('chatSound') || 'correct';
+let userBurn = localStorage.getItem('chatBurn') === '1';
 let currentCorrectGame = null;
 let currentCorrectSong = null;
 let originalVolume = 1;
@@ -1082,8 +1089,6 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
 
       if (sonicType) {
         addSonicBonusMessage(currentUser.username, sonicType);
-      } else {
-        audioManager.play('correct', { volume: 0.8 });
       }
     }
   } else {
@@ -1098,7 +1103,8 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
 socketManager.on('roundComplete', () => {
 });
 
-socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) => {
+socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed, sound }) => {
+  if (!sonicType) audioManager.play(sound || 'correct', { volume: 0.8 });
   if (currentUser && playerName !== currentUser.username) {
     const time = timeElapsed || ((Date.now() - roundStartTime) / 1000);
     addCorrectGuessMessage(playerName, time, type === 'game', sonicType);
@@ -1186,8 +1192,90 @@ socketManager.on('sqrrrCountdown', ({ id, message }) => {
   gameMessages.scrollTop = gameMessages.scrollHeight;
 });
 
-socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings }) => {
-  addMsnMessage(sender, message, false, { senderFontSettings: fontSettings });
+socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings, ...rest }) => {
+  addMsnMessage(sender, message, false, { senderFontSettings: fontSettings, ...rest });
+});
+
+function showWink(type, from) {
+  const layer = document.createElement('div');
+  layer.className = 'wink-layer';
+  let ttl = 3000;
+  if (type === 'paloma') {
+    layer.innerHTML = '<img class="wink-pigeon" src="jovani.png" alt="">';
+    audioManager.play('ping', { volume: 0.5 });
+  } else if (type === 'confeti') {
+    const colors = ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#fb8c00'];
+    layer.innerHTML = Array.from({ length: 80 }, () => `<i class="wink-confetti" style="left:${(Math.random() * 100).toFixed(1)}%;background:${colors[Math.floor(Math.random() * colors.length)]};animation-delay:${(Math.random() * 1.2).toFixed(2)}s;animation-duration:${(2.5 + Math.random() * 1.5).toFixed(2)}s"></i>`).join('');
+    ttl = 5500;
+  } else {
+    layer.innerHTML = `<div class="window wink-error"><div class="title-bar"><div class="title-bar-text">Error</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div><div class="window-body"><span>&#x26A0;</span><div>${escapeHtml(from)} ha roto SQRRR VGM.</div></div><div class="wink-error-btns"><button>Aceptar</button></div></div>`;
+    layer.querySelectorAll('button').forEach(b => b.addEventListener('click', () => layer.remove()));
+    audioManager.play('notify', { volume: 0.6 });
+    ttl = 6000;
+  }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), ttl);
+}
+socketManager.on('winkReceived', ({ type, from }) => showWink(type, from));
+
+const winkBtn = document.getElementById('wink-btn');
+const winkPopup = document.getElementById('wink-popup');
+let winkCooldownUntil = 0;
+winkBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  winkPopup.style.display = winkPopup.style.display === 'none' ? 'flex' : 'none';
+});
+winkPopup.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-wink]');
+  if (!b) return;
+  winkPopup.style.display = 'none';
+  if (Date.now() < winkCooldownUntil) return;
+  winkCooldownUntil = Date.now() + 10000;
+  socket.emit('sendWink', b.dataset.wink);
+});
+
+const inkBtn = document.getElementById('ink-btn');
+const inkPopup = document.getElementById('ink-popup');
+const inkCanvas = document.getElementById('ink-canvas');
+const inkCtx = inkCanvas.getContext('2d');
+let inking = false;
+let inkDirty = false;
+inkCtx.lineWidth = 2.5;
+inkCtx.lineCap = 'round';
+inkCtx.lineJoin = 'round';
+const inkPos = (e) => {
+  const r = inkCanvas.getBoundingClientRect();
+  return [(e.clientX - r.left) * inkCanvas.width / r.width, (e.clientY - r.top) * inkCanvas.height / r.height];
+};
+const inkClear = () => { inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height); inkDirty = false; };
+inkCanvas.addEventListener('pointerdown', (e) => {
+  inking = true;
+  inkDirty = true;
+  inkCtx.strokeStyle = userFontColor;
+  inkCtx.beginPath();
+  inkCtx.moveTo(...inkPos(e));
+  inkCanvas.setPointerCapture(e.pointerId);
+});
+inkCanvas.addEventListener('pointermove', (e) => {
+  if (!inking) return;
+  inkCtx.lineTo(...inkPos(e));
+  inkCtx.stroke();
+});
+inkCanvas.addEventListener('pointerup', () => { inking = false; });
+inkBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  inkPopup.style.display = inkPopup.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('ink-clear').addEventListener('click', inkClear);
+document.getElementById('ink-send').addEventListener('click', () => {
+  if (!inkDirty) return;
+  socket.emit('sendInk', inkCanvas.toDataURL('image/png'));
+  inkClear();
+  inkPopup.style.display = 'none';
+});
+document.addEventListener('click', (e) => {
+  if (!winkPopup.contains(e.target) && !winkBtn.contains(e.target)) winkPopup.style.display = 'none';
+  if (!inkPopup.contains(e.target) && !inkBtn.contains(e.target)) inkPopup.style.display = 'none';
 });
 
 socketManager.on('nudgeReceived', () => {
@@ -1282,7 +1370,15 @@ const fontSizeSelect = document.getElementById('font-size-select');
 const fontColorInput = document.getElementById('font-color-input');
 const nameColorInput = document.getElementById('name-color-input');
 const fontEffectSelect = document.getElementById('font-effect-select');
+const fontFamilySelect = document.getElementById('font-family-select');
+const fontModeSelect = document.getElementById('font-mode-select');
+const fontSoundSelect = document.getElementById('font-sound-select');
+const fontBurnInput = document.getElementById('font-burn-input');
 const fontSaveBtn = document.getElementById('font-save-btn');
+fontFamilySelect.value = userFont;
+fontModeSelect.value = userMode;
+fontSoundSelect.value = userSound;
+fontBurnInput.checked = userBurn;
 
 if (fontSizeSelect) fontSizeSelect.value = userFontSize;
 if (fontColorInput) fontColorInput.value = userFontColor;
@@ -1304,6 +1400,14 @@ if (fontSaveBtn) {
     userFontColor = fontColorInput.value;
     userNameColor = nameColorInput.value;
     userTextEffect = fontEffectSelect.value;
+    userFont = fontFamilySelect.value;
+    userMode = fontModeSelect.value;
+    userSound = fontSoundSelect.value;
+    userBurn = fontBurnInput.checked;
+    localStorage.setItem('chatFont', userFont);
+    localStorage.setItem('chatMode', userMode);
+    localStorage.setItem('chatSound', userSound);
+    localStorage.setItem('chatBurn', userBurn ? '1' : '0');
 
     localStorage.setItem('chatFontSize', userFontSize);
     localStorage.setItem('chatFontColor', userFontColor);
@@ -1316,7 +1420,11 @@ if (fontSaveBtn) {
       size: userFontSize,
       color: userFontColor,
       nameColor: userNameColor,
-      effect: userTextEffect
+      effect: userTextEffect,
+      font: userFont,
+      mode: userMode,
+      sound: userSound,
+      burn: userBurn
     });
 
     if (fontPopup) fontPopup.style.display = 'none';
