@@ -397,6 +397,16 @@
               </div>
 
               <div class="msn-format-bar">
+                <div class="font-btn-wrapper">
+                  <button id="bet-btn" class="msn-toolbar-btn" title="Gamba"><span class="msn-toolbar-icon">&#x1F3B0;</span> Gamba</button>
+                  <div id="bet-popup" class="emoticon-popup bet-popup" style="display: none;">
+                    <div class="bet-row"><input id="bet-slider" type="range" min="10" max="100" step="10" value="10"><b id="bet-amount">10 $qr</b></div>
+                    <div id="bet-info" class="bet-info"></div>
+                    <div class="bet-note">Si fallas en tu primera guess pierdes</div>
+                    <button id="bet-send">Apostar</button>
+                  </div>
+                </div>
+                <span class="msn-toolbar-divider"></span>
                 <button id="emoticon-btn" class="msn-toolbar-btn" title="Emojiconicos">
                   <img src="emoticons/regular_smile.png" class="msn-toolbar-emoticon" alt=":)"> Emojiconicos
                 </button>
@@ -469,23 +479,6 @@
                           <option value="bilbao">Bilbao</option>
                         </select>
                       </div>
-                      <div class="field-row">
-                        <label for="font-sound-select">Sonido:</label>
-                        <select id="font-sound-select">
-                          <option value="correct" selected>Normal</option>
-                          <option value="supersonic">Sonic</option>
-                          <option value="logon">XP</option>
-                          <option value="notify">Aviso</option>
-                          <option value="nudge">Zumbido</option>
-                          <option value="ping">Ping</option>
-                          <option value="select">Select</option>
-                          <option value="drop">Drop</option>
-                        </select>
-                      </div>
-                      <div class="field-row">
-                        <input type="checkbox" id="font-burn-input">
-                        <label for="font-burn-input">Autodestrucción</label>
-                      </div>
                       <button id="font-save-btn">Guardar</button>
                     </fieldset>
                   </div>
@@ -501,18 +494,9 @@
                 </button>
                 <span class="msn-toolbar-divider"></span>
                 <div class="font-btn-wrapper">
-                  <button id="wink-btn" class="msn-toolbar-btn" title="Guiños"><span class="msn-toolbar-icon">&#x1F609;</span> Guiños</button>
-                  <div id="wink-popup" class="emoticon-popup wink-popup" style="display: none;">
-                    <button data-wink="paloma">Paloma</button>
-                    <button data-wink="confeti">Confeti</button>
-                    <button data-wink="error">Error</button>
-                  </div>
-                </div>
-                <span class="msn-toolbar-divider"></span>
-                <div class="font-btn-wrapper">
-                  <button id="ink-btn" class="msn-toolbar-btn" title="Tinta"><span class="msn-toolbar-icon">&#x270F;</span> Tinta</button>
+                  <button id="ink-btn" class="msn-toolbar-btn" title="Dibujo"><span class="msn-toolbar-icon">&#x270F;</span> Dibujo</button>
                   <div id="ink-popup" class="emoticon-popup ink-popup" style="display: none;">
-                    <canvas id="ink-canvas" width="280" height="90"></canvas>
+                    <canvas id="ink-canvas" width="600" height="260"></canvas>
                     <div class="ink-btns"><button id="ink-clear">Borrar</button><button id="ink-send">Enviar</button></div>
                   </div>
                 </div>

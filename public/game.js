@@ -4,7 +4,6 @@ import { vgmTimer } from './js/games/vgm/timer.js';
 import { windowControls } from './js/games/vgm/window-controls.js';
 import { createHands } from './js/hands.js';
 import { leaderboardUI } from './js/ui/leaderboard.js';
-import { createSlotPopupButton } from './js/ui/slot-popup.js';
 import { showCoinAnimation } from './js/ui/coin-animation.js';
 import { shopUI } from './js/ui/shop.js';
 import { cardAlbumUI } from './js/ui/card-album.js';
@@ -54,9 +53,6 @@ audioManager.preload('supersonic', 'supersonic.mp3');
 audioManager.preload('nudge', 'msn_nudge_sound.mp3');
 audioManager.preload('correct', 'correct.mp3');
 audioManager.preload('close', 'close.mp3');
-audioManager.preload('ping', 'tierlist/audio/ping.wav');
-audioManager.preload('select', 'tierlist/audio/select.wav');
-audioManager.preload('drop', 'tierlist/audio/drop.wav');
 
 function playNotifySound() {
   audioManager.play('notify', { volume: 0.6 });
@@ -245,8 +241,6 @@ let userNameColor = localStorage.getItem('chatNameColor') || '#0000ff';
 let userTextEffect = localStorage.getItem('chatTextEffect') || 'none';
 let userFont = localStorage.getItem('chatFont') || 'normal';
 let userMode = localStorage.getItem('chatMode') || 'normal';
-let userSound = localStorage.getItem('chatSound') || 'correct';
-let userBurn = localStorage.getItem('chatBurn') === '1';
 let currentCorrectGame = null;
 let currentCorrectSong = null;
 let originalVolume = 1;
@@ -1089,6 +1083,8 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
 
       if (sonicType) {
         addSonicBonusMessage(currentUser.username, sonicType);
+      } else {
+        audioManager.play('correct', { volume: 0.8 });
       }
     }
   } else {
@@ -1103,8 +1099,7 @@ socketManager.on('guessResult', ({ correct, type, sonicType, timeElapsed }) => {
 socketManager.on('roundComplete', () => {
 });
 
-socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed, sound }) => {
-  if (!sonicType) audioManager.play(sound || 'correct', { volume: 0.8 });
+socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) => {
   if (currentUser && playerName !== currentUser.username) {
     const time = timeElapsed || ((Date.now() - roundStartTime) / 1000);
     addCorrectGuessMessage(playerName, time, type === 'game', sonicType);
@@ -1196,44 +1191,6 @@ socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSett
   addMsnMessage(sender, message, false, { senderFontSettings: fontSettings, ...rest });
 });
 
-function showWink(type, from) {
-  const layer = document.createElement('div');
-  layer.className = 'wink-layer';
-  let ttl = 3000;
-  if (type === 'paloma') {
-    layer.innerHTML = '<img class="wink-pigeon" src="jovani.png" alt="">';
-    audioManager.play('ping', { volume: 0.5 });
-  } else if (type === 'confeti') {
-    const colors = ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#fb8c00'];
-    layer.innerHTML = Array.from({ length: 80 }, () => `<i class="wink-confetti" style="left:${(Math.random() * 100).toFixed(1)}%;background:${colors[Math.floor(Math.random() * colors.length)]};animation-delay:${(Math.random() * 1.2).toFixed(2)}s;animation-duration:${(2.5 + Math.random() * 1.5).toFixed(2)}s"></i>`).join('');
-    ttl = 5500;
-  } else {
-    layer.innerHTML = `<div class="window wink-error"><div class="title-bar"><div class="title-bar-text">Error</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div><div class="window-body"><span>&#x26A0;</span><div>${escapeHtml(from)} ha roto SQRRR VGM.</div></div><div class="wink-error-btns"><button>Aceptar</button></div></div>`;
-    layer.querySelectorAll('button').forEach(b => b.addEventListener('click', () => layer.remove()));
-    audioManager.play('notify', { volume: 0.6 });
-    ttl = 6000;
-  }
-  document.body.appendChild(layer);
-  setTimeout(() => layer.remove(), ttl);
-}
-socketManager.on('winkReceived', ({ type, from }) => showWink(type, from));
-
-const winkBtn = document.getElementById('wink-btn');
-const winkPopup = document.getElementById('wink-popup');
-let winkCooldownUntil = 0;
-winkBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  winkPopup.style.display = winkPopup.style.display === 'none' ? 'flex' : 'none';
-});
-winkPopup.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-wink]');
-  if (!b) return;
-  winkPopup.style.display = 'none';
-  if (Date.now() < winkCooldownUntil) return;
-  winkCooldownUntil = Date.now() + 10000;
-  socket.emit('sendWink', b.dataset.wink);
-});
-
 const inkBtn = document.getElementById('ink-btn');
 const inkPopup = document.getElementById('ink-popup');
 const inkCanvas = document.getElementById('ink-canvas');
@@ -1273,9 +1230,34 @@ document.getElementById('ink-send').addEventListener('click', () => {
   inkClear();
   inkPopup.style.display = 'none';
 });
+const betBtn = document.getElementById('bet-btn');
+const betPopup = document.getElementById('bet-popup');
+const betSlider = document.getElementById('bet-slider');
+const betAmount = document.getElementById('bet-amount');
+const betSend = document.getElementById('bet-send');
+const betInfo = document.getElementById('bet-info');
+betBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const open = betPopup.style.display === 'none';
+  betPopup.style.display = open ? 'block' : 'none';
+  if (open) socket.emit('betInfo');
+});
+betSlider.addEventListener('input', () => { betAmount.textContent = `${betSlider.value} $qr`; });
+betSend.addEventListener('click', () => {
+  socket.emit('placeBet', +betSlider.value);
+  betPopup.style.display = 'none';
+});
+socketManager.on('betInfo', ({ coins, bet }) => {
+  const max = Math.floor(coins / 10) * 10;
+  betSlider.max = Math.max(10, max);
+  betSlider.value = Math.min(+betSlider.value || 10, Math.max(10, max));
+  betAmount.textContent = `${betSlider.value} $qr`;
+  betInfo.textContent = bet ? `Ya has metido ${bet} $qr` : `Tienes ${coins} $qr`;
+  betSlider.disabled = betSend.disabled = !!bet || max < 10;
+});
 document.addEventListener('click', (e) => {
-  if (!winkPopup.contains(e.target) && !winkBtn.contains(e.target)) winkPopup.style.display = 'none';
   if (!inkPopup.contains(e.target) && !inkBtn.contains(e.target)) inkPopup.style.display = 'none';
+  if (!betPopup.contains(e.target) && !betBtn.contains(e.target)) betPopup.style.display = 'none';
 });
 
 socketManager.on('nudgeReceived', () => {
@@ -1372,13 +1354,9 @@ const nameColorInput = document.getElementById('name-color-input');
 const fontEffectSelect = document.getElementById('font-effect-select');
 const fontFamilySelect = document.getElementById('font-family-select');
 const fontModeSelect = document.getElementById('font-mode-select');
-const fontSoundSelect = document.getElementById('font-sound-select');
-const fontBurnInput = document.getElementById('font-burn-input');
 const fontSaveBtn = document.getElementById('font-save-btn');
 fontFamilySelect.value = userFont;
 fontModeSelect.value = userMode;
-fontSoundSelect.value = userSound;
-fontBurnInput.checked = userBurn;
 
 if (fontSizeSelect) fontSizeSelect.value = userFontSize;
 if (fontColorInput) fontColorInput.value = userFontColor;
@@ -1402,12 +1380,8 @@ if (fontSaveBtn) {
     userTextEffect = fontEffectSelect.value;
     userFont = fontFamilySelect.value;
     userMode = fontModeSelect.value;
-    userSound = fontSoundSelect.value;
-    userBurn = fontBurnInput.checked;
     localStorage.setItem('chatFont', userFont);
     localStorage.setItem('chatMode', userMode);
-    localStorage.setItem('chatSound', userSound);
-    localStorage.setItem('chatBurn', userBurn ? '1' : '0');
 
     localStorage.setItem('chatFontSize', userFontSize);
     localStorage.setItem('chatFontColor', userFontColor);
@@ -1422,9 +1396,7 @@ if (fontSaveBtn) {
       nameColor: userNameColor,
       effect: userTextEffect,
       font: userFont,
-      mode: userMode,
-      sound: userSound,
-      burn: userBurn
+      mode: userMode
     });
 
     if (fontPopup) fontPopup.style.display = 'none';
@@ -1542,5 +1514,4 @@ if (gameToolbar) {
 
   tiendaBtn.addEventListener('click', () => shopUI.open());
 
-  const slotPopup = createSlotPopupButton(gameToolbar, socket, { position: 'right-no-margin' });
 }

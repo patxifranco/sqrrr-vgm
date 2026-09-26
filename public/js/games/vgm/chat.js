@@ -152,14 +152,11 @@ class VGMChat {
       div.innerHTML = `<span class="msg-sender sqrrr-msg">${escapeHtml(sender)} dice:</span><br><span class="msg-text">${message}</span>`;
     } else if (options.isRainbow) {
       div.innerHTML = `<span class="msg-sender">${escapeHtml(sender)} dice:</span><br><span class="msg-text rainbow-text">${processMessage(message)}</span>`;
-    } else if (options.action) {
-      div.innerHTML = `<span class="msg-action">* ${escapeHtml(sender)} ${processMessage(message)}</span>`;
     } else {
       const fs = options.senderFontSettings || { size: 13, color: '#000000', nameColor: '#0000ff', effect: 'none' };
-      const curse = options.curse;
-      const font = curse === 'comic' ? 'comic' : (fs.font || 'normal');
+      const font = fs.font || 'normal';
       const onFire = (options.streak || 0) >= 3;
-      const classes = ['msg-text', font !== 'normal' ? `font-${font}` : '', curse === 'mini' ? 'curse-mini' : '', curse === 'reves' ? 'fx-flip' : '', onFire ? 'on-fire' : ''];
+      const classes = ['msg-text', font !== 'normal' ? `font-${font}` : '', onFire ? 'on-fire' : ''];
       const effect = fs.effect || 'none';
       let inner;
       if (options.ink) inner = `<img class="ink-msg" src="${options.ink}" alt="">`;
@@ -171,10 +168,7 @@ class VGMChat {
       else { inner = processMessage(message); if (EFFECT_CLASS[effect]) classes.push(EFFECT_CLASS[effect]); }
       const style = `font-size: ${fs.size}px; color: ${fs.color};`;
       const nameStyle = `color: ${fs.nameColor};`;
-      const verb = options.whisper ? `susurra a ${escapeHtml(options.whisper)}:` : 'dice:';
-      if (options.whisper) div.classList.add('msg-whisper');
-      div.innerHTML = `${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} ${verb}</span><br><span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span>`;
-      if (options.burn) setTimeout(() => { div.style.transition = 'opacity 1s'; div.style.opacity = '0'; setTimeout(() => div.remove(), 1000); }, 5000);
+      div.innerHTML = `${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><br><span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span>`;
     }
 
     this.container.appendChild(div);

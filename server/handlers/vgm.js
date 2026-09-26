@@ -7,10 +7,6 @@ const savedPlayerScores = new Map();
 const EFFECTS = new Set(['none', 'wave', 'rainbow', 'quake', 'type', 'blink', 'marquee', 'fire', 'ice', 'gold', 'flip', 'mirror', 'wingdings', 'spoiler']);
 const FONTS = new Set(['normal', 'comic', 'papyrus', 'impact']);
 const MODES = new Set(['normal', 'uwu', 'leet', 'caps', 'reverse', 'bilbao']);
-const SOUNDS = new Set(['correct', 'supersonic', 'logon', 'notify', 'nudge', 'ping', 'select', 'drop']);
-const CURSES = { comic: 'Comic Sans', reves: 'boca abajo', mini: 'letra mini' };
-const CURSE_COST = 200;
-const WINKS = new Set(['paloma', 'confeti', 'error']);
 const SYS_FONT = { size: 13, color: '#666666', nameColor: '#0000ff', effect: 'none' };
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
@@ -27,8 +23,7 @@ function mangle(text, mode) {
 
 function chatPayload(player, message, extra = {}) {
   const fs = player.fontSettings || {};
-  const curse = player.curse && player.curse.until > Date.now() ? player.curse.type : null;
-  return { sender: player.name, message: mangle(message, fs.mode), profilePicture: player.profilePicture, fontSettings: fs, streak: player.streak || 0, curse, burn: !!fs.burn, bet: (player.bet || 0) > 0, ...extra };
+  return { sender: player.name, message: mangle(message, fs.mode), profilePicture: player.profilePicture, fontSettings: fs, streak: player.streak || 0, bet: (player.bet || 0) > 0, ...extra };
 }
 const SCORE_EXPIRY_MS = 12 * 60 * 60 * 1000;
 
@@ -206,7 +201,7 @@ function endRound(roomCode, context) {
 
   Object.values(lobby.players).forEach(player => {
     if (player.bet) {
-      _io.to(roomCode).emit('sqrrrMessage', { message: `${player.name} pierde la apuesta: -${player.bet} $qr`, isBold: true });
+      _io.to(roomCode).emit('sqrrrMessage', { message: `${player.name} ha perdido ${player.bet} $qr en el gamba`, isBold: true });
       player.bet = 0;
     }
     let pointsEarned = 0;
@@ -538,78 +533,36 @@ function setupHandlers(io, socket, context) {
       nameColor: settings.nameColor || '#0000ff',
       effect: EFFECTS.has(settings.effect) ? settings.effect : 'none',
       font: FONTS.has(settings.font) ? settings.font : 'normal',
-      mode: MODES.has(settings.mode) ? settings.mode : 'normal',
-      sound: SOUNDS.has(settings.sound) ? settings.sound : 'correct',
-      burn: !!settings.burn
+      mode: MODES.has(settings.mode) ? settings.mode : 'normal'
     };
   });
 
-  const sys = (room, message) => io.to(room).emit('gameChatMessage', { sender: 'SQRRR', message, profilePicture: null, fontSettings: SYS_FONT });
   const tell = message => socket.emit('gameChatMessage', { sender: 'SQRRR', message, profilePicture: null, fontSettings: SYS_FONT });
-  const findPlayer = (lobby, name) => Object.entries(lobby.players).find(([, p]) => p.name.toLowerCase() === String(name || '').toLowerCase());
 
-  function handleCommand(text, player, lobby, room) {
-    const [cmd, ...rest] = text.trim().split(/\s+/);
-    const arg = rest.join(' ');
-    const c = cmd.toLowerCase();
+  socket.on('betInfo', () => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const player = lobbies[currentRoom].players[socket.id];
     const user = users[getLoggedInUsername()];
-    if (c === '/me') {
-      if (arg) io.to(room).emit('gameChatMessage', chatPayload(player, arg, { action: true }));
-      return true;
-    }
-    if (c === '/dado') {
-      const n = Math.min(1000, Math.max(2, parseInt(rest[0]) || 6));
-      sys(room, `${player.name} tira un dado de ${n}: ${1 + Math.floor(Math.random() * n)}`);
-      return true;
-    }
-    if (c === '/moneda') {
-      sys(room, `${player.name} lanza una moneda: ${Math.random() < 0.5 ? 'cara' : 'cruz'}`);
-      return true;
-    }
-    if (c === '/w') {
-      const found = findPlayer(lobby, rest[0]);
-      const msg = rest.slice(1).join(' ');
-      if (!found) { tell(`No está ${rest[0] || 'nadie'}`); return true; }
-      if (!msg) return true;
-      const payload = chatPayload(player, msg, { whisper: found[1].name });
-      io.to(found[0]).emit('gameChatMessage', payload);
-      if (found[0] !== socket.id) socket.emit('gameChatMessage', payload);
-      return true;
-    }
-    if (c === '/apuesta') {
-      const n = parseInt(rest[0]);
-      if (!user) return true;
-      if (!lobby.roundActive) { tell('Solo se apuesta con una canción sonando'); return true; }
-      if (player.guessedGame) { tell('Ya has acertado'); return true; }
-      if (player.bet) { tell(`Ya has apostado ${player.bet} $qr`); return true; }
-      if (!(n >= 10 && n <= 1000)) { tell('Apuesta entre 10 y 1000 $qr'); return true; }
-      if ((user.coins ?? 0) < n) { tell(`No tienes ${n} $qr`); return true; }
-      user.coins -= n;
-      saveUser(user.username);
-      player.bet = n;
-      sys(room, `${player.name} apuesta ${n} $qr a que acierta`);
-      return true;
-    }
-    if (c === '/maldecir') {
-      const found = findPlayer(lobby, rest[0]);
-      const type = String(rest[1] || '').toLowerCase().replace('é', 'e');
-      if (!user) return true;
-      if (!found || !CURSES[type]) { tell('/maldecir nombre comic | reves | mini'); return true; }
-      if (found[1] === player) { tell('A ti mismo no'); return true; }
-      if (found[1].curse && found[1].curse.until > Date.now()) { tell(`${found[1].name} ya está maldito`); return true; }
-      if ((user.coins ?? 0) < CURSE_COST) { tell(`Cuesta ${CURSE_COST} $qr`); return true; }
-      user.coins -= CURSE_COST;
-      saveUser(user.username);
-      found[1].curse = { type, until: Date.now() + 60000 };
-      io.to(room).emit('sqrrrMessage', { message: `${player.name} ha maldecido a ${found[1].name}: ${CURSES[type]} durante 60 segundos`, isBold: true });
-      return true;
-    }
-    if (c === '/ayuda') {
-      tell('/me texto · /dado [caras] · /moneda · /w nombre texto · /apuesta cantidad · /maldecir nombre comic|reves|mini');
-      return true;
-    }
-    return false;
-  }
+    if (!player || !user) return;
+    socket.emit('betInfo', { coins: user.coins ?? 0, bet: player.bet || 0 });
+  });
+
+  socket.on('placeBet', (amount) => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const player = lobbies[currentRoom].players[socket.id];
+    const user = users[getLoggedInUsername()];
+    if (!player || !user) return;
+    const n = Math.floor(Number(amount));
+    if (player.bet) return tell(`Ya has metido ${player.bet} $qr al gamba`);
+    if (!(n >= 10) || n > (user.coins ?? 0)) return tell('No tienes tantos $qr');
+    user.coins -= n;
+    saveUser(user.username);
+    player.bet = n;
+    io.to(currentRoom).emit('sqrrrMessage', { message: `${player.name} ha metido ${n} $qr al gamba`, isBold: true });
+    socket.emit('betInfo', { coins: user.coins, bet: n });
+  });
 
   socket.on('guess', (guess) => {
     if (typeof guess !== 'string') return;
@@ -619,10 +572,6 @@ function setupHandlers(io, socket, context) {
     if (!currentRoom || !lobbies[currentRoom]) return;
 
     const lobby = lobbies[currentRoom];
-    if (guess.startsWith('/')) {
-      const me = lobby.players[socket.id];
-      if (me && handleCommand(guess, me, lobby, currentRoom)) return;
-    }
 
     if (!lobby.roundActive || !lobby.currentSong) {
       const player = lobby.players[socket.id];
@@ -732,8 +681,7 @@ function setupHandlers(io, socket, context) {
           playerName: player.name,
           type: 'game',
           sonicType: sonicType,
-          timeElapsed: timeSinceStart / 1000,
-          sound: (player.fontSettings || {}).sound || 'correct'
+          timeElapsed: timeSinceStart / 1000
         });
 
         if (player.bet) {
@@ -745,7 +693,7 @@ function setupHandlers(io, socket, context) {
             saveUser(better.username);
             socket.emit('coinsEarned', { amount: win, total: better.coins });
           }
-          io.to(currentRoom).emit('sqrrrMessage', { message: `${player.name} gana la apuesta: +${win} $qr`, isBold: true });
+          io.to(currentRoom).emit('sqrrrMessage', { message: `${player.name} ha ganado ${win} $qr en el gamba`, isBold: true });
         }
 
         socket.emit('guessResult', { correct: true, type: 'game', sonicType: sonicType, timeElapsed: timeSinceStart / 1000 });
@@ -764,6 +712,10 @@ function setupHandlers(io, socket, context) {
           socket.emit('coinsEarned', { amount: coinsEarned, total: users[loggedInUser].coins });
         }
       } else {
+        if (player.bet) {
+          io.to(currentRoom).emit('sqrrrMessage', { message: `${player.name} ha perdido ${player.bet} $qr en el gamba`, isBold: true });
+          player.bet = 0;
+        }
         if (normalizeText(guess).includes('mairo')) {
           io.to(currentRoom).emit('gameChatMessage', chatPayload(player, guess));
           io.to(currentRoom).emit('gameChatMessage', {
@@ -922,16 +874,6 @@ function setupHandlers(io, socket, context) {
     });
 
     io.to(currentRoom).emit('gameChatMessage', chatPayload(player, message));
-  });
-
-  socket.on('sendWink', (type) => {
-    const currentRoom = getCurrentRoom();
-    if (!currentRoom || !lobbies[currentRoom]) return;
-    const player = lobbies[currentRoom].players[socket.id];
-    if (!player || !WINKS.has(type)) return;
-    if (player.winkAt && Date.now() - player.winkAt < 10000) return;
-    player.winkAt = Date.now();
-    io.to(currentRoom).emit('winkReceived', { type, from: player.name });
   });
 
   socket.on('sendInk', (data) => {
