@@ -398,25 +398,6 @@
 
               <div class="msn-format-bar">
                 <div class="font-btn-wrapper">
-                  <button id="bet-btn" class="msn-toolbar-btn" title="Gamba"><span class="msn-toolbar-icon">&#x1F3B0;</span> Gamba</button>
-                  <div id="bet-popup" class="emoticon-popup bet-popup" style="display: none;">
-                    <div class="bet-row"><input id="bet-slider" type="range" min="10" max="100" step="10" value="10"><b id="bet-amount">10 $qr</b></div>
-                    <div id="bet-info" class="bet-info"></div>
-                    <div class="bet-note">Si fallas en tu primera guess pierdes</div>
-                    <button id="bet-send">Apostar</button>
-                  </div>
-                </div>
-                <span class="msn-toolbar-divider"></span>
-                <button id="emoticon-btn" class="msn-toolbar-btn" title="Emojiconicos">
-                  <img src="emoticons/regular_smile.png" class="msn-toolbar-emoticon" alt=":)"> Emojiconicos
-                </button>
-                <span class="msn-toolbar-divider"></span>
-                <button id="hint-btn" class="msn-toolbar-btn" title="Usar pista (4 puntos)">
-                  <span class="msn-toolbar-icon">&#x1F4A1;</span> Pista
-                </button>
-                <label id="hint-points-text" class="msn-toolbar-label">4/4</label>
-                <span class="msn-toolbar-divider"></span>
-                <div class="font-btn-wrapper">
                   <button id="font-btn" class="msn-toolbar-btn" title="Fuente">
                     <span class="msn-toolbar-icon">A</span> Fuente
                   </button>
@@ -430,6 +411,7 @@
                           <option value="13" selected>Normal</option>
                           <option value="16">Grande</option>
                           <option value="20">Muy Grande</option>
+                          <option value="32">HUUUUUGE</option>
                         </select>
                       </div>
                       <div class="field-row">
@@ -479,10 +461,28 @@
                           <option value="bilbao">Bilbao</option>
                         </select>
                       </div>
-                      <button id="font-save-btn">Guardar</button>
                     </fieldset>
                   </div>
                 </div>
+                <span class="msn-toolbar-divider"></span>
+                <div class="font-btn-wrapper">
+                  <button id="bet-btn" class="msn-toolbar-btn" title="Gamba"><span class="msn-toolbar-icon">&#x1F3B0;</span> Gamba</button>
+                  <div id="bet-popup" class="emoticon-popup bet-popup" style="display: none;">
+                    <div class="bet-row"><span class="bet-coin">&#x1FA99;</span><input id="bet-slider" type="range" min="10" max="100" step="10" value="10"><b id="bet-amount">10 $qr</b></div>
+                    <div id="bet-info" class="bet-info"></div>
+                    <div class="bet-note">Si fallas en tu primera guess pierdes</div>
+                    <button id="bet-send">Gamba</button>
+                  </div>
+                </div>
+                <span class="msn-toolbar-divider"></span>
+                <button id="emoticon-btn" class="msn-toolbar-btn" title="Emojiconicos">
+                  <img src="emoticons/regular_smile.png" class="msn-toolbar-emoticon" alt=":)"> Emojiconicos
+                </button>
+                <span class="msn-toolbar-divider"></span>
+                <button id="hint-btn" class="msn-toolbar-btn" title="Usar pista (4 puntos)">
+                  <span class="msn-toolbar-icon">&#x1F4A1;</span> Pista
+                </button>
+                <label id="hint-points-text" class="msn-toolbar-label">4/4</label>
                 <span class="msn-toolbar-divider"></span>
                 <button id="vote-extend-btn" class="msn-toolbar-btn" title="Votar para extender tiempo">
                   <span class="msn-toolbar-icon">&#x23F1;</span> +10s

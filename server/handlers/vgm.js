@@ -199,10 +199,11 @@ function endRound(roomCode, context) {
   const gameName = lobby.currentSong.game;
   const songName = lobby.currentSong.song;
 
-  Object.values(lobby.players).forEach(player => {
+  Object.entries(lobby.players).forEach(([socketId, player]) => {
     if (player.bet) {
       _io.to(roomCode).emit('sqrrrMessage', { message: `${player.name} ha perdido ${player.bet} $qr en el gamba`, isBold: true });
       player.bet = 0;
+      _io.to(socketId).emit('betInfo', { coins: (users[player.username] || {}).coins ?? 0, bet: 0 });
     }
     let pointsEarned = 0;
     if (player.guessedGame) pointsEarned++;
@@ -694,6 +695,7 @@ function setupHandlers(io, socket, context) {
             socket.emit('coinsEarned', { amount: win, total: better.coins });
           }
           io.to(currentRoom).emit('sqrrrMessage', { message: `${player.name} ha ganado ${win} $qr en el gamba`, isBold: true });
+          socket.emit('betInfo', { coins: better ? better.coins : 0, bet: 0 });
         }
 
         socket.emit('guessResult', { correct: true, type: 'game', sonicType: sonicType, timeElapsed: timeSinceStart / 1000 });
@@ -715,6 +717,7 @@ function setupHandlers(io, socket, context) {
         if (player.bet) {
           io.to(currentRoom).emit('sqrrrMessage', { message: `${player.name} ha perdido ${player.bet} $qr en el gamba`, isBold: true });
           player.bet = 0;
+          socket.emit('betInfo', { coins: (users[getLoggedInUsername()] || {}).coins ?? 0, bet: 0 });
         }
         if (normalizeText(guess).includes('mairo')) {
           io.to(currentRoom).emit('gameChatMessage', chatPayload(player, guess));
@@ -762,6 +765,11 @@ function setupHandlers(io, socket, context) {
 
     const player = lobby.players[socket.id];
     if (!player) return;
+
+    if (player.bet) {
+      socket.emit('hintResult', { success: false, reason: 'Con gamba no hay pista' });
+      return;
+    }
 
     if (player.usedHintThisRound) {
       socket.emit('hintResult', { success: false, reason: 'Already used hint this round' });

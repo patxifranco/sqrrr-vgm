@@ -458,7 +458,7 @@ function updateHintDisplay() {
   hintFill.style.width = percent + '%';
   hintPointsText.textContent = `${hintPoints}/4`;
 
-  if (hintPoints >= 4 && !usedHintThisRound && !guessedGame) {
+  if (hintPoints >= 4 && !usedHintThisRound && !guessedGame && !activeBet) {
     hintBtn.disabled = false;
   } else {
     hintBtn.disabled = true;
@@ -1236,6 +1236,7 @@ const betSlider = document.getElementById('bet-slider');
 const betAmount = document.getElementById('bet-amount');
 const betSend = document.getElementById('bet-send');
 const betInfo = document.getElementById('bet-info');
+let activeBet = false;
 betBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   const open = betPopup.style.display === 'none';
@@ -1254,6 +1255,8 @@ socketManager.on('betInfo', ({ coins, bet }) => {
   betAmount.textContent = `${betSlider.value} $qr`;
   betInfo.textContent = bet ? `Ya has metido ${bet} $qr` : `Tienes ${coins} $qr`;
   betSlider.disabled = betSend.disabled = !!bet || max < 10;
+  activeBet = !!bet;
+  updateHintDisplay();
 });
 document.addEventListener('click', (e) => {
   if (!inkPopup.contains(e.target) && !inkBtn.contains(e.target)) inkPopup.style.display = 'none';
@@ -1354,7 +1357,6 @@ const nameColorInput = document.getElementById('name-color-input');
 const fontEffectSelect = document.getElementById('font-effect-select');
 const fontFamilySelect = document.getElementById('font-family-select');
 const fontModeSelect = document.getElementById('font-mode-select');
-const fontSaveBtn = document.getElementById('font-save-btn');
 fontFamilySelect.value = userFont;
 fontModeSelect.value = userMode;
 
@@ -1372,8 +1374,7 @@ if (fontBtn) {
   });
 }
 
-if (fontSaveBtn) {
-  fontSaveBtn.addEventListener('click', () => {
+function applyFontSettings() {
     userFontSize = fontSizeSelect.value;
     userFontColor = fontColorInput.value;
     userNameColor = nameColorInput.value;
@@ -1398,10 +1399,8 @@ if (fontSaveBtn) {
       font: userFont,
       mode: userMode
     });
-
-    if (fontPopup) fontPopup.style.display = 'none';
-  });
 }
+for (const el of [fontSizeSelect, fontColorInput, nameColorInput, fontEffectSelect, fontFamilySelect, fontModeSelect]) el.addEventListener('change', applyFontSettings);
 
 documentListeners.fontPopupClose = (e) => {
   if (fontPopup && !fontPopup.contains(e.target) && e.target !== fontBtn) {
