@@ -529,7 +529,7 @@ function setupHandlers(io, socket, context) {
     if (!player) return;
 
     player.fontSettings = {
-      size: Math.min(40, Math.max(8, parseInt(settings.size) || 13)),
+      size: Math.min(64, Math.max(8, parseInt(settings.size) || 13)),
       color: settings.color || '#000000',
       nameColor: settings.nameColor || '#0000ff',
       effect: EFFECTS.has(settings.effect) ? settings.effect : 'none',

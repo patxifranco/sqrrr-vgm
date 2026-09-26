@@ -1,5 +1,5 @@
 import { timerManager, socketManager, audioManager, logger, escapeHtml } from './js/core/index.js';
-import { vgmChat } from './js/games/vgm/chat.js';
+import { vgmChat, mangle } from './js/games/vgm/chat.js';
 import { vgmTimer } from './js/games/vgm/timer.js';
 import { windowControls } from './js/games/vgm/window-controls.js';
 import { createHands } from './js/hands.js';
@@ -1365,14 +1365,22 @@ if (fontColorInput) fontColorInput.value = userFontColor;
 if (nameColorInput) nameColorInput.value = userNameColor;
 if (fontEffectSelect) fontEffectSelect.value = userTextEffect;
 
+const fontPreview = document.getElementById('font-preview');
+function renderFontPreview() {
+  const text = guessInput.value.trim() || 'Hola que tal :)';
+  const fs = { size: parseInt(userFontSize), color: userFontColor, nameColor: userNameColor, effect: userTextEffect, font: userFont, mode: userMode };
+  fontPreview.replaceChildren(vgmChat.buildMessage(currentUser ? currentUser.username : 'Yo', mangle(text, userMode), false, { senderFontSettings: fs }));
+}
 if (fontBtn) {
   fontBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (fontPopup) {
       fontPopup.style.display = fontPopup.style.display === 'none' ? 'block' : 'none';
+      if (fontPopup.style.display !== 'none') renderFontPreview();
     }
   });
 }
+guessInput.addEventListener('input', () => { if (fontPopup && fontPopup.style.display !== 'none') renderFontPreview(); });
 
 function applyFontSettings() {
     userFontSize = fontSizeSelect.value;
@@ -1399,6 +1407,7 @@ function applyFontSettings() {
       font: userFont,
       mode: userMode
     });
+    renderFontPreview();
 }
 for (const el of [fontSizeSelect, fontColorInput, nameColorInput, fontEffectSelect, fontFamilySelect, fontModeSelect]) el.addEventListener('change', applyFontSettings);
 

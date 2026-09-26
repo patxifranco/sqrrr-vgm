@@ -81,6 +81,17 @@ function letterSpans(text, cls, delayFor) {
 const createWaveText = text => letterSpans(text, 'wave-letter', i => `${(i * 0.05) % 0.6}s`);
 const WD = Array.from('♠♣♥♦☺☻♪♫☼►◄▲▼○●□■☆★✈✉✂✓✗☎☂');
 const wingdings = text => Array.from(text).map(ch => { const i = ch.toLowerCase().charCodeAt(0) - 97; return i >= 0 && i < 26 ? WD[i] : ch; }).join('');
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function mangle(text, mode) {
+  switch (mode) {
+    case 'uwu': return text.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W').replace(/n([aeiou])/gi, 'ny$1') + ' ' + pick(['uwu', 'owo', '>w<', 'uwu~']);
+    case 'leet': return text.replace(/[aeiost]/gi, c => ({ a: '4', e: '3', i: '1', o: '0', s: '5', t: '7' })[c.toLowerCase()]);
+    case 'caps': return text.toUpperCase() + '!'.repeat(2 + Math.floor(Math.random() * 4)) + '1';
+    case 'reverse': return Array.from(text).reverse().join('');
+    case 'bilbao': return text + ', ' + pick(['ostia', 'pues', 'aiba', 'ondo', 'txo', 'ostia pues']);
+    default: return text;
+  }
+}
 const EFFECT_CLASS = { rainbow: 'rainbow-text', blink: 'fx-blink', fire: 'fx-fire', ice: 'fx-ice', gold: 'fx-gold', flip: 'fx-flip', mirror: 'fx-mirror', spoiler: 'fx-spoiler' };
 
 const PROGRESS_SEGMENT_COUNT = 20;
@@ -141,6 +152,12 @@ class VGMChat {
   }
 
   addMsnMessage(sender, message, isSystem = false, options = {}) {
+    this.container.appendChild(this.buildMessage(sender, message, isSystem, options));
+    this._trimMessages();
+    this.container.scrollTop = this.container.scrollHeight;
+  }
+
+  buildMessage(sender, message, isSystem = false, options = {}) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
 
@@ -171,9 +188,7 @@ class VGMChat {
       div.innerHTML = `${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><br><span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span>`;
     }
 
-    this.container.appendChild(div);
-    this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    return div;
   }
 
   addStartButton() {
@@ -290,4 +305,4 @@ class VGMChat {
 
 export const vgmChat = new VGMChat();
 
-export { replaceEmoticons, createWaveText, emoticonMap };
+export { replaceEmoticons, createWaveText, emoticonMap, mangle };
