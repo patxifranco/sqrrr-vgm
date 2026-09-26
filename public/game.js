@@ -1367,7 +1367,7 @@ if (fontEffectSelect) fontEffectSelect.value = userTextEffect;
 
 const fontPreview = document.getElementById('font-preview');
 function renderFontPreview() {
-  const text = guessInput.value.trim() || 'Hola que tal :)';
+  const text = guessInput.value.trim() || 'ieeepa xDD';
   const fs = { size: parseInt(userFontSize), color: userFontColor, nameColor: userNameColor, effect: userTextEffect, font: userFont, mode: userMode };
   fontPreview.replaceChildren(vgmChat.buildMessage(currentUser ? currentUser.username : 'Yo', mangle(text, userMode), false, { senderFontSettings: fs }));
 }
