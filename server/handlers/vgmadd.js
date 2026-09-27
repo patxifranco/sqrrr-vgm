@@ -11,6 +11,7 @@ const CLIP = 41;
 const FADE = 3;
 const PAGE_RE = /^\/game-soundtracks\/album\/[A-Za-z0-9._%-]+\/[^\s"'<>]+$/;
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
+const COVER_RE = /^https:\/\/[a-z0-9.-]+\.(ytimg\.com|vgmtreasurechest\.com|khinsider\.com)\/[^\s"'<>]+$/i;
 
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const slug = s => norm(s).replace(/ /g, '-').slice(0, 60) || 'x';
@@ -141,7 +142,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     } catch (e) { fail('No se pudo cargar la canción', e); }
   });
 
-  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song } = {}) => {
+  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song, cover } = {}) => {
     const username = getLoggedInUsername();
     if (!username) return;
     const gameName = clean(game), songName = clean(song), at = Math.max(0, Math.min(36000, Number(start) || 0));
@@ -159,7 +160,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
         await ffmpegClip(url, at, path.join(AUDIO_DIR, file));
         const size = fs.statSync(path.join(AUDIO_DIR, file)).size;
         if (size < 20000) { fs.unlinkSync(path.join(AUDIO_DIR, file)); throw new Error('clip too small'); }
-        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username, start: Math.round(at) };
+        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username, start: Math.round(at), cover: COVER_RE.test(String(cover || '')) ? String(cover) : '' };
         addSong(entry);
         log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
         socket.emit('vaDone', { song: entry, total: songs.length });

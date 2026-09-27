@@ -172,7 +172,7 @@ function createLobby(roomCode) {
   };
 }
 
-const { COLORS, DEFAULT_COLOR } = require('./tierlist');
+const { COLORS, DEFAULT_COLOR, ytFirstVideo } = require('./tierlist');
 function getPlayerList(lobbies, roomCode) {
   const lobby = lobbies[roomCode];
   if (!lobby) return [];
@@ -308,13 +308,17 @@ function startAutoPlayCountdown(roomCode, context) {
   const songKey = `${lobby.currentSong.game} - ${lobby.currentSong.song}`;
   const record = records ? records[songKey] : null;
 
-  let revealMessage = `La canción era: <b>${lobby.currentSong.game} - ${lobby.currentSong.song}</b>`;
+  const cur = lobby.currentSong;
+  lobby.lastSong = cur;
+  lobby.songVotes = { up: new Set(), down: new Set() };
+  let text = `La canción era: <b>${cur.game} - ${cur.song}</b>`;
   if (record) {
-    revealMessage += `\nEl récord es de <b>${record.player}</b> con <b>${record.time.toFixed(2)}</b> segundos`;
+    text += `<br>El récord es de <b>${record.player}</b> con <b>${record.time.toFixed(2)}</b> segundos`;
   }
-  if (lobby.currentSong.addedBy) {
-    revealMessage += `<br>Canción añadida por <b style="color:${COLORS[lobby.currentSong.addedBy] || '#000'}">${lobby.currentSong.addedBy}</b>`;
+  if (cur.addedBy) {
+    text += `<br>Canción añadida por <b style="color:${COLORS[cur.addedBy] || '#000'}">${cur.addedBy}</b>`;
   }
+  const revealMessage = `<span class="reveal">${cur.cover ? `<img class="reveal-cover" src="${cur.cover}" alt="">` : ''}<span>${text}</span></span><span class="reveal-votes" data-song="${cur.id}"><button class="vote-up">&#x1F44D; <b>0</b></button><button class="vote-down">&#x1F44E; <b>0</b></button></span>`;
 
   _io.to(roomCode).emit('sqrrrMessage', {
     message: revealMessage,
@@ -359,11 +363,18 @@ function startAutoPlayCountdown(roomCode, context) {
 }
 
 function startNextRound(roomCode, context) {
-  const { lobbies, getRandomSong, generateAudioToken } = context;
+  const { lobbies, getRandomSong, generateAudioToken, saveSongs } = context;
   const lobby = lobbies[roomCode];
   if (!lobby || Object.keys(lobby.players).length === 0) return;
 
   const song = getRandomSong(lobby.recentSongs);
+  if (song && !song.cover) {
+    ytFirstVideo(`${song.game} ${song.song} ost`).then(id => {
+      if (!id) return;
+      song.cover = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+      if (saveSongs) saveSongs();
+    }).catch(() => {});
+  }
   if (!song) {
     lobby.autoPlayActive = false;
     _io.to(roomCode).emit('sqrrrMessage', { message: 'No hay canciones en el VGM. Añade alguna con "Añadir canción".', isBold: true });
@@ -882,6 +893,20 @@ function setupHandlers(io, socket, context) {
     });
 
     io.to(currentRoom).emit('gameChatMessage', chatPayload(player, message));
+  });
+
+  socket.on('songVote', ({ id, type } = {}) => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const lobby = lobbies[currentRoom];
+    const player = lobby.players[socket.id];
+    const song = lobby.lastSong;
+    if (!player || !song || !lobby.songVotes || song.id !== Number(id) || !['up', 'down'].includes(type)) return;
+    const v = lobby.songVotes;
+    if (v[type].has(player.name)) return;
+    v[type === 'up' ? 'down' : 'up'].delete(player.name);
+    v[type].add(player.name);
+    io.to(currentRoom).emit('songVote', { id: song.id, type, by: player.name, up: v.up.size, down: v.down.size });
   });
 
   socket.on('sendInk', (data) => {

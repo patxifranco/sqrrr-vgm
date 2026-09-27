@@ -139,16 +139,31 @@ socket.on('vaDone', ({ song, total }) => {
   $('va-submit-msg').textContent = `Añadida. El VGM tiene ahora ${total} canciones.`;
   status(`"${song.song}" añadida`);
 });
+let mineSongs = [], mineAdmin = false, mineSort = { key: null, dir: 1 };
+const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+function renderMine() {
+  const q = fold($('va-q').value.trim());
+  let list = mineSongs.filter(s => !q || fold(`${s.song} ${s.game} ${s.addedBy}`).includes(q));
+  if (mineSort.key) {
+    const val = s => mineSort.key === 'start' ? s.start : fold(s[mineSort.key]);
+    list = [...list].sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * mineSort.dir);
+  }
+  const th = (k, label) => `<th data-k="${k}" class="${mineSort.key === k ? (mineSort.dir > 0 ? 'asc' : 'desc') : ''}">${label}</th>`;
+  $('va-mine').innerHTML = mineSongs.length
+    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    : `<p class="va-empty">${mineAdmin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
+  status(`${list.length} ${list.length === 1 ? 'canción' : 'canciones'}`);
+  if (mineId !== null) { const r = $('va-mine').querySelector(`tr[data-id="${mineId}"]`); if (r) r.classList.add('on'); }
+}
 socket.on('vaMineList', ({ admin, songs }) => {
   loading(null);
   if (mineId !== null && !songs.some(s => s.id === mineId)) stopMine();
-  $('va-mine').innerHTML = songs.length
-    ? `<table class="va-tracks va-mine"><thead><tr><th>Canción</th><th>Juego</th><th>Inicio</th><th>Añadida por</th><th></th></tr></thead><tbody>${songs.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
-    : `<p class="va-empty">${admin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
-  status(`${songs.length} ${songs.length === 1 ? 'canción' : 'canciones'}`);
+  mineSongs = songs;
+  mineAdmin = admin;
   show('mine');
-  if (mineId !== null) $('va-mine').querySelector(`tr[data-id="${mineId}"]`).classList.add('on');
+  renderMine();
 });
+$('va-q').addEventListener('input', () => { if (document.querySelector('.wmp-lib').dataset.view === 'mine') renderMine(); });
 socket.on('vaMineUrl', ({ id, url }) => {
   if (id !== mineId) return;
   audio.src = url;
@@ -166,7 +181,7 @@ function search() {
   socket.emit('vaSearch', { q });
 }
 $('va-go').addEventListener('click', search);
-$('va-q').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+$('va-q').addEventListener('keydown', e => { if (e.key === 'Enter' && document.querySelector('.wmp-lib').dataset.view !== 'mine') search(); });
 $('va-src').addEventListener('click', () => { src = src === 'kh' ? 'yt' : 'kh'; $('va-src').dataset.src = src; renderResults(); });
 $('va-results').addEventListener('click', e => {
   const c = e.target.closest('.va-card');
@@ -176,9 +191,11 @@ $('va-results').addEventListener('click', e => {
   socket.emit('vaOpen', { source: src, id: c.dataset.id, kind: c.dataset.kind });
 });
 $('va-album-back').addEventListener('click', () => { audio.pause(); show('results'); });
-$('va-mine-btn').addEventListener('click', () => { loading('Cargando...'); socket.emit('vaMine'); });
-$('va-lib-btn').addEventListener('click', () => { show(libView); status('Listo'); });
+$('va-mine-btn').addEventListener('click', () => { $('va-q').value = ''; loading('Cargando...'); socket.emit('vaMine'); });
+$('va-lib-btn').addEventListener('click', () => { $('va-q').value = ''; show(libView); status('Listo'); });
 $('va-mine').addEventListener('click', e => {
+  const h = e.target.closest('th[data-k]');
+  if (h) { mineSort = { key: h.dataset.k, dir: mineSort.key === h.dataset.k ? -mineSort.dir : 1 }; return renderMine(); }
   const b = e.target.closest('.va-x');
   const row = e.target.closest('tr[data-id]');
   if (e.target.closest('.va-edit')) return openDlg('edit', +row.dataset.id, row.cells[1].textContent, row.cells[0].textContent);
@@ -264,7 +281,7 @@ $('va-dlg-ok').addEventListener('click', () => {
   renderMeta();
   closeDlg();
   $('va-submit-msg').textContent = 'Enviando...';
-  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game, song });
+  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game, song, cover: track.thumb || album.cover || '' });
 });
 dlg.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeDlg();

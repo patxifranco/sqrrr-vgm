@@ -746,7 +746,7 @@ function setupHandlers(io, socket, { getUser, getLoggedInUsername }) {
   return { handleDisconnect: leave };
 }
 
-module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytSearchAll, ytList, ytStreamUrl, tmSearch, tmTemplate, withPages, COLORS, DEFAULT_COLOR };
+module.exports = { setupHandlers, leaveById, audioProxy, searchAlbums, loadAlbum, resolveMp3, ytSearch, ytSearchAll, ytList, ytStreamUrl, ytFirstVideo, tmSearch, tmTemplate, withPages, COLORS, DEFAULT_COLOR };
 
 if (require.main === module) {
   (async () => {

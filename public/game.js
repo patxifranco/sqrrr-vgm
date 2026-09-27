@@ -1187,6 +1187,50 @@ socketManager.on('sqrrrCountdown', ({ id, message }) => {
   gameMessages.scrollTop = gameMessages.scrollHeight;
 });
 
+function burst(el, type) {
+  const r = el.getBoundingClientRect();
+  const layer = document.createElement('div');
+  layer.className = 'burst-layer';
+  document.body.appendChild(layer);
+  const up = type === 'up';
+  const colors = up ? ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#fb8c00'] : ['#333', '#555', '#777', '#999'];
+  const bits = Array.from({ length: up ? 28 : 12 }, () => {
+    const i = document.createElement('i');
+    i.style.background = colors[Math.floor(Math.random() * colors.length)];
+    layer.appendChild(i);
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * (up ? 1.6 : 0.6);
+    const sp = up ? 260 + Math.random() * 260 : 40 + Math.random() * 60;
+    return { el: i, x: r.left + r.width / 2, y: r.top + r.height / 2, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * (up ? 1 : -1), rot: Math.random() * 360, vr: (Math.random() - 0.5) * 720 };
+  });
+  const t0 = performance.now();
+  let last = t0;
+  const step = (now) => {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    for (const b of bits) {
+      b.vy += 900 * dt;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.rot += b.vr * dt;
+      b.el.style.transform = `translate(${b.x}px, ${b.y}px) rotate(${b.rot}deg)`;
+    }
+    if (now - t0 < 1800) requestAnimationFrame(step); else layer.remove();
+  };
+  requestAnimationFrame(step);
+}
+gameMessages.addEventListener('click', (e) => {
+  const b = e.target.closest('.vote-up, .vote-down');
+  if (!b) return;
+  socket.emit('songVote', { id: +b.closest('.reveal-votes').dataset.song, type: b.classList.contains('vote-up') ? 'up' : 'down' });
+});
+socketManager.on('songVote', ({ id, type, up, down }) => {
+  const box = gameMessages.querySelector(`.reveal-votes[data-song="${id}"]`);
+  if (!box) return;
+  box.querySelector('.vote-up b').textContent = up;
+  box.querySelector('.vote-down b').textContent = down;
+  burst(box.querySelector(type === 'up' ? '.vote-up' : '.vote-down'), type);
+});
+
 socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings, ...rest }) => {
   addMsnMessage(sender, message, false, { senderFontSettings: fontSettings, ...rest });
 });

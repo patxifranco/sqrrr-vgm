@@ -454,6 +454,7 @@ try {
   songs.push(...addedSongs);
   console.log(`Loaded ${addedSongs.length} songs added by players`);
 } catch (err) {}
+const saveSongs = () => fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
 
 const lobbies = {};
 const loggedInUsers = {};
@@ -624,7 +625,8 @@ io.on('connection', (socket) => {
     addToChatHistory,
     clearChatHistoryForRoom,
     getRandomSong,
-    generateAudioToken
+    generateAudioToken,
+    saveSongs
   });
   slotsHandler.setupHandlers(io, socket, {
     getUser: (username) => users[username],
@@ -650,7 +652,6 @@ io.on('connection', (socket) => {
     getUser: (username) => users[username],
     getLoggedInUsername: authHelpers.getLoggedInUsername
   });
-  const saveSongs = () => fs.writeFileSync(addedSongsPath, JSON.stringify(addedSongs, null, 2));
   vgmAddHandler.setupHandlers(io, socket, {
     getLoggedInUsername: authHelpers.getLoggedInUsername,
     getUser: (username) => users[username],
