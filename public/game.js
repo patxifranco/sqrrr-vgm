@@ -1375,10 +1375,11 @@ socketManager.on('nudgeReceived', () => {
   }
 });
 
-socketManager.on('closeGuess', ({ guess, type, percentage }) => {
+socketManager.on('closeGuess', ({ guess, type, percentage, hint }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
-  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">'${escapeHtml(guess)}' está ${percentage}% cerca</span></div>`;
+  const cells = [...(hint || '')].map(ch => ch === ' ' ? '<i class="hint-gap"></i>' : `<span class="hint-cell${ch === '*' ? ' miss' : ''}">${escapeHtml(ch)}</span>`).join('');
+  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">Estás cerca:</span><div class="hint-lcd">${cells}</div></div>`;
   gameMessages.appendChild(div);
   gameMessages.scrollTop = gameMessages.scrollHeight;
 

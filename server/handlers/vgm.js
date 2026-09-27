@@ -89,6 +89,29 @@ function checkGuess(guess, correctAnswer) {
   return letters(guess) === letters(correctAnswer);
 }
 
+function closeHint(guess, answer) {
+  const fold = ch => ch.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const target = [...answer].map((ch, i) => ({ i, k: fold(ch) })).filter(c => /^[a-z0-9]$/.test(c.k));
+  const g = [...normalizeText(guess).replace(/ /g, '')];
+  const n = target.length, m = g.length;
+  const dp = Array.from({ length: n + 1 }, (_, i) => { const row = new Array(m + 1).fill(0); row[0] = i; return row; });
+  for (let j = 0; j <= m; j++) dp[0][j] = j;
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (target[i - 1].k === g[j - 1] ? 0 : 1));
+    }
+  }
+  const hit = new Set();
+  let i = n, j = m;
+  while (i > 0 && j > 0) {
+    if (target[i - 1].k === g[j - 1] && dp[i][j] === dp[i - 1][j - 1]) { hit.add(target[i - 1].i); i--; j--; }
+    else if (dp[i][j] === dp[i - 1][j - 1] + 1) { i--; j--; }
+    else if (dp[i][j] === dp[i - 1][j] + 1) i--;
+    else j--;
+  }
+  return [...answer].map((ch, idx) => /^[a-z0-9]$/.test(fold(ch)) && !hit.has(idx) ? '*' : ch).join('');
+}
+
 function matchesSong(guess, song) {
   return [song.game, ...(song.aliases || [])].some(name => checkGuess(guess, name));
 }
@@ -770,7 +793,7 @@ function setupHandlers(io, socket, context) {
             player.closeGuesses.push(guess);
 
             socket.emit('gameChatMessage', chatPayload(player, guess));
-            socket.emit('closeGuess', { guess: guess, type: 'game', percentage: closePercentage });
+            socket.emit('closeGuess', { guess: guess, type: 'game', percentage: closePercentage, hint: closeHint(guess, song.game) });
           } else {
             addToChatHistory(currentRoom, {
               sender: player.name,
@@ -1113,6 +1136,7 @@ module.exports = {
   getPlayerList,
   VGM_ROOM,
   checkGuess,
+  closeHint,
   getCloseGuessPercentage,
   normalizeText,
   generateHint
