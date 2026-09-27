@@ -179,6 +179,7 @@ function createLobby(roomCode) {
 }
 
 const { COLORS, DEFAULT_COLOR, ytFirstVideo } = require('./tierlist');
+const discord = require('../discord');
 function getPlayerList(lobbies, roomCode) {
   const lobby = lobbies[roomCode];
   if (!lobby) return [];
@@ -551,6 +552,7 @@ function setupHandlers(io, socket, context) {
     }
 
     lobby.autoPlayActive = true;
+    discord.announce('VGM!!!!!!! 🚨 https://www.sqrrr.com');
     startFirstRoundCountdown(currentRoom, { ...context, lobbies });
   });
 

@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./server/discord').init({ token: process.env.DISCORD_TOKEN, channel: process.env.DISCORD_CHANNEL });
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
