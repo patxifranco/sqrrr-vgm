@@ -150,7 +150,7 @@ function renderMine() {
   }
   const th = (k, label) => `<th data-k="${k}" class="${mineSort.key === k ? (mineSort.dir > 0 ? 'asc' : 'desc') : ''}">${label}</th>`;
   $('va-mine').innerHTML = mineSongs.length
-    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}" data-aliases="${esc((s.aliases || []).join(', '))}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
     : `<p class="va-empty">${mineAdmin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
   status(`${list.length} ${list.length === 1 ? 'canción' : 'canciones'}`);
   if (mineId !== null) { const r = $('va-mine').querySelector(`tr[data-id="${mineId}"]`); if (r) r.classList.add('on'); }
@@ -198,7 +198,7 @@ $('va-mine').addEventListener('click', e => {
   if (h) { mineSort = { key: h.dataset.k, dir: mineSort.key === h.dataset.k ? -mineSort.dir : 1 }; return renderMine(); }
   const b = e.target.closest('.va-x');
   const row = e.target.closest('tr[data-id]');
-  if (e.target.closest('.va-edit')) return openDlg('edit', +row.dataset.id, row.cells[1].textContent, row.cells[0].textContent);
+  if (e.target.closest('.va-edit')) return openDlg('edit', +row.dataset.id, row.cells[1].textContent, row.cells[0].textContent, row.dataset.aliases);
   if (!b) {
     if (!row) return;
     const id = +row.dataset.id;
@@ -244,13 +244,14 @@ audio.addEventListener('pause', () => { $('va-play').classList.remove('playing')
 
 const dlg = $('va-dlg');
 let editId = null;
-function openDlg(mode, id, game, song) {
+function openDlg(mode, id, game, song, aliases) {
   editId = mode === 'edit' ? id : null;
   dlg.dataset.mode = mode;
   dlg.querySelector('.title-bar-text').textContent = mode === 'edit' ? 'Editar canción' : 'Añadir al VGM';
   $('va-dlg-ok').textContent = mode === 'edit' ? 'Guardar' : 'Añadir';
   $('va-dlg-game').value = game;
   $('va-dlg-song').value = song;
+  $('va-dlg-alias').value = aliases || '';
   dlg.hidden = false;
   $('va-dlg-game').focus();
 }
@@ -261,7 +262,7 @@ function closeDlg() {
   editId = null;
   if (dlgOnly) { dlgOnly = false; closeMini(); }
 }
-document.addEventListener('vaEdit', e => { openMini(); dlgOnly = true; openDlg('edit', e.detail.id, e.detail.game, e.detail.song); });
+document.addEventListener('vaEdit', e => { openMini(); dlgOnly = true; openDlg('edit', e.detail.id, e.detail.game, e.detail.song, e.detail.aliases); });
 $('va-submit').addEventListener('click', () => {
   if (!track || busy || !audio.src) return;
   audio.pause();
@@ -280,15 +281,15 @@ $('va-dlg-seek').addEventListener('change', e => {
 $('va-dlg-x').addEventListener('click', closeDlg);
 $('va-dlg-cancel').addEventListener('click', closeDlg);
 $('va-dlg-ok').addEventListener('click', () => {
-  const game = $('va-dlg-game').value.trim(), song = $('va-dlg-song').value.trim();
+  const game = $('va-dlg-game').value.trim(), song = $('va-dlg-song').value.trim(), aliases = $('va-dlg-alias').value.trim();
   if (!game || !song) return;
-  if (editId !== null) { socket.emit('vaRename', { id: editId, game, song }); return closeDlg(); }
+  if (editId !== null) { socket.emit('vaRename', { id: editId, game, song, aliases }); return closeDlg(); }
   if (!track || busy || !audio.src) return;
   busy = true;
   renderMeta();
   closeDlg();
   $('va-submit-msg').textContent = 'Enviando...';
-  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game, song, cover: track.thumb || album.cover || '' });
+  socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game, song, aliases, cover: track.thumb || album.cover || '' });
 });
 dlg.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeDlg();

@@ -18,6 +18,10 @@ const slug = s => norm(s).replace(/ /g, '-').slice(0, 60) || 'x';
 const clean = s => String(s || '').replace(/[<>]/g, '').replace(/^[\s\-\u2013|:]+|[\s\-\u2013|:]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
 const NOISE = /\b(the\s+)?(original|official|complete|full|video\s*game|game)?\s*(sound\s*tracks?|ost|score|bgm|gamerip|music|soundtracks?)\b.*$/i;
 const JUNK = /^(official|original|hd|hq|4k|ost|soundtrack|extended|lyrics?|audio|music|theme|main theme|title|intro|opening|ending|credits|remaster(ed)?|arrange(d|ment)?|orchestral|piano|8.?bit|instrumental|remix|cover|loop(ed)?|slowed|reverb|ver(sion)?|edit|mix|high quality|full|complete|part\s*\d+|\d+\s*(h|hours?|min|minutes?)|\d{4})\b/i;
+const parseAliases = (text, game) => {
+  const seen = new Set([norm(game)]);
+  return String(text || '').split(/[,;|\n]+/).map(clean).filter(a => a && !seen.has(norm(a)) && seen.add(norm(a))).slice(0, 10);
+};
 const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function deriveGame(title) {
   const t = String(title || '').replace(/\[.*?\]/g, ' ');
@@ -68,12 +72,12 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     const username = getLoggedInUsername();
     const admin = isAdmin(username);
     const list = addedSongs.filter(s => admin || s.addedBy === username);
-    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, start: s.start || 0, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
+    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, aliases: s.aliases || [], start: s.start || 0, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
   };
 
   socket.on('vaMine', () => { if (getLoggedInUsername()) sendMine(); });
 
-  socket.on('vaRename', ({ id, game, song } = {}) => {
+  socket.on('vaRename', ({ id, game, song, aliases } = {}) => {
     const username = getLoggedInUsername();
     if (!username) return;
     const entry = addedSongs.find(s => s.id === Number(id));
@@ -83,6 +87,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     if (songs.some(s => s !== entry && norm(s.game) === norm(gameName) && norm(s.song) === norm(songName))) return fail('Esa canción ya está en el VGM');
     entry.game = gameName;
     entry.song = songName;
+    entry.aliases = parseAliases(aliases, gameName);
     saveSongs();
     log('VGMADD', `${username} renamed #${entry.id} to "${songName}" (${gameName})`);
     io.to(VGM_ROOM).emit('sqrrrMessage', { message: `${username} ha corregido: ${gameName} - ${songName}`, isBold: true });
@@ -143,7 +148,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     } catch (e) { fail('No se pudo cargar la canción', e); }
   });
 
-  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song, cover } = {}) => {
+  socket.on('vaSubmit', async ({ source, page, ytId, start, game, song, aliases, cover } = {}) => {
     const username = getLoggedInUsername();
     if (!username) return;
     const gameName = clean(game), songName = clean(song), at = Math.max(0, Math.min(36000, Number(start) || 0));
@@ -161,7 +166,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
         await ffmpegClip(url, at, path.join(AUDIO_DIR, file));
         const size = fs.statSync(path.join(AUDIO_DIR, file)).size;
         if (size < 20000) { fs.unlinkSync(path.join(AUDIO_DIR, file)); throw new Error('clip too small'); }
-        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, addedBy: username, start: Math.round(at), cover: COVER_RE.test(String(cover || '')) ? String(cover) : '' };
+        const entry = { id: songs.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1, file, game: gameName, song: songName, aliases: parseAliases(aliases, gameName), addedBy: username, start: Math.round(at), cover: COVER_RE.test(String(cover || '')) ? String(cover) : '' };
         addSong(entry);
         log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
         socket.emit('vaDone', { song: entry, total: songs.length });

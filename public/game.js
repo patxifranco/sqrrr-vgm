@@ -1236,7 +1236,7 @@ gameMessages.addEventListener('click', (e) => {
   const cover = e.target.closest('.reveal-cover');
   if (cover) return showCover(cover.src);
   const edit = e.target.closest('.reveal-edit');
-  if (edit) return document.dispatchEvent(new CustomEvent('vaEdit', { detail: { id: +edit.dataset.id, game: edit.dataset.game, song: edit.dataset.name } }));
+  if (edit) return document.dispatchEvent(new CustomEvent('vaEdit', { detail: { id: +edit.dataset.id, game: edit.dataset.game, song: edit.dataset.name, aliases: edit.dataset.aliases } }));
   const b = e.target.closest('.vote-up, .vote-down');
   if (!b) return;
   socket.emit('songVote', { id: +b.closest('.reveal-votes').dataset.song, type: b.classList.contains('vote-up') ? 'up' : 'down' });

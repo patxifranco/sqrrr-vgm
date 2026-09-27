@@ -87,6 +87,10 @@ function checkGuess(guess, correctAnswer) {
   return letters(guess) === letters(correctAnswer);
 }
 
+function matchesSong(guess, song) {
+  return [song.game, ...(song.aliases || [])].some(name => checkGuess(guess, name));
+}
+
 function getCloseGuessPercentage(guess, correctAnswer) {
   const normalizedGuess = normalizeText(guess);
   const normalizedCorrect = normalizeText(correctAnswer);
@@ -312,7 +316,7 @@ function startAutoPlayCountdown(roomCode, context) {
   lobby.lastSong = cur;
   lobby.songVotes = { up: new Set(), down: new Set() };
   const attr = v => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-  let text = `La canción era: <b>${cur.game} - ${cur.song}</b><button class="reveal-edit" data-id="${cur.id}" data-game="${attr(cur.game)}" data-name="${attr(cur.song)}" title="Corregir">&#x270E;</button>`;
+  let text = `La canción era: <b>${cur.game} - ${cur.song}</b><button class="reveal-edit" data-id="${cur.id}" data-game="${attr(cur.game)}" data-name="${attr(cur.song)}" data-aliases="${attr((cur.aliases || []).join(', '))}" title="Corregir">&#x270E;</button>`;
   if (record) {
     text += `<br>El récord es de <b>${record.player}</b> con <b>${record.time.toFixed(2)}</b> segundos`;
   }
@@ -638,7 +642,7 @@ function setupHandlers(io, socket, context) {
     const isSuperSonico = timeSinceStart <= 4000 && !isUltraSonico;
 
     if (!player.guessedGame) {
-      if (checkGuess(guess, song.game)) {
+      if (matchesSong(guess, song)) {
         player.guessedGame = true;
         player.guessTime = timeSinceStart / 1000;
         player.score += 1;
