@@ -287,8 +287,9 @@ document.addEventListener('vaEdit', e => { openMini(); dlgOnly = true; openDlg('
 $('va-submit').addEventListener('click', () => {
   if (!track || busy || !audio.src) return;
   audio.pause();
-  $('va-dlg-seek').value = audio.duration ? Math.round(audio.currentTime / audio.duration * 1000) : 0;
-  $('va-dlg-time').textContent = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
+  audio.currentTime = 0;
+  $('va-dlg-seek').value = 0;
+  $('va-dlg-time').textContent = `00:00 / ${fmt2(audio.duration)}`;
   openDlg('add', null, album.game, track.song);
 });
 $('va-dlg-play').addEventListener('click', () => { audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
