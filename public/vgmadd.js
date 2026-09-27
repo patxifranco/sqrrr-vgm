@@ -245,6 +245,26 @@ audio.addEventListener('pause', () => { $('va-play').classList.remove('playing')
 
 const dlg = $('va-dlg');
 let editId = null;
+function addAliasRow(value) {
+  const row = document.createElement('div');
+  row.className = 'va-alias-row';
+  row.innerHTML = '<input type="text" maxlength="80" autocomplete="off"><button class="va-alias-x" type="button" title="Quitar">&#x2715;</button>';
+  row.querySelector('input').value = value || '';
+  $('va-dlg-aliases').appendChild(row);
+  return row;
+}
+function setAliasRows(list) {
+  $('va-dlg-aliases').innerHTML = '';
+  for (const v of list.length ? list : ['']) addAliasRow(v);
+}
+const aliasValues = () => [...$('va-dlg-aliases').querySelectorAll('input')].map(i => i.value.trim()).filter(Boolean).join(', ');
+$('va-dlg-alias-add').addEventListener('click', () => addAliasRow('').querySelector('input').focus());
+$('va-dlg-aliases').addEventListener('click', e => {
+  const x = e.target.closest('.va-alias-x');
+  if (!x) return;
+  x.parentElement.remove();
+  if (!$('va-dlg-aliases').children.length) addAliasRow('');
+});
 function openDlg(mode, id, game, song, aliases) {
   editId = mode === 'edit' ? id : null;
   dlg.dataset.mode = mode;
@@ -252,7 +272,7 @@ function openDlg(mode, id, game, song, aliases) {
   $('va-dlg-ok').textContent = mode === 'edit' ? 'Guardar' : 'Añadir';
   $('va-dlg-game').value = game;
   $('va-dlg-song').value = song;
-  $('va-dlg-alias').value = aliases || '';
+  setAliasRows(String(aliases || '').split(',').map(s => s.trim()).filter(Boolean));
   dlg.hidden = false;
   $('va-dlg-game').focus();
 }
@@ -282,7 +302,7 @@ $('va-dlg-seek').addEventListener('change', e => {
 $('va-dlg-x').addEventListener('click', closeDlg);
 $('va-dlg-cancel').addEventListener('click', closeDlg);
 $('va-dlg-ok').addEventListener('click', () => {
-  const game = $('va-dlg-game').value.trim(), song = $('va-dlg-song').value.trim(), aliases = $('va-dlg-alias').value.trim();
+  const game = $('va-dlg-game').value.trim(), song = $('va-dlg-song').value.trim(), aliases = aliasValues();
   if (!game || !song) return;
   if (editId !== null) { socket.emit('vaRename', { id: editId, game, song, aliases }); return closeDlg(); }
   if (!track || busy || !audio.src) return;
