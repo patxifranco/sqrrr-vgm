@@ -1196,7 +1196,9 @@ section.field-row {
 .msn-file-transfer {
   display: flex;
   align-items: center;
-  padding: 8px;
+  max-width: 420px;
+  box-sizing: border-box;
+  padding: 14px 12px;
   background: var(--color-gray-100);
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
@@ -1204,8 +1206,8 @@ section.field-row {
 }
 
 .msn-file-icon-img {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   margin-right: 10px;
 }
 
@@ -1214,9 +1216,9 @@ section.field-row {
 }
 
 .msn-file-name {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .msn-file-progress {
@@ -6726,12 +6728,12 @@ body.theme-xp .title-bar .theme-selector {
 .tier-vote:hover { filter: brightness(1.08); }
 .tier-vote.mine { outline: 2px solid #1a3d86; }
 .tier-vote b { position: absolute; right: 2px; bottom: 0; font-size: 8px; line-height: 1; }
-.xp-copy { width: 300px; margin-top: 4px; }
+.xp-copy { width: 420px; margin-top: 4px; }
 .xp-copy .window-body { padding: 5px 10px 8px; }
-.xp-copy-anim { position: relative; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+.xp-copy-anim { position: relative; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
 .xp-folder { position: relative; width: 26px; height: 18px; background: #f3d36b; border: 1px solid #b8962c; border-radius: 2px; box-shadow: inset 0 -6px 0 #e9c04a; }
 .xp-folder::before { content: ''; position: absolute; left: -1px; top: -5px; width: 11px; height: 5px; background: #f3d36b; border: 1px solid #b8962c; border-bottom: 0; border-radius: 2px 2px 0 0; }
-.xp-papers { position: absolute; left: 46px; right: 46px; top: 4px; height: 20px; }
+.xp-papers { position: absolute; left: 60px; right: 60px; top: 4px; height: 20px; }
 .xp-papers b { position: absolute; left: 0; top: 3px; width: 10px; height: 13px; background: #fff; border: 1px solid #888; box-shadow: inset 0 -3px 0 #ddd; animation: xp-paper 1.6s linear infinite; opacity: 0; }
 .xp-papers b:nth-child(2) { animation-delay: 0.53s; }
 .xp-papers b:nth-child(3) { animation-delay: 1.06s; }
