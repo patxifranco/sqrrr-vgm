@@ -871,7 +871,8 @@ function submitGuess() {
     }
     messageHistoryIndex = -1;
 
-    socket.emit('guess', guess);
+    socket.emit('guess', guess, quote);
+    clearQuote();
     guessInput.value = '';
   }
 }
@@ -1152,7 +1153,7 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   if (isRecord) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `<span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text record-text">${message}</span>`;
+    div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text record-text">${message}</span></div>`;
     gameMessages.appendChild(div);
     gameMessages.scrollTop = gameMessages.scrollHeight;
   } else {
@@ -1178,7 +1179,7 @@ socketManager.on('sqrrrCountdown', ({ id, message }) => {
   if (!countdownDiv) {
     countdownDiv = document.createElement('div');
     countdownDiv.className = 'chat-msg countdown-msg';
-    countdownDiv.innerHTML = `<span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text countdown-text">${message}</span>`;
+    countdownDiv.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text countdown-text">${message}</span></div>`;
     gameMessages.appendChild(countdownDiv);
     countdownMessages[id] = countdownDiv;
   } else {
@@ -1233,6 +1234,17 @@ function showCover(src) {
   document.addEventListener('keydown', onKey);
 }
 gameMessages.addEventListener('click', (e) => {
+  const qb = e.target.closest('.msg-quote-btn');
+  if (qb) {
+    const m = qb.closest('.chat-msg');
+    quote = { sender: m.dataset.sender || '', text: (m.dataset.text || '').slice(0, 80) };
+    quoteText.innerHTML = `Citando a <b>${escapeHtml(quote.sender)}</b>: ${escapeHtml(quote.text)}`;
+    quoteBar.style.display = 'flex';
+    guessInput.focus();
+    return;
+  }
+  const tv = e.target.closest('.tier-vote');
+  if (tv) return socket.emit('tierVote', { id: +tv.closest('.reveal-tiers').dataset.song, tier: tv.dataset.tier });
   const cover = e.target.closest('.reveal-cover');
   if (cover) return showCover(cover.src);
   const edit = e.target.closest('.reveal-edit');
@@ -1250,7 +1262,21 @@ socketManager.on('songVote', ({ id, type, up, down }) => {
 });
 
 socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSettings, ...rest }) => {
-  addMsnMessage(sender, message, false, { senderFontSettings: fontSettings, ...rest });
+  addMsnMessage(sender, message, false, { senderFontSettings: fontSettings, profilePicture, ...rest });
+});
+
+let quote = null;
+const quoteBar = document.getElementById('quote-bar');
+const quoteText = document.getElementById('quote-text');
+const clearQuote = () => { quote = null; quoteBar.style.display = 'none'; };
+document.getElementById('quote-clear').addEventListener('click', clearQuote);
+socketManager.on('tierVote', ({ id, tier, by, counts }) => {
+  const box = gameMessages.querySelector(`.reveal-tiers[data-song="${id}"]`);
+  if (!box) return;
+  for (const b of box.querySelectorAll('.tier-vote')) {
+    b.querySelector('b').textContent = counts[b.dataset.tier] || '';
+    if (currentUser && by === currentUser.username) b.classList.toggle('mine', b.dataset.tier === tier);
+  }
 });
 
 const inkBtn = document.getElementById('ink-btn');
@@ -1339,7 +1365,7 @@ socketManager.on('nudgeReceived', () => {
 socketManager.on('closeGuess', ({ guess, type, percentage }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
-  div.innerHTML = `<span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">'${escapeHtml(guess)}' está ${percentage}% cerca</span>`;
+  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">'${escapeHtml(guess)}' está ${percentage}% cerca</span></div>`;
   gameMessages.appendChild(div);
   gameMessages.scrollTop = gameMessages.scrollHeight;
 
@@ -1349,7 +1375,7 @@ socketManager.on('closeGuess', ({ guess, type, percentage }) => {
 socketManager.on('easterEgg', ({ type, message }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
-  div.innerHTML = `<span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">${escapeHtml(message)}</span>`;
+  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">${escapeHtml(message)}</span></div>`;
   gameMessages.appendChild(div);
   gameMessages.scrollTop = gameMessages.scrollHeight;
 });

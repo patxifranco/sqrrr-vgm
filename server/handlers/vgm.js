@@ -7,6 +7,8 @@ const savedPlayerScores = new Map();
 const EFFECTS = new Set(['none', 'wave', 'rainbow', 'quake', 'type', 'blink', 'marquee', 'fire', 'ice', 'gold', 'flip', 'mirror', 'wingdings', 'spoiler']);
 const FONTS = new Set(['normal', 'comic', 'papyrus', 'impact']);
 const MODES = new Set(['normal', 'uwu', 'leet', 'caps', 'reverse', 'bilbao']);
+const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
+const TIER_COLORS = { S: '#ff7f7f', A: '#ffbf7f', B: '#ffdf7f', C: '#ffff7f', D: '#bfff7f', F: '#7fff7f' };
 const SYS_FONT = { size: 13, color: '#666666', nameColor: '#0000ff', effect: 'none' };
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
@@ -23,7 +25,7 @@ function mangle(text, mode) {
 
 function chatPayload(player, message, extra = {}) {
   const fs = player.fontSettings || {};
-  return { sender: player.name, message: mangle(message, fs.mode), profilePicture: player.profilePicture, fontSettings: fs, streak: player.streak || 0, bet: (player.bet || 0) > 0, ...extra };
+  return { sender: player.name, message: mangle(message, fs.mode), profilePicture: player.profilePicture, fontSettings: fs, streak: player.streak || 0, bet: (player.bet || 0) > 0, quote: player.quote || null, ...extra };
 }
 const SCORE_EXPIRY_MS = 12 * 60 * 60 * 1000;
 
@@ -195,9 +197,21 @@ function getPlayerList(lobbies, roomCode) {
 }
 
 function endRound(roomCode, context) {
-  const { lobbies, users, updateUserStats } = context;
+  const { lobbies, users, updateUserStats, saveSongs } = context;
   const lobby = lobbies[roomCode];
   if (!lobby) return;
+  const played = lobby.currentSong;
+  if (played) {
+    played.plays = (played.plays || 0) + 1;
+    played.attempts = (played.attempts || 0) + Object.keys(lobby.players).length;
+    for (const p of Object.values(lobby.players)) {
+      if (p.guessedGame) {
+        played.hits = (played.hits || 0) + 1;
+        played.timeSum = (played.timeSum || 0) + (p.guessTime || 0);
+      }
+    }
+    if (saveSongs) saveSongs();
+  }
 
   lobby.roundActive = false;
   const gameName = lobby.currentSong.game;
@@ -323,7 +337,9 @@ function startAutoPlayCountdown(roomCode, context) {
   if (cur.addedBy) {
     text += `<br>Canción añadida por <b style="color:${COLORS[cur.addedBy] || '#000'}">${cur.addedBy}</b>`;
   }
-  const revealMessage = `<span class="reveal">${cur.cover ? `<img class="reveal-cover" src="${cur.cover}" alt="">` : ''}<span>${text}</span></span><span class="reveal-votes" data-song="${cur.id}"><button class="vote-up">&#x1F44D; <b>0</b></button><button class="vote-down">&#x1F44E; <b>0</b></button></span>`;
+  const tally = t => Object.values(cur.tiers || {}).filter(v => v === t).length;
+  const tiersHtml = `<span class="reveal-tiers" data-song="${cur.id}">${TIERS.map(t => `<button class="tier-vote" data-tier="${t}" style="--tc:${TIER_COLORS[t]}">${t}<b>${tally(t) || ''}</b></button>`).join('')}</span>`;
+  const revealMessage = `<span class="reveal">${cur.cover ? `<img class="reveal-cover" src="${cur.cover}" alt="">` : ''}<span>${text}</span></span><span class="reveal-votes" data-song="${cur.id}"><button class="vote-up">&#x1F44D; <b>0</b></button><button class="vote-down">&#x1F44E; <b>0</b></button></span>${tiersHtml}`;
 
   _io.to(roomCode).emit('sqrrrMessage', {
     message: revealMessage,
@@ -581,7 +597,7 @@ function setupHandlers(io, socket, context) {
     socket.emit('betInfo', { coins: user.coins, bet: n });
   });
 
-  socket.on('guess', (guess) => {
+  socket.on('guess', (guess, quote) => {
     if (typeof guess !== 'string') return;
     guess = guess.slice(0, 100);
 
@@ -589,6 +605,8 @@ function setupHandlers(io, socket, context) {
     if (!currentRoom || !lobbies[currentRoom]) return;
 
     const lobby = lobbies[currentRoom];
+    const speaker = lobby.players[socket.id];
+    if (speaker) speaker.quote = quote && typeof quote.sender === 'string' && typeof quote.text === 'string' ? { sender: quote.sender.slice(0, 30), text: quote.text.slice(0, 80) } : null;
 
     if (!lobby.roundActive || !lobby.currentSong) {
       const player = lobby.players[socket.id];
@@ -900,6 +918,21 @@ function setupHandlers(io, socket, context) {
     io.to(currentRoom).emit('gameChatMessage', chatPayload(player, message));
   });
 
+  socket.on('tierVote', ({ id, tier } = {}) => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const lobby = lobbies[currentRoom];
+    const player = lobby.players[socket.id];
+    const song = lobby.lastSong;
+    if (!player || !song || song.id !== Number(id) || !TIERS.includes(tier)) return;
+    song.tiers = song.tiers || {};
+    song.tiers[player.name] = tier;
+    if (context.saveSongs) context.saveSongs();
+    const counts = {};
+    for (const t of Object.values(song.tiers)) counts[t] = (counts[t] || 0) + 1;
+    io.to(currentRoom).emit('tierVote', { id: song.id, tier, by: player.name, counts });
+  });
+
   socket.on('songVote', ({ id, type } = {}) => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -921,6 +954,7 @@ function setupHandlers(io, socket, context) {
     if (!player || typeof data !== 'string' || data.length > 60000 || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(data)) return;
     if (player.inkAt && Date.now() - player.inkAt < 3000) return;
     player.inkAt = Date.now();
+    player.quote = null;
     io.to(currentRoom).emit('gameChatMessage', chatPayload(player, '', { ink: data }));
   });
 

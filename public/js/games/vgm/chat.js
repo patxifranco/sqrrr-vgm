@@ -166,9 +166,9 @@ class VGMChat {
     if (isSystem) {
       div.innerHTML = `<span class="msg-system">${processMessage(message)}</span>`;
     } else if (options.isBold) {
-      div.innerHTML = `<span class="msg-sender sqrrr-msg">${escapeHtml(sender)} dice:</span><br><span class="msg-text">${message}</span>`;
+      div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">${escapeHtml(sender)} dice:</span><br><span class="msg-text">${message}</span></div>`;
     } else if (options.isRainbow) {
-      div.innerHTML = `<span class="msg-sender">${escapeHtml(sender)} dice:</span><br><span class="msg-text rainbow-text">${processMessage(message)}</span>`;
+      div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender">${escapeHtml(sender)} dice:</span><br><span class="msg-text rainbow-text">${processMessage(message)}</span></div>`;
     } else {
       const fs = options.senderFontSettings || { size: 13, color: '#000000', nameColor: '#0000ff', effect: 'none' };
       const font = fs.font || 'normal';
@@ -185,7 +185,10 @@ class VGMChat {
       else { inner = processMessage(message); if (EFFECT_CLASS[effect]) classes.push(EFFECT_CLASS[effect]); }
       const style = `font-size: ${fs.size}px; color: ${fs.color};`;
       const nameStyle = `color: ${fs.nameColor};`;
-      div.innerHTML = `${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><br><span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span>`;
+      const quoteHtml = options.quote ? `<div class="msg-quote"><b>${escapeHtml(options.quote.sender)}:</b> ${processMessage(options.quote.text)}</div>` : '';
+      div.dataset.sender = sender;
+      div.dataset.text = options.ink ? '(dibujo)' : message;
+      div.innerHTML = `<img class="msg-avatar" src="${escapeHtml(options.profilePicture || 'profiles/default.svg')}" alt=""><div class="msg-body">${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><button class="msg-quote-btn" title="Citar">&#x275D;</button><br>${quoteHtml}<span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span></div>`;
     }
 
     return div;
@@ -216,7 +219,7 @@ class VGMChat {
 
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `
+    div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body">
       <span class="msg-sender sqrrr-msg">SQRRR dice:</span><br>
       <span class="msg-text">- envía:</span>
       <div class="msn-file-transfer">
@@ -228,7 +231,7 @@ class VGMChat {
           </div>
         </div>
       </div>
-    `;
+    </div>`;
     this.container.appendChild(div);
 
     this._progressSegments = div.querySelectorAll('.msn-file-progress-segment');

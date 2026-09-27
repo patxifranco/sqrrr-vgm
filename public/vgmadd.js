@@ -145,12 +145,13 @@ function renderMine() {
   const q = fold($('va-q').value.trim());
   let list = mineSongs.filter(s => !q || fold(`${s.song} ${s.game} ${s.addedBy}`).includes(q));
   if (mineSort.key) {
-    const val = s => mineSort.key === 'start' ? s.start : fold(s[mineSort.key]);
+    const num = { start: s => s.start, plays: s => s.plays, rate: s => s.attempts ? s.hits / s.attempts : -1, avg: s => s.hits ? s.timeSum / s.hits : 1e9 };
+    const val = s => num[mineSort.key] ? num[mineSort.key](s) : fold(s[mineSort.key]);
     list = [...list].sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * mineSort.dir);
   }
   const th = (k, label) => `<th data-k="${k}" class="${mineSort.key === k ? (mineSort.dir > 0 ? 'asc' : 'desc') : ''}">${label}</th>`;
   $('va-mine').innerHTML = mineSongs.length
-    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}" data-aliases="${esc((s.aliases || []).join(', '))}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('plays', 'Veces')}${th('rate', 'Aciertos')}${th('avg', 'Media')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}" data-aliases="${esc((s.aliases || []).join(', '))}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td>${s.plays}</td><td>${s.attempts ? Math.round(s.hits / s.attempts * 100) + '%' : '–'}</td><td>${s.hits ? (s.timeSum / s.hits).toFixed(1) + ' s' : '–'}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
     : `<p class="va-empty">${mineAdmin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
   status(`${list.length} ${list.length === 1 ? 'canción' : 'canciones'}`);
   if (mineId !== null) { const r = $('va-mine').querySelector(`tr[data-id="${mineId}"]`); if (r) r.classList.add('on'); }

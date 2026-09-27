@@ -72,7 +72,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     const username = getLoggedInUsername();
     const admin = isAdmin(username);
     const list = addedSongs.filter(s => admin || s.addedBy === username);
-    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, aliases: s.aliases || [], start: s.start || 0, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
+    socket.emit('vaMineList', { admin, songs: list.map(s => ({ id: s.id, song: s.song, game: s.game, aliases: s.aliases || [], start: s.start || 0, plays: s.plays || 0, attempts: s.attempts || 0, hits: s.hits || 0, timeSum: s.timeSum || 0, addedBy: s.addedBy, color: tl.COLORS[s.addedBy] || null })) });
   };
 
   socket.on('vaMine', () => { if (getLoggedInUsername()) sendMine(); });
