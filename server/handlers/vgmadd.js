@@ -61,7 +61,7 @@ function ffmpegClip(url, start, out) {
 let chain = Promise.resolve();
 const queued = job => { const run = chain.then(job, job); chain = run.catch(() => {}); return run; };
 
-function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedSongs, addSong, removeSong, saveSongs, generateAudioToken, VGM_ROOM }) {
+function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedSongs, addSong, removeSong, saveSongs, generateAudioToken, lastRevealedId, VGM_ROOM }) {
   const fail = (message, e) => { if (e) warn('VGMADD', message, e.message); socket.emit('vaError', { message }); };
   const isAdmin = username => !!(getUser(username) || {}).isAdmin;
   const sendMine = () => {
@@ -77,7 +77,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     const username = getLoggedInUsername();
     if (!username) return;
     const entry = addedSongs.find(s => s.id === Number(id));
-    if (!entry || !(entry.addedBy === username || isAdmin(username))) return;
+    if (!entry || !(entry.addedBy === username || isAdmin(username) || entry.id === lastRevealedId())) return;
     const gameName = clean(game), songName = clean(song);
     if (!gameName || !songName) return fail('Pon el juego y el nombre de la canción');
     if (songs.some(s => s !== entry && norm(s.game) === norm(gameName) && norm(s.song) === norm(songName))) return fail('Esa canción ya está en el VGM');
@@ -85,6 +85,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     entry.song = songName;
     saveSongs();
     log('VGMADD', `${username} renamed #${entry.id} to "${songName}" (${gameName})`);
+    io.to(VGM_ROOM).emit('sqrrrMessage', { message: `${username} ha corregido: ${gameName} - ${songName}`, isBold: true });
     sendMine();
   });
 

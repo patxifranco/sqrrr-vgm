@@ -53,6 +53,7 @@
 .va-tracks tr:hover td { background: #eaf2fc; }
 .va-tracks tr.on td { background: #316ac5; color: #fff; }
 .wmp-lib[data-view="mine"] .va-src, .wmp-lib[data-view="mine"] #va-go { display: none; }
+.wmp-lib[data-view="mine"] #va-q { flex: 0 0 200px; margin-left: auto; }
 .va-mine th { text-align: left; font-size: 11px; color: #14306a; padding: 4px 8px; border-bottom: 1px solid #93b0e2; white-space: nowrap; }
 .va-mine th[data-k] { cursor: pointer; }
 .va-mine th[data-k]:hover { text-decoration: underline; }

@@ -254,7 +254,14 @@ function openDlg(mode, id, game, song) {
   dlg.hidden = false;
   $('va-dlg-game').focus();
 }
-function closeDlg() { dlg.hidden = true; if (editId === null) audio.pause(); editId = null; }
+let dlgOnly = false;
+function closeDlg() {
+  dlg.hidden = true;
+  if (editId === null) audio.pause();
+  editId = null;
+  if (dlgOnly) { dlgOnly = false; closeMini(); }
+}
+document.addEventListener('vaEdit', e => { openMini(); dlgOnly = true; openDlg('edit', e.detail.id, e.detail.game, e.detail.song); });
 $('va-submit').addEventListener('click', () => {
   if (!track || busy || !audio.src) return;
   audio.pause();

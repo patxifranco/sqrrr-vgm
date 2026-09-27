@@ -311,7 +311,8 @@ function startAutoPlayCountdown(roomCode, context) {
   const cur = lobby.currentSong;
   lobby.lastSong = cur;
   lobby.songVotes = { up: new Set(), down: new Set() };
-  let text = `La canción era: <b>${cur.game} - ${cur.song}</b>`;
+  const attr = v => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  let text = `La canción era: <b>${cur.game} - ${cur.song}</b><button class="reveal-edit" data-id="${cur.id}" data-game="${attr(cur.game)}" data-name="${attr(cur.song)}" title="Corregir">&#x270E;</button>`;
   if (record) {
     text += `<br>El récord es de <b>${record.player}</b> con <b>${record.time.toFixed(2)}</b> segundos`;
   }

@@ -977,6 +977,7 @@ socketManager.on('vgmJoined', ({ roomCode, playerName, roundActive: isRoundActiv
   resetRoundState();
 
   showScreen('game');
+  sendFontSettings();
 
   if (isRoundActive && currentAudioToken) {
     roundActive = true;
@@ -1218,7 +1219,24 @@ function burst(el, type) {
   };
   requestAnimationFrame(step);
 }
+function showCover(src) {
+  const o = document.createElement('div');
+  o.className = 'cover-zoom';
+  const img = document.createElement('img');
+  img.src = src.replace('/mqdefault.jpg', '/hqdefault.jpg').replace('/thumbs/', '/');
+  img.onerror = () => { if (img.src !== src) img.src = src; };
+  o.appendChild(img);
+  document.body.appendChild(o);
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  const close = () => { o.remove(); document.removeEventListener('keydown', onKey); };
+  o.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+}
 gameMessages.addEventListener('click', (e) => {
+  const cover = e.target.closest('.reveal-cover');
+  if (cover) return showCover(cover.src);
+  const edit = e.target.closest('.reveal-edit');
+  if (edit) return document.dispatchEvent(new CustomEvent('vaEdit', { detail: { id: +edit.dataset.id, game: edit.dataset.game, song: edit.dataset.name } }));
   const b = e.target.closest('.vote-up, .vote-down');
   if (!b) return;
   socket.emit('songVote', { id: +b.closest('.reveal-votes').dataset.song, type: b.classList.contains('vote-up') ? 'up' : 'down' });
@@ -1426,6 +1444,16 @@ if (fontBtn) {
 }
 guessInput.addEventListener('input', () => { if (fontPopup && fontPopup.style.display !== 'none') renderFontPreview(); });
 
+function sendFontSettings() {
+  socket.emit('updateFontSettings', {
+    size: userFontSize,
+    color: userFontColor,
+    nameColor: userNameColor,
+    effect: userTextEffect,
+    font: userFont,
+    mode: userMode
+  });
+}
 function applyFontSettings() {
     userFontSize = fontSizeSelect.value;
     userFontColor = fontColorInput.value;
@@ -1443,14 +1471,7 @@ function applyFontSettings() {
 
     syncFontSettings();
 
-    socket.emit('updateFontSettings', {
-      size: userFontSize,
-      color: userFontColor,
-      nameColor: userNameColor,
-      effect: userTextEffect,
-      font: userFont,
-      mode: userMode
-    });
+    sendFontSettings();
     renderFontPreview();
 }
 for (const el of [fontSizeSelect, fontColorInput, nameColorInput, fontEffectSelect, fontFamilySelect, fontModeSelect]) el.addEventListener('change', applyFontSettings);
@@ -1559,7 +1580,7 @@ if (gameToolbar) {
   tiendaBtn.className = 'slot-popup-btn tienda-btn';
   tiendaBtn.title = 'Tienda';
   tiendaBtn.innerHTML = '\u{1F4B2}';
-  gameToolbar.appendChild(tiendaBtn);
+  document.querySelector('#game-screen .game-toolbar-right').appendChild(tiendaBtn);
 
   shopUI.init(socket);
   cardAlbumUI.init(socket);

@@ -671,6 +671,7 @@ io.on('connection', (socket) => {
     },
     saveSongs,
     generateAudioToken,
+    lastRevealedId: () => ((lobbies.VGM || {}).lastSong || {}).id,
     VGM_ROOM: 'VGM'
   });
   wordleHandler.setupHandlers(io, socket, {
