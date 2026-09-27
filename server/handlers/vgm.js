@@ -296,7 +296,7 @@ function startFirstRoundCountdown(roomCode, context) {
 
   _io.to(roomCode).emit('sqrrrCountdown', {
     id: countdownId,
-    message: '**Siguiente canción en: 5...**'
+    seconds: 5
   });
 
   const countdown = [4, 3, 2, 1];
@@ -305,7 +305,7 @@ function startFirstRoundCountdown(roomCode, context) {
       if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
       _io.to(roomCode).emit('sqrrrCountdown', {
         id: countdownId,
-        message: `**Siguiente canción en: ${num}...**`
+        seconds: num
       });
 
       if (num === 1) {
@@ -360,7 +360,7 @@ function startAutoPlayCountdown(roomCode, context) {
 
     _io.to(roomCode).emit('sqrrrCountdown', {
       id: countdownId,
-      message: '**Siguiente canción en: 5...**'
+      seconds: 5
     });
 
     const countdown = [4, 3, 2, 1];
@@ -369,7 +369,7 @@ function startAutoPlayCountdown(roomCode, context) {
         if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
         _io.to(roomCode).emit('sqrrrCountdown', {
           id: countdownId,
-          message: `**Siguiente canción en: ${num}...**`
+          seconds: num
         });
 
         if (num === 1) {

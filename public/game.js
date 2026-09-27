@@ -1032,6 +1032,7 @@ socketManager.on('chatMessage', ({ system, message }) => {
 
 socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   log.info(`Round ${num} starting`);
+  clearCountdowns();
   resetRoundState();
   roundActive = true;
   roundNumber.textContent = num;
@@ -1161,6 +1162,7 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   }
 
   if (message.startsWith('No hay canciones')) {
+    clearCountdowns();
     vgmChat.addStartButton();
   }
   if (message.includes('La canción era')) {
@@ -1173,19 +1175,31 @@ socketManager.on('coinsEarned', ({ amount, total }) => {
   log.info(`Earned ${amount} $qr, total: ${total}`);
 });
 
-socketManager.on('sqrrrCountdown', ({ id, message }) => {
+function clearCountdowns() {
+  for (const d of Object.values(countdownMessages)) d.remove();
+  countdownMessages = {};
+}
+socketManager.on('sqrrrCountdown', ({ id, seconds }) => {
   let countdownDiv = countdownMessages[id];
-
   if (!countdownDiv) {
     countdownDiv = document.createElement('div');
     countdownDiv.className = 'chat-msg countdown-msg';
-    countdownDiv.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text countdown-text">${message}</span></div>`;
+    countdownDiv.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br>
+      <div class="window xp-copy">
+        <div class="title-bar"><div class="title-bar-text">Copiando...</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
+        <div class="window-body">
+          <div class="xp-copy-anim"><i class="xp-folder"></i><span class="xp-papers"><b></b><b></b><b></b></span><i class="xp-folder"></i></div>
+          <div class="xp-copy-name">Siguiente canción</div>
+          <div class="msn-file-progress">${'<div class="msn-file-progress-segment"></div>'.repeat(20)}</div>
+          <div class="xp-copy-time">Tiempo restante: <b>5</b> segundos</div>
+        </div>
+      </div></div>`;
     gameMessages.appendChild(countdownDiv);
     countdownMessages[id] = countdownDiv;
-  } else {
-    countdownDiv.querySelector('.countdown-text').innerHTML = message;
   }
-
+  countdownDiv.querySelector('.xp-copy-time b').textContent = seconds;
+  const filled = Math.round((5 - seconds) / 5 * 20);
+  countdownDiv.querySelectorAll('.msn-file-progress-segment').forEach((s, i) => s.classList.toggle('filled', i < filled));
   gameMessages.scrollTop = gameMessages.scrollHeight;
 });
 
