@@ -125,13 +125,21 @@ async function albumHtml(slug) {
     }
   }
   const opts = { headers: { 'User-Agent': BROWSER_UA }, signal: AbortSignal.timeout(30000) };
-  const snap = await (await fetch(`https://archive.org/wayback/available?url=${encodeURIComponent(url)}`, opts)).json().catch(() => ({}));
-  const at = ((snap.archived_snapshots || {}).closest || {}).timestamp;
-  if (!at) throw new Error(`no archived copy of ${slug}`);
-  const res = await fetch(`https://web.archive.org/web/${at}id_/${url}`, opts);
-  if (!res.ok) throw new Error(`archive ${res.status} for ${slug}`);
-  const html = await res.text();
-  if (!html.includes('id="songlist"')) throw new Error(`archived copy of ${slug} has no track list`);
+  const fromArchive = async stamp => {
+    const res = await fetch(`https://web.archive.org/web/${stamp}id_/${url}`, opts);
+    if (!res.ok) throw new Error(`archive ${res.status}`);
+    const html = await res.text();
+    return html.includes('id="songlist"') ? html : null;
+  };
+  let html = await fromArchive('2099').catch(() => null);
+  if (!html) {
+    const rows = await fetch(`https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&output=json&filter=statuscode:200&fl=timestamp&limit=-3`, opts).then(r => r.json()).catch(() => []);
+    for (const row of rows.slice(1).reverse()) {
+      html = await fromArchive(row[0]).catch(() => null);
+      if (html) break;
+    }
+  }
+  if (!html) throw new Error(`no usable archived copy of ${slug}`);
   return html.replace(/href="(\/game-soundtracks\/[^"]*)"/g, (m, h) => `href="${h.replace(/%25([0-9A-Fa-f]{2})/g, '%$1')}"`);
 }
 
