@@ -1189,9 +1189,8 @@ socketManager.on('sqrrrCountdown', ({ id, seconds }) => {
         <div class="title-bar"><div class="title-bar-text">Copiando...</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
         <div class="window-body">
           <div class="xp-copy-anim"><i class="xp-folder"></i><span class="xp-papers"><b></b><b></b><b></b></span><i class="xp-folder"></i></div>
-          <div class="xp-copy-name">Siguiente canción</div>
+          <div class="xp-copy-name"><span>Cargando siguiente canción</span><span class="xp-copy-time"><b>5</b> s</span></div>
           <div class="msn-file-progress">${'<div class="msn-file-progress-segment"></div>'.repeat(20)}</div>
-          <div class="xp-copy-time">Tiempo restante: <b>5</b> segundos</div>
         </div>
       </div></div>`;
     gameMessages.appendChild(countdownDiv);

@@ -6726,21 +6726,21 @@ body.theme-xp .title-bar .theme-selector {
 .tier-vote:hover { filter: brightness(1.08); }
 .tier-vote.mine { outline: 2px solid #1a3d86; }
 .tier-vote b { position: absolute; right: 2px; bottom: 0; font-size: 8px; line-height: 1; }
-.xp-copy { width: 320px; margin-top: 4px; }
-.xp-copy .window-body { padding: 8px 10px; }
-.xp-copy-anim { position: relative; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
-.xp-folder { position: relative; width: 34px; height: 26px; background: #f3d36b; border: 1px solid #b8962c; border-radius: 2px; box-shadow: inset 0 -8px 0 #e9c04a; }
-.xp-folder::before { content: ''; position: absolute; left: -1px; top: -6px; width: 14px; height: 6px; background: #f3d36b; border: 1px solid #b8962c; border-bottom: 0; border-radius: 2px 2px 0 0; }
-.xp-papers { position: absolute; left: 54px; right: 54px; top: 6px; height: 26px; }
-.xp-papers b { position: absolute; left: 0; top: 4px; width: 13px; height: 17px; background: #fff; border: 1px solid #888; box-shadow: inset 0 -3px 0 #ddd; animation: xp-paper 1.6s linear infinite; opacity: 0; }
+.xp-copy { width: 300px; margin-top: 4px; }
+.xp-copy .window-body { padding: 5px 10px 8px; }
+.xp-copy-anim { position: relative; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+.xp-folder { position: relative; width: 26px; height: 18px; background: #f3d36b; border: 1px solid #b8962c; border-radius: 2px; box-shadow: inset 0 -6px 0 #e9c04a; }
+.xp-folder::before { content: ''; position: absolute; left: -1px; top: -5px; width: 11px; height: 5px; background: #f3d36b; border: 1px solid #b8962c; border-bottom: 0; border-radius: 2px 2px 0 0; }
+.xp-papers { position: absolute; left: 46px; right: 46px; top: 4px; height: 20px; }
+.xp-papers b { position: absolute; left: 0; top: 3px; width: 10px; height: 13px; background: #fff; border: 1px solid #888; box-shadow: inset 0 -3px 0 #ddd; animation: xp-paper 1.6s linear infinite; opacity: 0; }
 .xp-papers b:nth-child(2) { animation-delay: 0.53s; }
 .xp-papers b:nth-child(3) { animation-delay: 1.06s; }
 @keyframes xp-paper {
   0% { left: 0; opacity: 0; transform: translateY(0) rotate(-8deg); }
   15% { opacity: 1; }
-  50% { transform: translateY(-8px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(0deg); }
   85% { opacity: 1; }
-  100% { left: calc(100% - 13px); opacity: 0; transform: translateY(0) rotate(8deg); }
+  100% { left: calc(100% - 10px); opacity: 0; transform: translateY(0) rotate(8deg); }
 }
-.xp-copy-name { font-size: 11px; margin: 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.xp-copy-time { font-size: 11px; color: #333; margin-top: 6px; }
+.xp-copy-name { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; margin: 2px 0 4px; white-space: nowrap; }
+.xp-copy-time { font-size: 10px; color: #555; }
