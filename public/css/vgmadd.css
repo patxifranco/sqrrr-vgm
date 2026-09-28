@@ -52,6 +52,10 @@
 .va-tracks td:last-child { width: 70px; color: #777; text-align: right; }
 .va-tracks tr:hover td { background: #eaf2fc; }
 .va-tracks tr.on td { background: #316ac5; color: #fff; }
+.va-tracks tr.added td { color: #8a8a8a; }
+.va-tracks tr.on.added td { color: #dfe8f5; }
+.va-tracks tr.added td:nth-child(2)::before { content: '\2713 '; color: #2a8a2a; font-weight: 700; }
+.va-mine-cover { display: inline-block; width: 24px; height: 24px; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #aaa; background: #ddd; }
 .wmp-lib[data-view="mine"] .va-src, .wmp-lib[data-view="mine"] #va-go { display: none; }
 .wmp-lib[data-view="mine"] #va-q { flex: 0 0 200px; margin-left: auto; }
 .va-mine th { text-align: left; font-size: 11px; color: #14306a; padding: 4px 8px; border-bottom: 1px solid #93b0e2; white-space: nowrap; }

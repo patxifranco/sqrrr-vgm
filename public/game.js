@@ -328,6 +328,7 @@ function showScreen(screenName) {
     screens[screenName].classList.add('active');
     currentScreen = screenName;
     if (hands && screenName === 'game') hands.fit();
+    if (previousScreen !== screenName) document.title = screenName === 'game' ? 'SQRRR VGM' : 'SQRRR';
   }
 }
 
@@ -573,6 +574,13 @@ loginBtn.addEventListener('click', () => {
 });
 
 socket.on('loginResult', ({ success, user, error }) => {
+  if (success && reconnecting) {
+    reconnecting = false;
+    netToast.style.display = 'none';
+    currentUser = user;
+    if (currentScreen === 'game') { vgmChat.clear(); socket.emit('joinVGM'); }
+    return;
+  }
   if (success) {
     currentUser = user;
     window.currentUser = user;
@@ -623,6 +631,22 @@ document.getElementById('vgm-choice-back').addEventListener('click', () => {
 });
 document.getElementById('vgm-choice-menu').addEventListener('click', () => {
   showScreen('hub');
+});
+socketManager.on('vgmPresence', ({ players }) => {
+  const small = vgmBtn.querySelector('small');
+  if (small) small.innerHTML = players.length ? 'Jugando: ' + players.map(p => `<b style="color:${p.color || '#333'}">${escapeHtml(p.name)}</b>`).join(', ') : 'Música de frikitones';
+});
+document.addEventListener('keydown', (e) => {
+  if (currentScreen !== 'game') return;
+  if (e.key === 'Escape') {
+    for (const p of [fontPopup, betPopup, inkPopup, emoticonPopup]) if (p) p.style.display = 'none';
+    return;
+  }
+  const a = document.activeElement;
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return;
+  if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) return;
+  if (document.querySelector('.va-mini')) return;
+  guessInput.focus();
 });
 document.getElementById('game-add-song-btn').addEventListener('click', () => {
   document.dispatchEvent(new CustomEvent('vaMini', { detail: true }));
@@ -1032,6 +1056,7 @@ socketManager.on('chatMessage', ({ system, message }) => {
 
 socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   log.info(`Round ${num} starting`);
+  document.title = `SQRRR VGM · Ronda ${num}`;
   clearCountdowns();
   resetRoundState();
   roundActive = true;
@@ -1156,7 +1181,7 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
     div.className = 'chat-msg';
     div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text record-text">${message}</span></div>`;
     gameMessages.appendChild(div);
-    gameMessages.scrollTop = gameMessages.scrollHeight;
+    vgmChat.scroll();
   } else {
     addMsnMessage('SQRRR', message, false, { isBold: isBold });
   }
@@ -1199,7 +1224,7 @@ socketManager.on('sqrrrCountdown', ({ id, seconds }) => {
   countdownDiv.querySelector('.xp-copy-time b').textContent = seconds;
   const filled = Math.round((5 - seconds) / 5 * 20);
   countdownDiv.querySelectorAll('.msn-file-progress-segment').forEach((s, i) => s.classList.toggle('filled', i < filled));
-  gameMessages.scrollTop = gameMessages.scrollHeight;
+  vgmChat.scroll();
 });
 
 function burst(el, type) {
@@ -1381,7 +1406,7 @@ socketManager.on('closeGuess', ({ guess, type, percentage, hint }) => {
   const cells = [...(hint || '')].map(ch => ch === ' ' ? '<i class="hint-gap"></i>' : `<span class="hint-cell${ch === '*' ? ' miss' : ''}">${escapeHtml(ch)}</span>`).join('');
   div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">Estás cerca:</span><div class="hint-lcd">${cells}</div></div>`;
   gameMessages.appendChild(div);
-  gameMessages.scrollTop = gameMessages.scrollHeight;
+  vgmChat.scroll();
 
   audioManager.play('close', { volume: 0.8 });
 });
@@ -1391,7 +1416,7 @@ socketManager.on('easterEgg', ({ type, message }) => {
   div.className = 'chat-msg';
   div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">${escapeHtml(message)}</span></div>`;
   gameMessages.appendChild(div);
-  gameMessages.scrollTop = gameMessages.scrollHeight;
+  vgmChat.scroll();
 });
 
 socketManager.on('newRecord', ({ player, time, previousPlayer, previousTime }) => {
@@ -1442,13 +1467,16 @@ socket.on('error', (message) => {
 socket.on('connect', () => {
   log.info('Connected to server');
   socket.emit('getUserList');
+  if (reconnecting && currentUser) socket.emit('loginSimple', { username: currentUser.username });
 });
 
+let reconnecting = false;
+const netToast = document.getElementById('net-toast');
 socket.on('disconnect', () => {
   log.warn('Disconnected from server');
-  alert('Conexión perdida con el servidor');
-  currentUser = null;
-  showScreen('login');
+  if (!currentUser) return;
+  reconnecting = true;
+  netToast.style.display = 'block';
 });
 
 const fontBtn = document.getElementById('font-btn');

@@ -558,6 +558,7 @@ function setupHandlers(io, socket, context) {
     });
 
     io.to(VGM_ROOM).emit('playerList', getPlayerList(lobbies, VGM_ROOM));
+    io.emit('vgmPresence', presence());
     io.to(VGM_ROOM).emit('chatMessage', { system: true, message: `${playerName} se ha unido!` });
 
     const roomHistory = chatHistory.filter(msg => msg.roomCode === VGM_ROOM);
@@ -596,6 +597,8 @@ function setupHandlers(io, socket, context) {
   });
 
   const tell = message => socket.emit('gameChatMessage', { sender: 'SQRRR', message, profilePicture: null, fontSettings: SYS_FONT });
+  const presence = () => ({ players: lobbies[VGM_ROOM] ? getPlayerList(lobbies, VGM_ROOM).map(p => ({ name: p.name, color: p.color })) : [] });
+  socket.emit('vgmPresence', presence());
 
   socket.on('betInfo', () => {
     const currentRoom = getCurrentRoom();
@@ -1051,6 +1054,7 @@ function setupHandlers(io, socket, context) {
           });
           delete lobby.players[socket.id];
           io.to(currentRoom).emit('playerList', getPlayerList(lobbies, currentRoom));
+          if (currentRoom === VGM_ROOM) io.emit('vgmPresence', presence());
         }
 
         if (currentRoom === VGM_ROOM && Object.keys(lobby.players).length === 0) {
@@ -1102,6 +1106,7 @@ function setupHandlers(io, socket, context) {
           delete lobby.players[socket.id];
           socket.leave(currentRoom);
           io.to(currentRoom).emit('playerList', getPlayerList(lobbies, currentRoom));
+          if (currentRoom === VGM_ROOM) io.emit('vgmPresence', presence());
         }
 
         if (currentRoom === VGM_ROOM && Object.keys(lobby.players).length === 0) {

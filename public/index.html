@@ -395,6 +395,7 @@
             <div id="game-messages" class="chat-box game-chat"></div>
 
             <div class="game-input-area">
+              <button id="new-msgs" class="new-msgs" style="display: none;">&#x2193; nuevos</button>
               <div id="typing-indicator" class="typing-indicator" style="display: none;">
                 <span id="typing-indicator-text"></span>
               </div>
@@ -1872,6 +1873,10 @@
     <audio id="tl-audio" preload="auto"></audio>
   </div>
 
+  <div id="net-toast" class="window net-toast" style="display: none;">
+    <div class="title-bar"><div class="title-bar-text">SQRRR</div></div>
+    <div class="window-body">Conexión perdida, reconectando...</div>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/core/theme-manager.js"></script>
   <script type="module" src="game.js"></script>

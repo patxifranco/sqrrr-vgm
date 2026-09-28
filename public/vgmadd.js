@@ -97,14 +97,14 @@ function renderResults() {
 function renderAlbum() {
   $('va-album-title').textContent = album.title;
   $('va-album-cover').style.backgroundImage = `url('${album.cover || ''}')`;
-  $('va-tracks').innerHTML = album.tracks.map((t, i) => `<tr data-i="${i}"><td>${t.disc > 1 ? t.disc + '-' : ''}${t.num}</td><td>${esc(t.name)}</td><td>${esc(t.duration || '')}</td></tr>`).join('');
+  $('va-tracks').innerHTML = album.tracks.map((t, i) => `<tr data-i="${i}"${t.added ? ' class="added"' : ''}><td>${t.disc > 1 ? t.disc + '-' : ''}${t.num}</td><td>${esc(t.name)}</td><td>${esc(t.duration || '')}</td></tr>`).join('');
   show('album');
 }
 
 function renderMeta() {
   $('va-game').textContent = track ? album.game : '';
   $('va-song').textContent = track ? track.song : '';
-  $('va-submit').disabled = !track || busy || !audio.src;
+  $('va-submit').disabled = !track || busy || !audio.src || !!track.added;
 }
 
 function pickTrack(i) {
@@ -116,7 +116,7 @@ function pickTrack(i) {
   [...$('va-tracks').rows].forEach(r => r.classList.toggle('on', +r.dataset.i === i));
   audio.pause(); audio.removeAttribute('src');
   $('va-lcd').textContent = 'Cargando...';
-  $('va-submit-msg').textContent = '';
+  $('va-submit-msg').textContent = track.added ? 'Ya está en el VGM' : '';
   loading(`Cargando "${track.song}"...`);
   renderMeta();
   socket.emit('vaStream', album.source === 'yt' ? { source: 'yt', ytId: track.ytId } : { source: 'kh', page: track.page });
@@ -151,7 +151,7 @@ function renderMine() {
   }
   const th = (k, label) => `<th data-k="${k}" class="${mineSort.key === k ? (mineSort.dir > 0 ? 'asc' : 'desc') : ''}">${label}</th>`;
   $('va-mine').innerHTML = mineSongs.length
-    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('plays', 'Veces')}${th('rate', 'Aciertos')}${th('avg', 'Media')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}" data-aliases="${esc((s.aliases || []).join(', '))}"><td>${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td>${s.plays}</td><td>${s.attempts ? Math.round(s.hits / s.attempts * 100) + '%' : '–'}</td><td>${s.hits ? (s.timeSum / s.hits).toFixed(1) + ' s' : '–'}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
+    ? `<table class="va-tracks va-mine"><thead><tr>${th('song', 'Canción')}${th('game', 'Juego')}${th('start', 'Inicio')}${th('plays', 'Veces')}${th('rate', 'Aciertos')}${th('avg', 'Media')}${th('addedBy', 'Añadida por')}<th></th></tr></thead><tbody>${list.map(s => `<tr data-id="${s.id}" data-aliases="${esc((s.aliases || []).join(', '))}"><td>${s.cover ? `<img class="va-mine-cover" src="${esc(s.cover)}" alt="">` : '<i class="va-mine-cover"></i>'}${esc(s.song)}</td><td>${esc(s.game)}</td><td>${fmt2(s.start)}</td><td>${s.plays}</td><td>${s.attempts ? Math.round(s.hits / s.attempts * 100) + '%' : '–'}</td><td>${s.hits ? (s.timeSum / s.hits).toFixed(1) + ' s' : '–'}</td><td><b style="color:${esc(s.color || '#000')}">${esc(s.addedBy)}</b></td><td><button class="va-edit" title="Editar nombres">&#x270E;</button><button class="va-x" title="Quitar del VGM">&#x2715;</button></td></tr>`).join('')}</tbody></table>`
     : `<p class="va-empty">${mineAdmin ? 'No hay canciones añadidas.' : 'No has añadido ninguna canción.'}</p>`;
   status(`${list.length} ${list.length === 1 ? 'canción' : 'canciones'}`);
   if (mineId !== null) { const r = $('va-mine').querySelector(`tr[data-id="${mineId}"]`); if (r) r.classList.add('on'); }
@@ -228,8 +228,9 @@ $('va-seek').addEventListener('pointerdown', () => { seeking = true; });
 window.addEventListener('pointerup', () => { seeking = false; });
 $('va-seek').addEventListener('input', e => { if (audio.duration) $('va-time').textContent = `${fmt2(e.target.value / 1000 * audio.duration)} / ${fmt2(audio.duration)}`; });
 $('va-seek').addEventListener('change', e => { seeking = false; if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
-$('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; });
-audio.volume = 0.8;
+$('va-vol').addEventListener('input', e => { audio.volume = e.target.value / 100; localStorage.setItem('vaVolume', audio.volume); });
+audio.volume = localStorage.getItem('vaVolume') === null ? 0.8 : Math.min(1, Math.max(0, +localStorage.getItem('vaVolume')));
+$('va-vol').value = Math.round(audio.volume * 100);
 audio.addEventListener('timeupdate', () => {
   const t = `${fmt2(audio.currentTime)} / ${fmt2(audio.duration)}`;
   $('va-time').textContent = t;
@@ -365,6 +366,7 @@ $('va-dlg-ok').addEventListener('click', () => {
   $('va-submit-msg').textContent = 'Enviando...';
   socket.emit('vaSubmit', { source: album.source, page: track.page, ytId: track.ytId, start: audio.currentTime, game, song, aliases, cover: track.thumb || album.cover || '' });
 });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !dlg.hidden) closeDlg(); });
 dlg.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeDlg();
   else if (e.key === 'Enter' && e.target.type === 'text') $('va-dlg-ok').click();

@@ -127,6 +127,29 @@ class VGMChat {
     this.container = container;
     this.emit = emit;
     this.playSound = playSound;
+    this._nearBottom = true;
+    this._unread = 0;
+    this._pill = document.getElementById('new-msgs');
+    container.addEventListener('scroll', () => {
+      this._nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 40;
+      if (this._nearBottom && this._unread) { this._unread = 0; this._pill.style.display = 'none'; }
+    });
+    this._pill.addEventListener('click', () => { container.scrollTop = container.scrollHeight; });
+    new MutationObserver(muts => {
+      for (const m of muts) for (const n of m.addedNodes) {
+        if (n.nodeType === 1 && n.classList.contains('chat-msg') && !n.title) n.title = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      }
+    }).observe(container, { childList: true });
+  }
+
+  scroll() {
+    if (this._nearBottom) {
+      this.container.scrollTop = this.container.scrollHeight;
+    } else {
+      this._unread++;
+      this._pill.textContent = `\u2193 ${this._unread} nuevo${this._unread === 1 ? '' : 's'}`;
+      this._pill.style.display = 'block';
+    }
   }
 
   setCurrentUser(user) {
@@ -148,13 +171,13 @@ class VGMChat {
     p.textContent = message;
     this.container.appendChild(p);
     this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    this.scroll();
   }
 
   addMsnMessage(sender, message, isSystem = false, options = {}) {
     this.container.appendChild(this.buildMessage(sender, message, isSystem, options));
     this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    this.scroll();
   }
 
   buildMessage(sender, message, isSystem = false, options = {}) {
@@ -200,7 +223,7 @@ class VGMChat {
     div.innerHTML = `<button class="start-vgm-btn" id="start-vgm-chat-btn">Empezar VGM</button>`;
     this.container.appendChild(div);
     this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    this.scroll();
 
     const btn = div.querySelector('.start-vgm-btn');
     btn.addEventListener('click', () => {
@@ -239,7 +262,7 @@ class VGMChat {
 
     this.updateProgress(initialProgress);
     this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    this.scroll();
   }
 
   updateProgress(percent) {
@@ -272,7 +295,7 @@ class VGMChat {
 
     this.container.appendChild(div);
     this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    this.scroll();
   }
 
   addSonicBonus(playerName, sonicType) {
@@ -282,7 +305,7 @@ class VGMChat {
     div.innerHTML = `<span class="rainbow-horizontal sonic-bonus">${bonusText}</span>`;
     this.container.appendChild(div);
     this._trimMessages();
-    this.container.scrollTop = this.container.scrollHeight;
+    this.scroll();
 
     if (this.playSound) this.playSound('supersonic', { volume: 0.8 });
   }
@@ -290,6 +313,9 @@ class VGMChat {
   clear() {
     if (this.container) {
       this.container.innerHTML = '';
+      this._nearBottom = true;
+      this._unread = 0;
+      if (this._pill) this._pill.style.display = 'none';
     }
     this._progressSegments = null;
     this._fileNameElement = null;
@@ -301,7 +327,9 @@ class VGMChat {
     if (!this.container) return;
 
     while (this.container.children.length > MAX_MESSAGES) {
-      this.container.removeChild(this.container.firstChild);
+      const victim = [...this.container.children].find(c => !c.classList.contains('start-vgm-container'));
+      if (!victim) break;
+      this.container.removeChild(victim);
     }
   }
 }
