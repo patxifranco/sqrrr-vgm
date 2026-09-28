@@ -62,12 +62,89 @@ function ffmpegClip(url, start, out) {
   });
 }
 
+const sessions = new Map();
+const FIELD_RE = /^(game|song|alias:[a-z]\d{1,16})$/;
+
 let chain = Promise.resolve();
 const queued = job => { const run = chain.then(job, job); chain = run.catch(() => {}); return run; };
 
 function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedSongs, addSong, removeSong, saveSongs, generateAudioToken, lastRevealedId, VGM_ROOM }) {
   const fail = (message, e) => { if (e) warn('VGMADD', message, e.message); socket.emit('vaError', { message }); };
   const isAdmin = username => !!(getUser(username) || {}).isAdmin;
+  const canEdit = (entry, username) => entry.addedBy === username || isAdmin(username) || entry.id === lastRevealedId();
+  const stateOf = id => {
+    const s = sessions.get(id);
+    return { id, drafts: s.drafts, locks: Object.fromEntries(Object.entries(s.locks).map(([f, l]) => [f, { user: l.user, color: l.color }])) };
+  };
+  const pushState = id => {
+    const s = sessions.get(id);
+    if (!s) return;
+    const st = stateOf(id);
+    for (const sid of s.members) io.to(sid).emit('vaEditState', st);
+  };
+  const leaveSession = id => {
+    const s = sessions.get(id);
+    if (!s || !s.members.has(socket.id)) return;
+    s.members.delete(socket.id);
+    for (const [f, l] of Object.entries(s.locks)) if (l.sid === socket.id) delete s.locks[f];
+    if (!s.members.size) sessions.delete(id); else pushState(id);
+  };
+  const sessionFor = id => {
+    const s = sessions.get(Number(id));
+    return s && s.members.has(socket.id) ? s : null;
+  };
+
+  socket.on('vaEditOpen', ({ id } = {}) => {
+    const username = getLoggedInUsername();
+    const entry = username && addedSongs.find(s => s.id === Number(id));
+    if (!entry || !canEdit(entry, username)) return;
+    let s = sessions.get(entry.id);
+    if (!s) {
+      s = { drafts: { game: entry.game, song: entry.song }, locks: {}, members: new Set(), n: 0 };
+      for (const a of entry.aliases || []) s.drafts[`alias:a${s.n++}`] = a;
+      sessions.set(entry.id, s);
+    }
+    s.members.add(socket.id);
+    const st = stateOf(entry.id);
+    for (const sid of s.members) io.to(sid).emit('vaEditState', { ...st, me: sid === socket.id ? username : undefined });
+  });
+
+  socket.on('vaEditFocus', ({ id, field } = {}) => {
+    const s = sessionFor(id);
+    if (!s || !FIELD_RE.test(String(field))) return;
+    const l = s.locks[field];
+    if (l && l.sid !== socket.id) return socket.emit('vaEditState', { ...stateOf(Number(id)), me: getLoggedInUsername() });
+    for (const [f, k] of Object.entries(s.locks)) if (k.sid === socket.id) delete s.locks[f];
+    const username = getLoggedInUsername();
+    s.locks[field] = { sid: socket.id, user: username, color: tl.COLORS[username] || '#333' };
+    pushState(Number(id));
+  });
+
+  socket.on('vaEditInput', ({ id, field, value } = {}) => {
+    const s = sessionFor(id);
+    if (!s || !FIELD_RE.test(String(field))) return;
+    const l = s.locks[field];
+    if (l && l.sid !== socket.id) return;
+    if (value === null) {
+      if (!field.startsWith('alias:')) return;
+      delete s.drafts[field];
+      delete s.locks[field];
+    } else {
+      if (field.startsWith('alias:') && !(field in s.drafts) && Object.keys(s.drafts).length > 12) return;
+      s.drafts[field] = String(value).slice(0, 80);
+    }
+    pushState(Number(id));
+  });
+
+  socket.on('vaEditBlur', ({ id, field } = {}) => {
+    const s = sessionFor(id);
+    if (!s) return;
+    const l = s.locks[field];
+    if (l && l.sid === socket.id) { delete s.locks[field]; pushState(Number(id)); }
+  });
+
+  socket.on('vaEditClose', ({ id } = {}) => leaveSession(Number(id)));
+  socket.on('disconnect', () => { for (const id of [...sessions.keys()]) leaveSession(id); });
   const sendMine = () => {
     const username = getLoggedInUsername();
     const admin = isAdmin(username);
@@ -81,7 +158,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     const username = getLoggedInUsername();
     if (!username) return;
     const entry = addedSongs.find(s => s.id === Number(id));
-    if (!entry || !(entry.addedBy === username || isAdmin(username) || entry.id === lastRevealedId())) return;
+    if (!entry || !canEdit(entry, username)) return;
     const gameName = clean(game), songName = clean(song);
     if (!gameName || !songName) return fail('Pon el juego y el nombre de la canción');
     if (songs.some(s => s !== entry && norm(s.game) === norm(gameName) && norm(s.song) === norm(songName))) return fail('Esa canción ya está en el VGM');
@@ -91,6 +168,11 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
     saveSongs();
     log('VGMADD', `${username} renamed #${entry.id} to "${songName}" (${gameName})`);
     io.to(VGM_ROOM).emit('sqrrrMessage', { message: `${username} ha corregido: ${gameName} - ${songName}`, isBold: true });
+    const s = sessions.get(entry.id);
+    if (s) {
+      for (const sid of s.members) io.to(sid).emit('vaEditSaved', { id: entry.id, by: username });
+      sessions.delete(entry.id);
+    }
     sendMine();
   });
 

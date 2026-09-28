@@ -245,24 +245,73 @@ audio.addEventListener('pause', () => { $('va-play').classList.remove('playing')
 
 const dlg = $('va-dlg');
 let editId = null;
-function addAliasRow(value) {
+function addAliasRow(value, field) {
   const row = document.createElement('div');
   row.className = 'va-alias-row';
+  row.dataset.field = field || `alias:c${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(0, 22);
   row.innerHTML = '<input type="text" maxlength="80" autocomplete="off"><button class="va-alias-x" type="button" title="Quitar">&#x2715;</button>';
   row.querySelector('input').value = value || '';
   $('va-dlg-aliases').appendChild(row);
   return row;
 }
+let editSession = null, editMe = null, editFresh = false;
+const fieldOf = input => input === $('va-dlg-game') ? 'game' : input === $('va-dlg-song') ? 'song' : (input.closest('.va-alias-row') || {}).dataset ? input.closest('.va-alias-row').dataset.field : null;
+function setLock(input, field, drafts, locks, force) {
+  if (!input) return;
+  const l = locks[field], mine = document.activeElement === input;
+  if ((force || !mine) && drafts[field] !== undefined && input.value !== drafts[field]) input.value = drafts[field];
+  const other = !!l && l.user !== editMe;
+  input.readOnly = other;
+  if (other && mine) input.blur();
+  input.style.boxShadow = l ? `0 0 0 2px ${l.color}` : '';
+  let tag = input.parentElement.querySelector('.va-lock-tag');
+  if (l) {
+    if (!tag) { tag = document.createElement('i'); tag.className = 'va-lock-tag'; input.parentElement.appendChild(tag); }
+    tag.textContent = l.user;
+    tag.style.color = l.color;
+  } else if (tag) tag.remove();
+}
+socket.on('vaEditState', ({ id, drafts, locks, me }) => {
+  if (id !== editSession) return;
+  if (me) editMe = me;
+  const force = editFresh;
+  editFresh = false;
+  setLock($('va-dlg-game'), 'game', drafts, locks, force);
+  setLock($('va-dlg-song'), 'song', drafts, locks, force);
+  const list = $('va-dlg-aliases');
+  const keys = Object.keys(drafts).filter(k => k.startsWith('alias:'));
+  for (const row of [...list.children]) if (!keys.includes(row.dataset.field)) row.remove();
+  for (const k of keys) {
+    const row = list.querySelector(`[data-field="${k}"]`) || addAliasRow(drafts[k], k);
+    setLock(row.querySelector('input'), k, drafts, locks, force);
+  }
+  if (!list.children.length) addAliasRow('');
+});
+socket.on('vaEditSaved', ({ id, by }) => {
+  if (id !== editSession) return;
+  status(`Guardado por ${by}`);
+  if (by !== editMe) closeDlg();
+});
+$('va-dlg').addEventListener('focusin', e => { const f = editSession !== null && e.target.matches('input[type="text"]') ? fieldOf(e.target) : null; if (f) socket.emit('vaEditFocus', { id: editSession, field: f }); });
+$('va-dlg').addEventListener('focusout', e => { const f = editSession !== null && e.target.matches('input[type="text"]') ? fieldOf(e.target) : null; if (f) socket.emit('vaEditBlur', { id: editSession, field: f }); });
+$('va-dlg').addEventListener('input', e => { const f = editSession !== null && e.target.matches('input[type="text"]') ? fieldOf(e.target) : null; if (f) socket.emit('vaEditInput', { id: editSession, field: f, value: e.target.value }); });
 function setAliasRows(list) {
   $('va-dlg-aliases').innerHTML = '';
   for (const v of list.length ? list : ['']) addAliasRow(v);
 }
 const aliasValues = () => [...$('va-dlg-aliases').querySelectorAll('input')].map(i => i.value.trim()).filter(Boolean).join(', ');
-$('va-dlg-alias-add').addEventListener('click', () => addAliasRow('').querySelector('input').focus());
+$('va-dlg-alias-add').addEventListener('click', () => {
+  const row = addAliasRow('');
+  if (editSession !== null) socket.emit('vaEditInput', { id: editSession, field: row.dataset.field, value: '' });
+  row.querySelector('input').focus();
+});
 $('va-dlg-aliases').addEventListener('click', e => {
   const x = e.target.closest('.va-alias-x');
   if (!x) return;
-  x.parentElement.remove();
+  const row = x.parentElement;
+  if (row.querySelector('input').readOnly) return;
+  if (editSession !== null) socket.emit('vaEditInput', { id: editSession, field: row.dataset.field, value: null });
+  row.remove();
   if (!$('va-dlg-aliases').children.length) addAliasRow('');
 });
 function openDlg(mode, id, game, song, aliases) {
@@ -270,15 +319,18 @@ function openDlg(mode, id, game, song, aliases) {
   dlg.dataset.mode = mode;
   dlg.querySelector('.title-bar-text').textContent = mode === 'edit' ? 'Editar canción' : 'Añadir al VGM';
   $('va-dlg-ok').textContent = mode === 'edit' ? 'Guardar' : 'Añadir';
+  for (const el of [$('va-dlg-game'), $('va-dlg-song')]) { el.readOnly = false; el.style.boxShadow = ''; const t = el.parentElement.querySelector('.va-lock-tag'); if (t) t.remove(); }
   $('va-dlg-game').value = game;
   $('va-dlg-song').value = song;
   setAliasRows(String(aliases || '').split(',').map(s => s.trim()).filter(Boolean));
+  if (mode === 'edit') { editSession = id; editFresh = true; socket.emit('vaEditOpen', { id }); }
   dlg.hidden = false;
   $('va-dlg-game').focus();
 }
 let dlgOnly = false;
 function closeDlg() {
   dlg.hidden = true;
+  if (editSession !== null) { socket.emit('vaEditClose', { id: editSession }); editSession = null; }
   if (editId === null) audio.pause();
   editId = null;
   if (dlgOnly) { dlgOnly = false; closeMini(); }

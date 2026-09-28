@@ -143,8 +143,12 @@
 .va-dlg-win { width: 520px; box-shadow: 0 5px 25px rgba(0, 0, 0, .5); }
 .va-dlg-body { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; }
 .va-dlg-body input[type="text"] { width: 100%; box-sizing: border-box; font-family: var(--font-family); font-size: 12px; min-height: 24px; padding: 4px 8px; }
-.va-alias-list { display: flex; flex-direction: column; gap: 4px; max-height: 130px; overflow: auto; }
-.va-alias-row { display: flex; gap: 4px; }
+.va-alias-list { display: flex; flex-direction: column; gap: 6px; }
+.va-alias-row { display: flex; gap: 4px; position: relative; }
+.va-dlg-body .field-row-stacked { position: relative; }
+.va-lock-tag { position: absolute; right: 0; top: 0; font-style: normal; font-weight: 700; font-size: 10px; line-height: 14px; padding: 0 5px; background: #fff; border: 1px solid currentColor; border-radius: 3px; }
+.va-alias-row .va-lock-tag { right: 34px; top: -8px; }
+.va-dlg-body input[readonly] { background: #f1f1f1; color: #555; }
 .va-dlg-body .va-alias-row input[type="text"] { width: auto; flex: 1; }
 .va-alias-x, .va-alias-add { min-width: 0; min-height: 0; padding: 0 9px; font-size: 12px; }
 .va-alias-add { align-self: flex-start; margin-top: 4px; }

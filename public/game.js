@@ -1516,13 +1516,6 @@ function applyFontSettings() {
 }
 for (const el of [fontSizeSelect, fontColorInput, nameColorInput, fontEffectSelect, fontFamilySelect, fontModeSelect]) el.addEventListener('change', applyFontSettings);
 
-documentListeners.fontPopupClose = (e) => {
-  if (fontPopup && !fontPopup.contains(e.target) && e.target !== fontBtn) {
-    fontPopup.style.display = 'none';
-  }
-};
-document.addEventListener('click', documentListeners.fontPopupClose);
-
 const emoticonBtn = document.getElementById('emoticon-btn');
 const emoticonPopup = document.getElementById('emoticon-popup');
 
@@ -1531,7 +1524,6 @@ if (emoticonBtn) {
     e.stopPropagation();
     if (emoticonPopup) {
       emoticonPopup.style.display = emoticonPopup.style.display === 'none' ? 'block' : 'none';
-      if (fontPopup) fontPopup.style.display = 'none';
     }
   });
 }
