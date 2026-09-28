@@ -323,7 +323,7 @@ function openDlg(mode, id, game, song, aliases) {
   $('va-dlg-game').value = game;
   $('va-dlg-song').value = song;
   setAliasRows(String(aliases || '').split(',').map(s => s.trim()).filter(Boolean));
-  if (mode === 'edit') { editSession = id; editFresh = true; socket.emit('vaEditOpen', { id }); }
+  if (mode === 'edit' && mini) { editSession = id; editFresh = true; socket.emit('vaEditOpen', { id }); }
   dlg.hidden = false;
   $('va-dlg-game').focus();
 }
