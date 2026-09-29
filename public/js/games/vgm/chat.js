@@ -79,8 +79,6 @@ function letterSpans(text, cls, delayFor) {
 }
 
 const createWaveText = text => letterSpans(text, 'wave-letter', i => `${(i * 0.05) % 0.6}s`);
-const WD = Array.from('♠♣♥♦☺☻♪♫☼►◄▲▼○●□■☆★✈✉✂✓✗☎☂');
-const wingdings = text => Array.from(text).map(ch => { const i = ch.toLowerCase().charCodeAt(0) - 97; return i >= 0 && i < 26 ? WD[i] : ch; }).join('');
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function mangle(text, mode) {
   if (/https?:\/\//.test(text)) return text;
@@ -153,11 +151,16 @@ class VGMChat {
       if (this._nearBottom && this._unread) { this._unread = 0; this._pill.style.display = 'none'; }
     });
     this._pill.addEventListener('click', () => { container.scrollTop = container.scrollHeight; });
-    new MutationObserver(muts => {
-      for (const m of muts) for (const n of m.addedNodes) {
-        if (n.nodeType === 1 && n.classList.contains('chat-msg') && !n.title) n.title = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-      }
-    }).observe(container, { childList: true });
+    const startBtn = document.querySelector('#start-bar button');
+    startBtn.addEventListener('click', () => {
+      startBtn.disabled = true;
+      startBtn.textContent = 'Iniciando...';
+      if (this.emit) this.emit('startRound');
+    });
+  }
+
+  hideStartButton() {
+    document.getElementById('start-bar').style.display = 'none';
   }
 
   scroll() {
@@ -207,7 +210,7 @@ class VGMChat {
     if (isSystem) {
       div.innerHTML = `<span class="msg-system">${processMessage(message)}</span>`;
     } else if (options.isBold) {
-      div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">${escapeHtml(sender)} dice:</span><br><span class="msg-text">${message}</span></div>`;
+      div.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">${escapeHtml(sender)} dice:</span><br><span class="msg-text">${message}</span></div>`;
     } else if (options.isRainbow) {
       div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender">${escapeHtml(sender)} dice:</span><br><span class="msg-text rainbow-text">${processMessage(message)}</span></div>`;
     } else {
@@ -223,14 +226,10 @@ class VGMChat {
       else if (effect === 'quake') { inner = letterSpans(message, 'fx-letter', () => `-${(Math.random() * 0.15).toFixed(2)}s`); classes.push('fx-quake'); }
       else if (effect === 'type') { inner = letterSpans(message, 'fx-letter', i => `${(i * 0.04).toFixed(2)}s`); classes.push('fx-type'); }
       else if (effect === 'marquee') { inner = `<span>${processMessage(message)}</span>`; classes.push('fx-marquee'); }
-      else if (effect === 'wingdings') inner = `<span class="fx-wd" data-t="${escapeHtml(message)}">${escapeHtml(wingdings(message))}</span>`;
       else { inner = processMessage(message); if (EFFECT_CLASS[effect]) classes.push(EFFECT_CLASS[effect]); }
       const style = `font-size: ${fs.size}px; color: ${fs.color};`;
       const nameStyle = `color: ${fs.nameColor};`;
-      const quoteHtml = options.quote ? `<div class="msg-quote"><b>${escapeHtml(options.quote.sender)}:</b> ${processMessage(options.quote.text)}</div>` : '';
-      div.dataset.sender = sender;
-      div.dataset.text = options.ink ? '(dibujo)' : options.img ? '(imagen)' : message;
-      div.innerHTML = `<img class="msg-avatar" src="${escapeHtml(options.profilePicture || 'profiles/default.svg')}" alt=""><div class="msg-body">${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><button class="msg-quote-btn" title="Citar">&#x275D;</button><br>${quoteHtml}<span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span></div>`;
+      div.innerHTML = `<img class="msg-avatar" src="${escapeHtml(sender === 'SQRRR' ? 'jovani.png' : options.profilePicture || 'profiles/default.svg')}" alt=""><div class="msg-body">${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><br><span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span></div>`;
     }
 
     for (const i of div.querySelectorAll('img.chat-img')) {
@@ -248,19 +247,11 @@ class VGMChat {
   }
 
   addStartButton() {
-    for (const old of this.container.querySelectorAll('.start-vgm-container')) old.remove();
-    const div = document.createElement('div');
-    div.className = 'chat-msg start-vgm-container';
-    div.innerHTML = `<button class="start-vgm-btn" id="start-vgm-chat-btn">Empezar VGM</button>`;
-    this.container.prepend(div);
-    this._trimMessages();
-
-    const btn = div.querySelector('.start-vgm-btn');
-    btn.addEventListener('click', () => {
-      btn.disabled = true;
-      btn.textContent = 'Iniciando...';
-      if (this.emit) this.emit('startRound');
-    });
+    const bar = document.getElementById('start-bar');
+    const btn = bar.querySelector('button');
+    btn.disabled = false;
+    btn.textContent = 'Empezar VGM';
+    bar.style.display = '';
   }
 
   addFileTransfer(initialProgress = 0) {
@@ -272,7 +263,7 @@ class VGMChat {
 
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body">
+    div.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body">
       <span class="msg-sender sqrrr-msg">SQRRR dice:</span><br>
       <span class="msg-text">- envía:</span>
       <div class="msn-file-transfer">
@@ -357,9 +348,7 @@ class VGMChat {
     if (!this.container) return;
 
     while (this.container.children.length > MAX_MESSAGES) {
-      const victim = [...this.container.children].find(c => !c.classList.contains('start-vgm-container'));
-      if (!victim) break;
-      this.container.removeChild(victim);
+      this.container.removeChild(this.container.firstChild);
     }
   }
 }

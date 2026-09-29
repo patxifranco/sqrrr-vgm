@@ -14,7 +14,7 @@ let _io = null;
 const VGM_ROOM = 'VGM';
 
 const savedPlayerScores = new Map();
-const EFFECTS = new Set(['none', 'wave', 'rainbow', 'quake', 'type', 'blink', 'marquee', 'fire', 'ice', 'gold', 'flip', 'mirror', 'wingdings', 'spoiler']);
+const EFFECTS = new Set(['none', 'wave', 'rainbow', 'quake', 'type', 'blink', 'marquee', 'fire', 'ice', 'gold', 'flip', 'mirror', 'spoiler']);
 const FONTS = new Set(['normal', 'comic', 'papyrus', 'impact']);
 const MODES = new Set(['normal', 'uwu', 'leet', 'caps', 'reverse', 'bilbao']);
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
@@ -36,7 +36,7 @@ function mangle(text, mode) {
 
 function chatPayload(player, message, extra = {}) {
   const fs = player.fontSettings || {};
-  return { sender: player.name, message: mangle(message, fs.mode), profilePicture: player.profilePicture, fontSettings: fs, streak: player.streak || 0, bet: (player.bet || 0) > 0, quote: player.quote || null, ...extra };
+  return { sender: player.name, message: mangle(message, fs.mode), profilePicture: player.profilePicture, fontSettings: fs, streak: player.streak || 0, bet: (player.bet || 0) > 0, ...extra };
 }
 const SCORE_EXPIRY_MS = 12 * 60 * 60 * 1000;
 
@@ -602,7 +602,7 @@ function setupHandlers(io, socket, context) {
     socket.emit('betInfo', { coins: user.coins, bet: n });
   });
 
-  socket.on('guess', (guess, quote) => {
+  socket.on('guess', (guess) => {
     if (typeof guess !== 'string') return;
     guess = guess.slice(0, 100);
 
@@ -610,8 +610,6 @@ function setupHandlers(io, socket, context) {
     if (!currentRoom || !lobbies[currentRoom]) return;
 
     const lobby = lobbies[currentRoom];
-    const speaker = lobby.players[socket.id];
-    if (speaker) speaker.quote = quote && typeof quote.sender === 'string' && typeof quote.text === 'string' ? { sender: quote.sender.slice(0, 30), text: quote.text.slice(0, 80) } : null;
 
     if (!lobby.roundActive || !lobby.currentSong) {
       const player = lobby.players[socket.id];
@@ -962,7 +960,6 @@ function setupHandlers(io, socket, context) {
     const name = `${crypto.randomBytes(8).toString('hex')}.jpg`;
     fs.writeFile(path.join(UPLOADS, name), Buffer.from(data.slice(data.indexOf(',') + 1), 'base64'), err => {
       if (err) return;
-      player.quote = null;
       io.to(currentRoom).emit('gameChatMessage', chatPayload(player, '', { img: `/uploads/${name}` }));
     });
   });
@@ -974,7 +971,6 @@ function setupHandlers(io, socket, context) {
     if (!player || typeof data !== 'string' || data.length > 60000 || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(data)) return;
     if (player.inkAt && Date.now() - player.inkAt < 3000) return;
     player.inkAt = Date.now();
-    player.quote = null;
     io.to(currentRoom).emit('gameChatMessage', chatPayload(player, '', { ink: data }));
   });
 

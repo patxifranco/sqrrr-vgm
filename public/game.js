@@ -308,6 +308,7 @@ function showScreen(screenName) {
     socketManager.cleanupScope('vgm');
     cleanupDocumentListeners();
     document.dispatchEvent(new CustomEvent('vaMini', { detail: false }));
+    vgmChat.hideStartButton();
     if (audioPlayer) {
       audioPlayer.pause();
       audioPlayer.src = '';
@@ -915,8 +916,7 @@ function submitGuess() {
     }
     messageHistoryIndex = -1;
 
-    socket.emit('guess', guess, quote);
-    clearQuote();
+    socket.emit('guess', guess);
     guessInput.value = '';
   }
 }
@@ -1078,6 +1078,7 @@ socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   document.title = `SQRRR VGM · Ronda ${num}`;
   vgmPausedState = false;
   clearCountdowns();
+  vgmChat.hideStartButton();
   resetRoundState();
   roundActive = true;
   roundNumber.textContent = num;
@@ -1199,7 +1200,7 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
   if (isRecord) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text record-text">${message}</span></div>`;
+    div.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-text record-text">${message}</span></div>`;
     gameMessages.appendChild(div);
     vgmChat.scroll();
   } else {
@@ -1243,7 +1244,7 @@ socketManager.on('sqrrrCountdown', ({ id, seconds, total = 5 }) => {
     clearCountdowns();
     countdownDiv = document.createElement('div');
     countdownDiv.className = 'chat-msg countdown-msg';
-    countdownDiv.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br>
+    countdownDiv.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br>
       <div class="window xp-copy">
         <div class="title-bar"><div class="title-bar-text">Copiando...</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
         <div class="window-body">
@@ -1310,15 +1311,6 @@ function showCover(src) {
 gameMessages.addEventListener('click', (e) => {
   const pb = e.target.closest('.vgm-pause');
   if (pb) return socket.emit('vgmPause');
-  const qb = e.target.closest('.msg-quote-btn');
-  if (qb) {
-    const m = qb.closest('.chat-msg');
-    quote = { sender: m.dataset.sender || '', text: (m.dataset.text || '').slice(0, 80) };
-    quoteText.innerHTML = `Citando a <b>${escapeHtml(quote.sender)}</b>: ${escapeHtml(quote.text)}`;
-    quoteBar.style.display = 'flex';
-    guessInput.focus();
-    return;
-  }
   const tv = e.target.closest('.tier-vote');
   if (tv) return socket.emit('tierVote', { id: +tv.closest('.reveal-tiers').dataset.song, tier: tv.dataset.tier });
   const cover = e.target.closest('.reveal-cover, .chat-img');
@@ -1341,11 +1333,6 @@ socketManager.on('gameChatMessage', ({ sender, message, profilePicture, fontSett
   addMsnMessage(sender, message, false, { senderFontSettings: fontSettings, profilePicture, ...rest });
 });
 
-let quote = null;
-const quoteBar = document.getElementById('quote-bar');
-const quoteText = document.getElementById('quote-text');
-const clearQuote = () => { quote = null; quoteBar.style.display = 'none'; };
-document.getElementById('quote-clear').addEventListener('click', clearQuote);
 socketManager.on('tierVote', ({ id, tier, by, counts }) => {
   const box = gameMessages.querySelector(`.reveal-tiers[data-song="${id}"]`);
   if (!box) return;
@@ -1442,7 +1429,7 @@ function addFrameMessage(mask) {
   const div = document.createElement('div');
   div.className = 'chat-msg';
   const cells = [...(mask || '')].map(ch => ch === ' ' ? '<i class="hint-gap"></i>' : `<span class="hint-cell${ch === '*' ? ' miss' : ''}">${escapeHtml(ch)}</span>`).join('');
-  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><div class="hint-frame">${cells}</div></div>`;
+  div.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><div class="hint-frame">${cells}</div></div>`;
   gameMessages.appendChild(div);
   vgmChat.scroll();
 }
@@ -1450,7 +1437,7 @@ socketManager.on('closeGuess', ({ guess, type, percentage, hint }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
   const cells = [...(hint || '')].map(ch => ch === ' ' ? '<i class="hint-gap"></i>' : `<span class="hint-cell${ch === '*' ? ' miss' : ''}">${escapeHtml(ch)}</span>`).join('');
-  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><div class="hint-frame">${cells}</div></div>`;
+  div.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><div class="hint-frame">${cells}</div></div>`;
   gameMessages.appendChild(div);
   vgmChat.scroll();
 
@@ -1460,7 +1447,7 @@ socketManager.on('closeGuess', ({ guess, type, percentage, hint }) => {
 socketManager.on('easterEgg', ({ type, message }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
-  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">${escapeHtml(message)}</span></div>`;
+  div.innerHTML = `<img class="msg-avatar" src="jovani.png" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">${escapeHtml(message)}</span></div>`;
   gameMessages.appendChild(div);
   vgmChat.scroll();
 });
@@ -1557,6 +1544,9 @@ if (fontBtn) {
   });
 }
 guessInput.addEventListener('input', () => { if (fontPopup && fontPopup.style.display !== 'none') renderFontPreview(); });
+document.addEventListener('click', (e) => {
+  if (fontPopup && fontPopup.style.display !== 'none' && !fontPopup.contains(e.target) && !fontBtn.contains(e.target)) fontPopup.style.display = 'none';
+});
 
 function sendFontSettings() {
   socket.emit('updateFontSettings', {

@@ -1052,12 +1052,6 @@ section.field-row {
   word-break: break-word;
 }
 
-.start-vgm-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-
 .start-vgm-btn {
   padding: 8px 24px;
   font-size: 12px;
@@ -6691,9 +6685,6 @@ body.theme-xp .title-bar .theme-selector {
 .fx-gold { background-image: linear-gradient(90deg, #ffd700, #ffa500, #ffd700, #fff2a8, #ffd700); }
 .fx-flip { display: inline-block; transform: rotate(180deg); }
 .fx-mirror { display: inline-block; transform: scaleX(-1); }
-.fx-wd { cursor: help; }
-.fx-wd:hover { font-size: 0; }
-.fx-wd:hover::after { content: attr(data-t); font-size: 13px; }
 .fx-spoiler { filter: blur(5px); transition: filter .2s; }
 .fx-spoiler:hover { filter: none; }
 .on-fire { text-shadow: 0 0 6px #ff9800, 0 0 12px #ff3d00; }
@@ -6726,11 +6717,7 @@ body.theme-xp .title-bar .theme-selector {
 .chat-msg { display: flex; align-items: flex-start; gap: 8px; }
 .msg-avatar { width: 32px; height: 32px; border-radius: 4px; border: 1px solid #7f9fd6; object-fit: cover; flex: none; margin-top: 2px; background: #fff; }
 .msg-body { flex: 1; min-width: 0; }
-.msg-quote-btn { visibility: hidden; min-width: 0; min-height: 0; padding: 0 5px; font-size: 11px; margin-left: 6px; vertical-align: middle; }
-.chat-msg:hover .msg-quote-btn { visibility: visible; }
-.msg-quote { border-left: 3px solid #7f9fd6; background: #eef3fb; color: #445; font-size: 11px; padding: 2px 6px; margin: 2px 0 4px; }
-#quote-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 2px 8px; background: #eef3fb; border-top: 1px solid #c9d6ea; }
-#quote-bar button { min-width: 0; min-height: 0; padding: 0 5px; font-size: 11px; margin-left: auto; }
+.start-bar { display: flex; justify-content: center; padding: 6px; background: var(--color-gray-100); border-bottom: 1px solid var(--color-gray-300); }
 .reveal-tiers { display: inline-flex; gap: 3px; margin: 6px 0 0 12px; vertical-align: top; }
 .tier-vote { position: relative; min-width: 0; min-height: 0; width: 26px; height: 22px; padding: 0; font-weight: 700; font-size: 11px; color: #222; background: var(--tc); border: 1px solid rgba(0, 0, 0, 0.35); border-radius: 3px; }
 .tier-vote:hover { filter: brightness(1.08); }
