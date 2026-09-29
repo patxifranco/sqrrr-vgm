@@ -505,7 +505,7 @@ section.field-row {
 .game-body {
   display: flex;
   flex-direction: column;
-  height: calc(100% - 50px);
+  height: calc(100% - 27px);
   padding: 0 !important;
 }
 
