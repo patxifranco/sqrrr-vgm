@@ -8,9 +8,7 @@
   <title>SQRRR</title>
   <link rel="icon" type="image/png" href="jovani.png">
   <link id="theme-xp" rel="stylesheet" href="https://unpkg.com/xp.css@0.2.6/dist/XP.css">
-  <link id="theme-aero" rel="stylesheet" href="https://unpkg.com/7.css" disabled>
   <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/theme-aero.css">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/cards.css">
   <link rel="stylesheet" href="css/wordle.css">
@@ -23,12 +21,6 @@
     <div class="window login-window">
       <div class="title-bar">
         <div class="title-bar-text">SQRRR - Iniciar Sesion</div>
-        <div class="title-bar-theme">
-          <select class="theme-selector">
-            <option value="xp">XP</option>
-            <option value="aero">Aero</option>
-          </select>
-        </div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -70,12 +62,6 @@
     <div class="window hub-window">
       <div class="title-bar">
         <div class="title-bar-text">SQRRR - Menú Principal</div>
-        <div class="title-bar-theme">
-          <select class="theme-selector">
-            <option value="xp">XP</option>
-            <option value="aero">Aero</option>
-          </select>
-        </div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -364,12 +350,6 @@
         <div class="title-bar-text">
           <span>&#x1F3B5;</span> SQRRR VGM - Ronda <span id="round-number">1</span>
         </div>
-        <div class="title-bar-theme">
-          <select class="theme-selector">
-            <option value="xp">XP</option>
-            <option value="aero">Aero</option>
-          </select>
-        </div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -396,7 +376,7 @@
 
             <div class="game-input-area">
               <button id="new-msgs" class="new-msgs" style="display: none;">&#x2193; nuevos</button>
-              <div id="typing-indicator" class="typing-indicator" style="display: none;">
+              <div id="typing-indicator" class="typing-indicator" style="visibility: hidden;">
                 <span id="typing-indicator-text"></span>
               </div>
 
@@ -616,12 +596,6 @@
     <div class="window typing-menu-window">
       <div class="title-bar">
         <div class="title-bar-text">SQRRR Tikitiki</div>
-        <div class="title-bar-theme">
-          <select class="theme-selector">
-            <option value="xp">XP</option>
-            <option value="aero">Aero</option>
-          </select>
-        </div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -860,12 +834,6 @@
     <div class="window drawing-game-window xp-paint">
       <div class="title-bar">
         <div class="title-bar-text">SQRRRILLO - Ronda <span id="drawing-round-number">1</span>/<span id="drawing-total-rounds">1</span></div>
-        <div class="title-bar-theme">
-          <select class="theme-selector">
-            <option value="xp">XP</option>
-            <option value="aero">Aero</option>
-          </select>
-        </div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -1878,7 +1846,6 @@
     <div class="window-body">Conexión perdida, reconectando...</div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="js/core/theme-manager.js"></script>
   <script type="module" src="game.js"></script>
   <script type="module" src="typing.js"></script>
   <script type="module" src="fellowship.js"></script>

@@ -161,25 +161,7 @@ function getCloseGuessPercentage(guess, correctAnswer) {
 }
 
 function generateHint(gameName) {
-  const name = gameName.trim();
-  const words = name.split(' ');
-
-  let hint = '';
-  for (let w = 0; w < words.length; w++) {
-    const word = words[w];
-    if (w > 0) hint += '   ';
-
-    for (let i = 0; i < word.length; i++) {
-      if (i > 0) hint += ' ';
-      if (i === 0) {
-        hint += word[i].toUpperCase();
-      } else {
-        hint += '_';
-      }
-    }
-  }
-
-  return hint;
+  return gameName.trim().split(/\s+/).map(w => w[0].toUpperCase() + '*'.repeat(w.length - 1)).join(' ');
 }
 
 function createLobby(roomCode) {
@@ -305,6 +287,26 @@ function endRound(roomCode, context) {
   }
 }
 
+function runCountdown(roomCode, context, from) {
+  const { lobbies } = context;
+  const lobby = lobbies[roomCode];
+  if (!lobby || !lobby.autoPlayActive || lobby.paused) return;
+  if (Object.keys(lobby.players).length === 0) {
+    lobby.autoPlayActive = false;
+    return;
+  }
+  const token = lobby.countdownToken = (lobby.countdownToken || 0) + 1;
+  const id = `countdown-${Date.now()}`;
+  lobby.countdownMessageId = id;
+  const tick = n => {
+    if (lobbies[roomCode] !== lobby || lobby.countdownToken !== token || !lobby.autoPlayActive || lobby.paused || Object.keys(lobby.players).length === 0) return;
+    if (n === 0) return startNextRound(roomCode, context);
+    _io.to(roomCode).emit('sqrrrCountdown', { id, seconds: n, total: from });
+    setTimeout(() => tick(n - 1), 1000);
+  };
+  tick(from);
+}
+
 function startFirstRoundCountdown(roomCode, context) {
   const { lobbies } = context;
   const lobby = lobbies[roomCode];
@@ -315,31 +317,8 @@ function startFirstRoundCountdown(roomCode, context) {
     return;
   }
 
-  const countdownId = `countdown-${Date.now()}`;
-  lobby.countdownMessageId = countdownId;
-
-  _io.to(roomCode).emit('sqrrrCountdown', {
-    id: countdownId,
-    seconds: 5
-  });
-
-  const countdown = [4, 3, 2, 1];
-  countdown.forEach((num, index) => {
-    setTimeout(() => {
-      if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
-      _io.to(roomCode).emit('sqrrrCountdown', {
-        id: countdownId,
-        seconds: num
-      });
-
-      if (num === 1) {
-        setTimeout(() => {
-          if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
-          startNextRound(roomCode, context);
-        }, 1000);
-      }
-    }, (index + 1) * 1000);
-  });
+  lobby.paused = false;
+  runCountdown(roomCode, context, 5);
 }
 
 function startAutoPlayCountdown(roomCode, context) {
@@ -363,7 +342,7 @@ function startAutoPlayCountdown(roomCode, context) {
   }
   const tally = t => Object.values(cur.tiers || {}).filter(v => v === t).length;
   const tiersHtml = `<span class="reveal-tiers" data-song="${cur.id}">${TIERS.map(t => `<button class="tier-vote" data-tier="${t}" style="--tc:${TIER_COLORS[t]}">${t}<b>${tally(t) || ''}</b></button>`).join('')}</span>`;
-  const revealMessage = `<span class="reveal">${cur.cover ? `<img class="reveal-cover" src="${cur.cover}" alt="">` : ''}<span>${text}</span></span><span class="reveal-votes" data-song="${cur.id}"><button class="vote-up">&#x1F44D; <b>0</b></button><button class="vote-down">&#x1F44E; <b>0</b></button></span>${tiersHtml}`;
+  const revealMessage = `<span class="reveal">${cur.cover ? `<img class="reveal-cover" src="${cur.cover}" alt="">` : ''}<span>${text}</span></span><span class="reveal-votes" data-song="${cur.id}"><button class="vote-up">&#x1F44D; <b>0</b></button><button class="vote-down">&#x1F44E; <b>0</b></button><button class="vgm-pause" title="Pausa">&#x23F8;</button></span>${tiersHtml}`;
 
   _io.to(roomCode).emit('sqrrrMessage', {
     message: revealMessage,
@@ -376,34 +355,9 @@ function startAutoPlayCountdown(roomCode, context) {
     type: 'system'
   });
 
+  const token = lobby.countdownToken = (lobby.countdownToken || 0) + 1;
   setTimeout(() => {
-    if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
-
-    const countdownId = `countdown-${Date.now()}`;
-    lobby.countdownMessageId = countdownId;
-
-    _io.to(roomCode).emit('sqrrrCountdown', {
-      id: countdownId,
-      seconds: 5
-    });
-
-    const countdown = [4, 3, 2, 1];
-    countdown.forEach((num, index) => {
-      setTimeout(() => {
-        if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
-        _io.to(roomCode).emit('sqrrrCountdown', {
-          id: countdownId,
-          seconds: num
-        });
-
-        if (num === 1) {
-          setTimeout(() => {
-            if (!lobby || !lobby.autoPlayActive || Object.keys(lobby.players).length === 0) return;
-            startNextRound(roomCode, context);
-          }, 1000);
-        }
-      }, (index + 1) * 1000);
-    });
+    if (lobbies[roomCode] === lobby && lobby.countdownToken === token) runCountdown(roomCode, context, 5);
   }, 5000);
 }
 
@@ -563,6 +517,18 @@ function setupHandlers(io, socket, context) {
 
     const roomHistory = chatHistory.filter(msg => msg.roomCode === VGM_ROOM);
     socket.emit('chatHistory', roomHistory);
+  });
+
+  socket.on('vgmPause', () => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const lobby = lobbies[currentRoom];
+    const player = lobby.players[socket.id];
+    if (!player || lobby.roundActive || !lobby.autoPlayActive) return;
+    lobby.paused = !lobby.paused;
+    lobby.countdownToken = (lobby.countdownToken || 0) + 1;
+    io.to(currentRoom).emit('vgmPaused', { paused: lobby.paused, by: player.name });
+    if (!lobby.paused) runCountdown(currentRoom, { ...context, lobbies }, 3);
   });
 
   socket.on('startRound', () => {

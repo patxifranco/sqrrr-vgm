@@ -645,7 +645,7 @@ document.addEventListener('keydown', (e) => {
   const a = document.activeElement;
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return;
   if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) return;
-  if (document.querySelector('.va-mini')) return;
+  if (document.querySelector('.va-mini') || !document.getElementById('va-dlg').hidden) return;
   guessInput.focus();
 });
 document.getElementById('game-add-song-btn').addEventListener('click', () => {
@@ -1057,6 +1057,7 @@ socketManager.on('chatMessage', ({ system, message }) => {
 socketManager.on('roundStart', ({ roundNumber: num, audioToken, duration }) => {
   log.info(`Round ${num} starting`);
   document.title = `SQRRR VGM · Ronda ${num}`;
+  vgmPausedState = false;
   clearCountdowns();
   resetRoundState();
   roundActive = true;
@@ -1143,7 +1144,7 @@ socketManager.on('hintResult', ({ success, hint, hintPoints: newPoints, reason }
     hintPoints = newPoints;
     usedHintThisRound = true;
     updateHintDisplay();
-    addMsnMessage('SQRRR', `Pista: ${hint}`, false);
+    addFrameMessage(hint);
   } else {
     addMsnMessage('SQRRR', reason, false);
   }
@@ -1204,9 +1205,23 @@ function clearCountdowns() {
   for (const d of Object.values(countdownMessages)) d.remove();
   countdownMessages = {};
 }
-socketManager.on('sqrrrCountdown', ({ id, seconds }) => {
+let vgmPausedState = false;
+socketManager.on('vgmPaused', ({ paused }) => {
+  vgmPausedState = paused;
+  for (const b of gameMessages.querySelectorAll('.vgm-pause')) b.innerHTML = paused ? '&#x25B6;' : '&#x23F8;';
+  if (!paused) return;
+  for (const d of Object.values(countdownMessages)) {
+    const fill = d.querySelector('.xp-bar-fill');
+    const w = getComputedStyle(fill).width;
+    fill.style.transition = 'none';
+    fill.style.width = w;
+    d.querySelector('.xp-copy-time').textContent = 'Pausado';
+  }
+});
+socketManager.on('sqrrrCountdown', ({ id, seconds, total = 5 }) => {
   let countdownDiv = countdownMessages[id];
   if (!countdownDiv) {
+    clearCountdowns();
     countdownDiv = document.createElement('div');
     countdownDiv.className = 'chat-msg countdown-msg';
     countdownDiv.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br>
@@ -1214,16 +1229,18 @@ socketManager.on('sqrrrCountdown', ({ id, seconds }) => {
         <div class="title-bar"><div class="title-bar-text">Copiando...</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
         <div class="window-body">
           <div class="xp-copy-anim"><i class="xp-folder"></i><span class="xp-papers"><b></b><b></b><b></b></span><i class="xp-folder"></i></div>
-          <div class="xp-copy-name"><span>Cargando siguiente canción</span><span class="xp-copy-time"><b>5</b> s</span></div>
-          <div class="msn-file-progress">${'<div class="msn-file-progress-segment"></div>'.repeat(20)}</div>
+          <div class="xp-copy-name"><span>Cargando siguiente canción</span><span class="xp-copy-right"><button class="vgm-pause" title="Pausa">${vgmPausedState ? '&#x25B6;' : '&#x23F8;'}</button><span class="xp-copy-time"><b>5</b> s</span></span></div>
+          <div class="xp-bar"><div class="xp-bar-fill"></div></div>
         </div>
       </div></div>`;
     gameMessages.appendChild(countdownDiv);
     countdownMessages[id] = countdownDiv;
+    const fill = countdownDiv.querySelector('.xp-bar-fill');
+    fill.style.width = `${(total - seconds) / total * 100}%`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.transition = `width ${seconds}s linear`; fill.style.width = '100%'; }));
   }
-  countdownDiv.querySelector('.xp-copy-time b').textContent = seconds;
-  const filled = Math.round((5 - seconds) / 5 * 20);
-  countdownDiv.querySelectorAll('.msn-file-progress-segment').forEach((s, i) => s.classList.toggle('filled', i < filled));
+  const num = countdownDiv.querySelector('.xp-copy-time b');
+  if (num) num.textContent = seconds;
   vgmChat.scroll();
 });
 
@@ -1272,6 +1289,8 @@ function showCover(src) {
   document.addEventListener('keydown', onKey);
 }
 gameMessages.addEventListener('click', (e) => {
+  const pb = e.target.closest('.vgm-pause');
+  if (pb) return socket.emit('vgmPause');
   const qb = e.target.closest('.msg-quote-btn');
   if (qb) {
     const m = qb.closest('.chat-msg');
@@ -1400,11 +1419,19 @@ socketManager.on('nudgeReceived', () => {
   }
 });
 
+function addFrameMessage(mask) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  const cells = [...(mask || '')].map(ch => ch === ' ' ? '<i class="hint-gap"></i>' : `<span class="hint-cell${ch === '*' ? ' miss' : ''}">${escapeHtml(ch)}</span>`).join('');
+  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><div class="hint-frame">${cells}</div></div>`;
+  gameMessages.appendChild(div);
+  vgmChat.scroll();
+}
 socketManager.on('closeGuess', ({ guess, type, percentage, hint }) => {
   const div = document.createElement('div');
   div.className = 'chat-msg';
   const cells = [...(hint || '')].map(ch => ch === ' ' ? '<i class="hint-gap"></i>' : `<span class="hint-cell${ch === '*' ? ' miss' : ''}">${escapeHtml(ch)}</span>`).join('');
-  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><span class="msg-system">Estás cerca:</span><div class="hint-lcd">${cells}</div></div>`;
+  div.innerHTML = `<img class="msg-avatar" src="profiles/default.svg" alt=""><div class="msg-body"><span class="msg-sender sqrrr-msg">SQRRR dice:</span><br><div class="hint-frame">${cells}</div></div>`;
   gameMessages.appendChild(div);
   vgmChat.scroll();
 
@@ -1612,17 +1639,17 @@ socketManager.on('typingUpdate', ({ typing }) => {
   const othersTyping = typing.filter(name => name !== currentUser?.username);
 
   if (othersTyping.length === 0) {
-    typingIndicator.style.display = 'none';
+    typingIndicator.style.visibility = 'hidden';
   } else if (othersTyping.length === 1) {
     typingIndicatorText.textContent = `${othersTyping[0]} está escribiendo...`;
-    typingIndicator.style.display = 'block';
+    typingIndicator.style.visibility = 'visible';
   } else if (othersTyping.length === 2) {
     typingIndicatorText.textContent = `${othersTyping[0]} y ${othersTyping[1]} están escribiendo...`;
-    typingIndicator.style.display = 'block';
+    typingIndicator.style.visibility = 'visible';
   } else {
     const lastPerson = othersTyping.pop();
     typingIndicatorText.textContent = `${othersTyping.join(', ')} y ${lastPerson} están escribiendo...`;
-    typingIndicator.style.display = 'block';
+    typingIndicator.style.visibility = 'visible';
   }
 });
 
