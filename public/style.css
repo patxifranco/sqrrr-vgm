@@ -500,12 +500,14 @@ section.field-row {
 
 .game-screen-container .game-window {
   position: relative;
+  padding: 3px;
 }
 
 .game-body {
   display: flex;
   flex-direction: column;
-  height: calc(100% - 27px);
+  height: calc(100% - 21px);
+  margin: 0;
   padding: 0 !important;
 }
 
@@ -4180,7 +4182,8 @@ body:has(#arcraiders-screen.active) {
   gap: 6px;
 }
 
-#game-add-song-btn {
+#game-add-song-btn,
+#back-to-hub-game {
   min-width: 0;
   min-height: 0;
   padding: 3px 8px;
@@ -4189,7 +4192,9 @@ body:has(#arcraiders-screen.active) {
 
 .game-toolbar-right .slot-popup-btn {
   font-size: 18px;
-  padding: 2px 4px;
+  min-height: 0;
+  padding: 0 4px;
+  line-height: 24px;
 }
 
 .title-bar {
