@@ -186,7 +186,7 @@ body {
 
 .game-window {
   width: 1640px;
-  height: 990px;
+  height: 940px;
   min-width: 600px;
   min-height: 500px;
   position: relative;
@@ -784,11 +784,19 @@ section.field-row {
   background: var(--xp-bg);
 }
 
-.msn-input-row input[type="text"] {
+.msn-input-row input[type="text"],
+.msn-input-row textarea {
   flex: 1;
-  padding: 4px 8px;
+  padding: 6px 8px;
   font-size: 12px;
+  font-family: var(--font-family);
   min-height: 24px;
+}
+
+.msn-input-row textarea {
+  height: 66px;
+  resize: none;
+  line-height: 1.35;
 }
 
 .msn-input-row button {
