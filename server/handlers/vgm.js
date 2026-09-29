@@ -1,4 +1,14 @@
 const { createVGMPlayer } = require('../utils');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const UPLOADS = path.join(__dirname, '..', '..', 'public', 'uploads');
+fs.mkdirSync(UPLOADS, { recursive: true });
+for (const f of fs.readdirSync(UPLOADS)) {
+  const p = path.join(UPLOADS, f);
+  if (Date.now() - fs.statSync(p).mtimeMs > 30 * 24 * 3600e3) fs.unlinkSync(p);
+}
 
 let _io = null;
 const VGM_ROOM = 'VGM';
@@ -13,6 +23,7 @@ const SYS_FONT = { size: 13, color: '#666666', nameColor: '#0000ff', effect: 'no
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
 function mangle(text, mode) {
+  if (/https?:\/\//.test(text)) return text;
   switch (mode) {
     case 'uwu': return text.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W').replace(/n([aeiou])/gi, 'ny$1') + ' ' + pick(['uwu', 'owo', '>w<', 'uwu~']);
     case 'leet': return text.replace(/[aeiost]/gi, c => ({ a: '4', e: '3', i: '1', o: '0', s: '5', t: '7' })[c.toLowerCase()]);
@@ -939,6 +950,21 @@ function setupHandlers(io, socket, context) {
     v[type === 'up' ? 'down' : 'up'].delete(player.name);
     v[type].add(player.name);
     io.to(currentRoom).emit('songVote', { id: song.id, type, by: player.name, up: v.up.size, down: v.down.size });
+  });
+
+  socket.on('sendImage', (data) => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const player = lobbies[currentRoom].players[socket.id];
+    if (!player || typeof data !== 'string' || data.length > 420000 || !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(data)) return;
+    if (player.imgAt && Date.now() - player.imgAt < 3000) return;
+    player.imgAt = Date.now();
+    const name = `${crypto.randomBytes(8).toString('hex')}.jpg`;
+    fs.writeFile(path.join(UPLOADS, name), Buffer.from(data.slice(data.indexOf(',') + 1), 'base64'), err => {
+      if (err) return;
+      player.quote = null;
+      io.to(currentRoom).emit('gameChatMessage', chatPayload(player, '', { img: `/uploads/${name}` }));
+    });
   });
 
   socket.on('sendInk', (data) => {

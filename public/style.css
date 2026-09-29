@@ -6765,3 +6765,5 @@ body.theme-xp .title-bar .theme-selector {
 .net-toast { position: fixed; right: 16px; bottom: 16px; width: 260px; z-index: 30000; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5); }
 .net-toast .window-body { padding: 10px 12px; font-size: 12px; }
 .new-msgs { width: 100%; min-width: 0; min-height: 0; padding: 2px; font-size: 11px; font-weight: bold; background: #fff8c6; border: 1px solid #d8c66a; border-radius: 0; }
+.chat-img { display: block; max-width: 320px; max-height: 240px; margin-top: 2px; border: 1px solid #c9d6ea; background: #fff; cursor: pointer; }
+.chat-link { color: #1a3d86; }

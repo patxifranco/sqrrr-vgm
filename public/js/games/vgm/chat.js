@@ -83,6 +83,7 @@ const WD = Array.from('♠♣♥♦☺☻♪♫☼►◄▲▼○●□■☆★
 const wingdings = text => Array.from(text).map(ch => { const i = ch.toLowerCase().charCodeAt(0) - 97; return i >= 0 && i < 26 ? WD[i] : ch; }).join('');
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function mangle(text, mode) {
+  if (/https?:\/\//.test(text)) return text;
   switch (mode) {
     case 'uwu': return text.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W').replace(/n([aeiou])/gi, 'ny$1') + ' ' + pick(['uwu', 'owo', '>w<', 'uwu~']);
     case 'leet': return text.replace(/[aeiost]/gi, c => ({ a: '4', e: '3', i: '1', o: '0', s: '5', t: '7' })[c.toLowerCase()]);
@@ -93,6 +94,23 @@ function mangle(text, mode) {
   }
 }
 const EFFECT_CLASS = { rainbow: 'rainbow-text', blink: 'fx-blink', fire: 'fx-fire', ice: 'fx-ice', gold: 'fx-gold', flip: 'fx-flip', mirror: 'fx-mirror', spoiler: 'fx-spoiler' };
+
+const URL_RE = /https?:\/\/[^\s<>"']+/g;
+const IMG_HOSTS = ['pbs.twimg.com', 'i.imgur.com', 'i.redd.it', 'media.tenor.com', 'i.ytimg.com'];
+function isImageUrl(url) {
+  try {
+    const u = new URL(url);
+    return /\.(jpe?g|png|gif|webp)$/i.test(u.pathname) || IMG_HOSTS.includes(u.hostname);
+  } catch (e) { return false; }
+}
+function richText(text) {
+  return String(text).split(URL_RE).reduce((out, part, i, parts) => {
+    out += replaceEmoticons(escapeHtml(part));
+    const url = (text.match(URL_RE) || [])[i];
+    if (url) out += isImageUrl(url) ? `<img class="chat-img" src="${escapeHtml(url)}" alt="">` : `<a class="chat-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a>`;
+    return out;
+  }, '');
+}
 
 const PROGRESS_SEGMENT_COUNT = 20;
 const MAX_MESSAGES = 100;
@@ -184,7 +202,7 @@ class VGMChat {
     const div = document.createElement('div');
     div.className = 'chat-msg';
 
-    const processMessage = (msg) => replaceEmoticons(escapeHtml(msg));
+    const processMessage = (msg) => richText(msg);
 
     if (isSystem) {
       div.innerHTML = `<span class="msg-system">${processMessage(message)}</span>`;
@@ -200,6 +218,7 @@ class VGMChat {
       const effect = fs.effect || 'none';
       let inner;
       if (options.ink) inner = `<img class="ink-msg" src="${options.ink}" alt="">`;
+      else if (options.img) inner = `<img class="chat-img" src="${escapeHtml(options.img)}" alt="">`;
       else if (effect === 'wave') { inner = createWaveText(message); classes.push('wave-text'); }
       else if (effect === 'quake') { inner = letterSpans(message, 'fx-letter', () => `-${(Math.random() * 0.15).toFixed(2)}s`); classes.push('fx-quake'); }
       else if (effect === 'type') { inner = letterSpans(message, 'fx-letter', i => `${(i * 0.04).toFixed(2)}s`); classes.push('fx-type'); }
@@ -210,20 +229,31 @@ class VGMChat {
       const nameStyle = `color: ${fs.nameColor};`;
       const quoteHtml = options.quote ? `<div class="msg-quote"><b>${escapeHtml(options.quote.sender)}:</b> ${processMessage(options.quote.text)}</div>` : '';
       div.dataset.sender = sender;
-      div.dataset.text = options.ink ? '(dibujo)' : message;
+      div.dataset.text = options.ink ? '(dibujo)' : options.img ? '(imagen)' : message;
       div.innerHTML = `<img class="msg-avatar" src="${escapeHtml(options.profilePicture || 'profiles/default.svg')}" alt=""><div class="msg-body">${options.bet ? '<span class="bet-chip"></span>' : ''}<span class="msg-sender${onFire ? ' fire-name' : ''}" style="${nameStyle}">${escapeHtml(sender)} dice:</span><button class="msg-quote-btn" title="Citar">&#x275D;</button><br>${quoteHtml}<span class="${classes.filter(Boolean).join(' ')}" style="${style}">${inner}</span></div>`;
     }
 
+    for (const i of div.querySelectorAll('img.chat-img')) {
+      i.addEventListener('error', () => {
+        const a = document.createElement('a');
+        a.className = 'chat-link';
+        a.href = i.src;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = i.src;
+        i.replaceWith(a);
+      }, { once: true });
+    }
     return div;
   }
 
   addStartButton() {
+    for (const old of this.container.querySelectorAll('.start-vgm-container')) old.remove();
     const div = document.createElement('div');
     div.className = 'chat-msg start-vgm-container';
     div.innerHTML = `<button class="start-vgm-btn" id="start-vgm-chat-btn">Empezar VGM</button>`;
-    this.container.appendChild(div);
+    this.container.prepend(div);
     this._trimMessages();
-    this.scroll();
 
     const btn = div.querySelector('.start-vgm-btn');
     btn.addEventListener('click', () => {

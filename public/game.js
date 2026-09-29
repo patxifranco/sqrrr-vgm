@@ -169,7 +169,6 @@ const gameStatusValue = document.getElementById('game-status-value');
 const songStatus = document.getElementById('song-status');
 const songStatusValue = document.getElementById('song-status-value');
 const guessInput = document.getElementById('guess-input');
-const guessBtn = document.getElementById('guess-btn');
 const hintBtn = document.getElementById('hint-btn');
 const hintFill = document.getElementById('hint-fill');
 const hintPointsText = document.getElementById('hint-points-text');
@@ -481,7 +480,6 @@ function resetRoundState() {
   if (gameStatusText) gameStatusText.textContent = '';
   guessInput.value = '';
   guessInput.disabled = false;
-  guessBtn.disabled = false;
   if (voteExtendBtn) {
     voteExtendBtn.disabled = false;
     voteExtendBtn.style.opacity = '1';
@@ -635,6 +633,28 @@ document.getElementById('vgm-choice-menu').addEventListener('click', () => {
 socketManager.on('vgmPresence', ({ players }) => {
   const small = vgmBtn.querySelector('small');
   if (small) small.innerHTML = players.length ? 'Jugando: ' + players.map(p => `<b style="color:${p.color || '#333'}">${escapeHtml(p.name)}</b>`).join(', ') : 'Música de frikitones';
+});
+document.addEventListener('paste', (e) => {
+  if (currentScreen !== 'game' || document.querySelector('.va-mini')) return;
+  const file = [...(e.clipboardData?.files || [])].find(f => f.type.startsWith('image/'));
+  if (!file) return;
+  e.preventDefault();
+  const img = new Image();
+  img.onload = () => {
+    const scale = Math.min(1, 640 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * scale));
+    c.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    let data = c.toDataURL('image/jpeg', 0.8);
+    if (data.length > 400000) data = c.toDataURL('image/jpeg', 0.55);
+    URL.revokeObjectURL(img.src);
+    socket.emit('sendImage', data);
+  };
+  img.src = URL.createObjectURL(file);
 });
 document.addEventListener('keydown', (e) => {
   if (currentScreen !== 'game') return;
@@ -901,7 +921,6 @@ function submitGuess() {
   }
 }
 
-guessBtn.addEventListener('click', submitGuess);
 guessInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -1302,7 +1321,7 @@ gameMessages.addEventListener('click', (e) => {
   }
   const tv = e.target.closest('.tier-vote');
   if (tv) return socket.emit('tierVote', { id: +tv.closest('.reveal-tiers').dataset.song, tier: tv.dataset.tier });
-  const cover = e.target.closest('.reveal-cover');
+  const cover = e.target.closest('.reveal-cover, .chat-img');
   if (cover) return showCover(cover.src);
   const edit = e.target.closest('.reveal-edit');
   if (edit) return document.dispatchEvent(new CustomEvent('vaEdit', { detail: { id: +edit.dataset.id, game: edit.dataset.game, song: edit.dataset.name, aliases: edit.dataset.aliases } }));
