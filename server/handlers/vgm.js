@@ -132,7 +132,7 @@ function getCloseGuessPercentage(guess, correctAnswer) {
   const normalizedGuess = normalizeText(guess);
   const normalizedCorrect = normalizeText(correctAnswer);
 
-  if (normalizedGuess.length < 3) return 0;
+  if (normalizedGuess.length < 2) return 0;
 
   let bestPercentage = 0;
 
@@ -152,8 +152,8 @@ function getCloseGuessPercentage(guess, correctAnswer) {
     }
   }
 
-  if (normalizedCorrect.startsWith(normalizedGuess) && normalizedGuess.length >= normalizedCorrect.length * 0.4) {
-    bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedCorrect));
+  if (normalizedCorrect.replace(/ /g, '').startsWith(normalizedGuess.replace(/ /g, ''))) {
+    bestPercentage = Math.max(bestPercentage, calculateSimilarity(normalizedGuess, normalizedCorrect), 1);
   }
 
   if (guessWords.length > 0 && correctWords.length > guessWords.length) {
@@ -766,7 +766,7 @@ function setupHandlers(io, socket, context) {
             fontSettings: { size: 13, color: '#666666', nameColor: '#0000ff', effect: 'none' }
           });
         } else {
-          const closePercentage = getCloseGuessPercentage(guess, song.game);
+          const closePercentage = Math.max(...[song.game, ...(song.aliases || [])].map(name => getCloseGuessPercentage(guess, name)));
           if (closePercentage > 0) {
             if (!player.closeGuesses) player.closeGuesses = [];
             player.closeGuesses.push(guess);
