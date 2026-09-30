@@ -95,8 +95,9 @@ function calculateSimilarity(str1, str2) {
   return Math.round((1 - distance / maxLen) * 100);
 }
 
+const ROMAN = { i: '1', ii: '2', iii: '3', iv: '4', v: '5', vi: '6', vii: '7', viii: '8', ix: '9', x: '10', xi: '11', xii: '12', xiii: '13', xiv: '14', xv: '15', xvi: '16' };
 function checkGuess(guess, correctAnswer) {
-  const letters = text => normalizeText(text).replace(/ /g, '');
+  const letters = text => normalizeText(text).split(' ').map(w => ROMAN[w] || w).join('');
   return letters(guess) === letters(correctAnswer);
 }
 
