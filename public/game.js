@@ -49,9 +49,9 @@ const log = logger.scope('VGM');
 audioManager.preload('notify', 'windows_xp_notify.mp3');
 audioManager.preload('logon', document.documentElement.classList.contains('halloween') ? 'windows_xp_logon_minor.mp3' : 'windows_xp_logon.mp3');
 audioManager.preload('logoff', 'windows_xp_logoff.mp3');
-audioManager.preload('supersonic', 'supersonic.mp3');
+audioManager.preload('supersonic', document.documentElement.classList.contains('halloween') ? 'supersonic-halloween.mp3' : 'supersonic.mp3');
 audioManager.preload('nudge', 'msn_nudge_sound.mp3');
-audioManager.preload('correct', 'correct.mp3');
+audioManager.preload('correct', document.documentElement.classList.contains('halloween') ? 'correct-halloween.mp3' : 'correct.mp3');
 audioManager.preload('close', 'close.mp3');
 audioManager.preload('empezar', 'empezar.mp3');
 
