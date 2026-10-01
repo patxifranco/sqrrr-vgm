@@ -80,8 +80,8 @@ html.halloween body {
 #hw-deco .hw-pumpkin { width: 64px; height: 64px; background: url(../halloween/pumpkin.svg) center / contain no-repeat; animation: hw-glow 2.2s ease-in-out infinite alternate; }
 #hw-deco .hw-pumpkin.small { width: 44px; height: 44px; }
 
-#hw-light { position: fixed; inset: 0; z-index: 9000; pointer-events: none; display: none; background: radial-gradient(circle at var(--hx, 50%) var(--hy, 50%), rgba(255, 214, 140, 0.1) 0, rgba(255, 214, 140, 0) 170px), radial-gradient(circle at var(--hx, 50%) var(--hy, 50%), rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 150px, rgba(0, 0, 0, 0.55) 215px, rgba(0, 0, 0, 0.9) 330px); animation: hw-flicker 9s linear infinite; }
-html.halloween body:has(#login-screen.active) #hw-light { display: block; }
+#hw-light { position: fixed; inset: 0; z-index: 9000; pointer-events: none; display: none; background: radial-gradient(circle at var(--hx, 50%) var(--hy, 50%), rgba(255, 214, 140, 0.1) 0, rgba(255, 214, 140, 0) 170px), radial-gradient(circle at var(--hx, 50%) var(--hy, 50%), rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 140px, rgba(0, 0, 0, 0.7) 210px, rgba(0, 0, 0, 0.975) 330px); animation: hw-flicker 9s linear infinite; }
+html.halloween body:has(#login-screen.active) #hw-light, html.halloween body:has(#hub-screen.active) #hw-light { display: block; }
 
 #hw-bats { position: fixed; inset: 0; z-index: 9500; pointer-events: none; display: none; }
 html.halloween body:has(#game-screen.active) #hw-bats { display: block; }

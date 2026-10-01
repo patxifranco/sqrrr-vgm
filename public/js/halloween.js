@@ -53,7 +53,7 @@
   light.id = 'hw-light';
   document.body.appendChild(light);
   function placeLight() {
-    const win = document.querySelector('#login-screen .window');
+    const win = document.querySelector('.screen-container.active .window');
     if (!win) return;
     const r = win.getBoundingClientRect();
     light.style.setProperty('--hx', r.left + r.width / 2 + 'px');
@@ -61,6 +61,8 @@
   }
   placeLight();
   window.addEventListener('resize', placeLight);
+  let moved = false;
+  new MutationObserver(() => { if (!moved) requestAnimationFrame(placeLight); }).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
 
   const canvas = document.createElement('canvas');
   canvas.id = 'hw-bats';
@@ -128,20 +130,31 @@
     raf = bats.length ? requestAnimationFrame(tick) : 0;
   }
 
+  function addBat(x, y, ang) {
+    const sp = 1.4 + Math.random() * 2.6;
+    bats.push({ x: x + (Math.random() - 0.5) * 10, y: y + (Math.random() - 0.5) * 10, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.1, s: 5 + Math.random() * 6, life: 0, max: 900 + Math.random() * 800, ph: Math.random() * 6.28 });
+  }
+
   function spawn(e) {
     if (!game || !game.classList.contains('active')) return;
     const dx = e.clientX - last.x, dy = e.clientY - last.y;
     const t = performance.now();
-    if (Math.hypot(dx, dy) < 14 || t - last.t < 45) return;
+    if (Math.hypot(dx, dy) < 40 || t - last.t < 180) return;
     last.x = e.clientX; last.y = e.clientY; last.t = t;
-    if (bats.length > 45) return;
-    const ang = Math.atan2(dy, dx) + Math.PI + (Math.random() - 0.5) * 1.6;
-    const sp = 1.2 + Math.random() * 2.2;
-    bats.push({ x: e.clientX, y: e.clientY, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.2, s: 9 + Math.random() * 11, life: 0, max: 1100 + Math.random() * 900, ph: Math.random() * 6.28 });
+    if (bats.length > 90) return;
+    const base = Math.atan2(dy, dx) + Math.PI;
+    const n = 5 + Math.floor(Math.random() * 5);
+    const x = e.clientX, y = e.clientY;
+    for (let i = 0; i < n; i++) {
+      const ang = base + (Math.random() - 0.5) * 2.2;
+      if (i < 3) addBat(x, y, ang);
+      else setTimeout(() => { addBat(x, y, ang); if (!raf) { prevT = performance.now(); raf = requestAnimationFrame(tick); } }, 40 + Math.random() * 160);
+    }
     if (!raf) { prevT = t; raf = requestAnimationFrame(tick); }
   }
 
   document.addEventListener('mousemove', e => {
+    moved = true;
     light.style.setProperty('--hx', e.clientX + 'px');
     light.style.setProperty('--hy', e.clientY + 'px');
     spawn(e);
