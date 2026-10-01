@@ -6754,3 +6754,10 @@ body.theme-xp .title-bar .theme-selector {
 .new-msgs { width: 100%; min-width: 0; min-height: 0; padding: 2px; font-size: 11px; font-weight: bold; background: #fff8c6; border: 1px solid #d8c66a; border-radius: 0; }
 .chat-img { display: block; max-width: 320px; max-height: 240px; margin-top: 2px; border: 1px solid #c9d6ea; background: #fff; cursor: pointer; }
 .chat-link { color: #1a3d86; }
+.gif-popup { width: 340px; }
+.gif-popup input { width: 100%; box-sizing: border-box; margin-bottom: 6px; }
+.gif-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; max-height: 250px; overflow-y: auto; }
+.gif-grid img { display: block; width: 100%; height: 76px; object-fit: cover; cursor: pointer; border: 1px solid #c9d6ea; background: #fff; }
+.gif-grid img:hover { border-color: var(--color-primary); }
+.gif-empty { grid-column: 1 / -1; font-size: 11px; color: #777; padding: 10px; text-align: center; }
+.gif-foot { font-size: 9px; color: #888; text-align: right; margin-top: 4px; letter-spacing: 1px; }

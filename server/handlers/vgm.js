@@ -951,6 +951,16 @@ function setupHandlers(io, socket, context) {
     io.to(currentRoom).emit('songVote', { id: song.id, type, by: player.name, up: v.up.size, down: v.down.size });
   });
 
+  socket.on('sendGif', (url) => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const player = lobbies[currentRoom].players[socket.id];
+    if (!player || typeof url !== 'string' || !/^https:\/\/static\.klipy\.com\/[\w\/.-]+\.gif$/.test(url)) return;
+    if (player.imgAt && Date.now() - player.imgAt < 3000) return;
+    player.imgAt = Date.now();
+    io.to(currentRoom).emit('gameChatMessage', chatPayload(player, '', { img: url }));
+  });
+
   socket.on('sendImage', (data) => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;

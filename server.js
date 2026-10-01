@@ -441,6 +441,32 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+const KLIPY_KEY = process.env.KLIPY_KEY;
+const gifCache = new Map();
+app.get('/api/gifs', async (req, res) => {
+  if (!KLIPY_KEY) return res.json([]);
+  const q = String(req.query.q || '').trim().slice(0, 60);
+  const cacheKey = q.toLowerCase();
+  const hit = gifCache.get(cacheKey);
+  if (hit && Date.now() - hit.t < 15 * 60e3) return res.json(hit.list);
+  try {
+    const base = `https://api.klipy.com/api/v1/${KLIPY_KEY}/gifs/`;
+    const url = q ? `${base}search?q=${encodeURIComponent(q)}&page=1&per_page=24&customer_id=sqrrr` : `${base}trending?page=1&per_page=24&customer_id=sqrrr`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const j = await r.json();
+    const list = ((j.data && j.data.data) || []).map(g => {
+      const f = g.file || {};
+      const pick = s => f[s] && f[s].gif && f[s].gif.url;
+      return { p: pick('xs') || pick('sm'), u: pick('md') || pick('sm') || pick('hd') };
+    }).filter(g => g.p && g.u);
+    gifCache.set(cacheKey, { t: Date.now(), list });
+    if (gifCache.size > 300) gifCache.delete(gifCache.keys().next().value);
+    res.json(list);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
 let songs = [];
 try {
   songs = JSON.parse(fs.readFileSync(path.join(__dirname, 'songs.json'), 'utf8'));

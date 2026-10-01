@@ -248,6 +248,7 @@ const documentListeners = {
   clickToPlay: null,
   fontPopupClose: null,
   emoticonPopupClose: null,
+  gifPopupClose: null,
   dragMove: null,
   dragEnd: null,
   resizeMove: null,
@@ -268,6 +269,10 @@ function cleanupDocumentListeners() {
   if (documentListeners.emoticonPopupClose) {
     document.removeEventListener('click', documentListeners.emoticonPopupClose);
     documentListeners.emoticonPopupClose = null;
+  }
+  if (documentListeners.gifPopupClose) {
+    document.removeEventListener('click', documentListeners.gifPopupClose);
+    documentListeners.gifPopupClose = null;
   }
   if (documentListeners.dragMove) {
     document.removeEventListener('mousemove', documentListeners.dragMove);
@@ -660,7 +665,7 @@ document.addEventListener('paste', (e) => {
 document.addEventListener('keydown', (e) => {
   if (currentScreen !== 'game') return;
   if (e.key === 'Escape') {
-    for (const p of [fontPopup, betPopup, inkPopup, emoticonPopup]) if (p) p.style.display = 'none';
+    for (const p of [fontPopup, betPopup, inkPopup, emoticonPopup, gifPopup]) if (p) p.style.display = 'none';
     return;
   }
   const a = document.activeElement;
@@ -1615,6 +1620,60 @@ documentListeners.emoticonPopupClose = (e) => {
   }
 };
 document.addEventListener('click', documentListeners.emoticonPopupClose);
+
+const gifBtn = document.getElementById('gif-btn');
+const gifPopup = document.getElementById('gif-popup');
+const gifSearch = document.getElementById('gif-search');
+const gifGrid = document.getElementById('gif-grid');
+let gifTimer = null;
+let gifSeq = 0;
+async function loadGifs(q) {
+  const seq = ++gifSeq;
+  gifGrid.innerHTML = '<div class="gif-empty">Buscando...</div>';
+  try {
+    const list = await (await fetch('/api/gifs?q=' + encodeURIComponent(q))).json();
+    if (seq !== gifSeq) return;
+    gifGrid.replaceChildren(...list.map(g => {
+      const img = document.createElement('img');
+      img.src = g.p;
+      img.dataset.url = g.u;
+      img.loading = 'lazy';
+      return img;
+    }));
+    if (!list.length) gifGrid.innerHTML = '<div class="gif-empty">Nada por aquí</div>';
+  } catch (err) {
+    if (seq === gifSeq) gifGrid.innerHTML = '<div class="gif-empty">Sin GIFs ahora mismo</div>';
+  }
+}
+if (gifBtn) {
+  gifBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = gifPopup.style.display === 'none';
+    gifPopup.style.display = open ? 'block' : 'none';
+    if (open) {
+      if (!gifGrid.children.length) loadGifs(gifSearch.value.trim());
+      gifSearch.focus();
+    }
+  });
+  gifSearch.addEventListener('input', () => {
+    clearTimeout(gifTimer);
+    gifTimer = setTimeout(() => loadGifs(gifSearch.value.trim()), 400);
+  });
+  gifSearch.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Escape') gifPopup.style.display = 'none';
+  });
+  gifGrid.addEventListener('click', (e) => {
+    const url = e.target.dataset ? e.target.dataset.url : null;
+    if (!url) return;
+    socket.emit('sendGif', url);
+    gifPopup.style.display = 'none';
+  });
+  documentListeners.gifPopupClose = (e) => {
+    if (!gifPopup.contains(e.target) && !gifBtn.contains(e.target)) gifPopup.style.display = 'none';
+  };
+  document.addEventListener('click', documentListeners.gifPopupClose);
+}
 
 windowControls.init({ guessInput }, documentListeners);
 hands = createHands({

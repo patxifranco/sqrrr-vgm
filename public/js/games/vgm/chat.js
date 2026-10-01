@@ -94,7 +94,7 @@ function mangle(text, mode) {
 const EFFECT_CLASS = { rainbow: 'rainbow-text', blink: 'fx-blink', fire: 'fx-fire', ice: 'fx-ice', gold: 'fx-gold', flip: 'fx-flip', mirror: 'fx-mirror', spoiler: 'fx-spoiler' };
 
 const URL_RE = /https?:\/\/[^\s<>"']+/g;
-const IMG_HOSTS = ['pbs.twimg.com', 'i.imgur.com', 'i.redd.it', 'media.tenor.com', 'i.ytimg.com'];
+const IMG_HOSTS = ['pbs.twimg.com', 'i.imgur.com', 'i.redd.it', 'media.tenor.com', 'i.ytimg.com', 'static.klipy.com'];
 function isImageUrl(url) {
   try {
     const u = new URL(url);
