@@ -254,7 +254,7 @@ function setupHandlers(io, socket, { getLoggedInUsername, getUser, songs, addedS
         addSong(entry);
         log('VGMADD', `${username} added "${songName}" (${gameName}) ${Math.round(size / 1024)} KB from ${source}`);
         socket.emit('vaDone', { song: entry, total: songs.length });
-        io.to(VGM_ROOM).emit('sqrrrMessage', { message: `${username} ha añadido "${songName}" (${gameName}) al VGM`, isBold: true });
+        io.to(VGM_ROOM).emit('sqrrrMessage', { message: `${username} ha añadido una canción al VGM`, isBold: true });
       });
     } catch (e) { fail('No se pudo añadir: ' + e.message, e); }
   });
