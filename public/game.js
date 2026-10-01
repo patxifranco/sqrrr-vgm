@@ -53,6 +53,7 @@ audioManager.preload('supersonic', 'supersonic.mp3');
 audioManager.preload('nudge', 'msn_nudge_sound.mp3');
 audioManager.preload('correct', 'correct.mp3');
 audioManager.preload('close', 'close.mp3');
+audioManager.preload('empezar', 'empezar.mp3');
 
 function playNotifySound() {
   audioManager.play('notify', { volume: 0.6 });
@@ -249,6 +250,7 @@ const documentListeners = {
   fontPopupClose: null,
   emoticonPopupClose: null,
   gifPopupClose: null,
+  lastPopupClose: null,
   dragMove: null,
   dragEnd: null,
   resizeMove: null,
@@ -273,6 +275,10 @@ function cleanupDocumentListeners() {
   if (documentListeners.gifPopupClose) {
     document.removeEventListener('click', documentListeners.gifPopupClose);
     documentListeners.gifPopupClose = null;
+  }
+  if (documentListeners.lastPopupClose) {
+    document.removeEventListener('click', documentListeners.lastPopupClose);
+    documentListeners.lastPopupClose = null;
   }
   if (documentListeners.dragMove) {
     document.removeEventListener('mousemove', documentListeners.dragMove);
@@ -665,7 +671,7 @@ document.addEventListener('paste', (e) => {
 document.addEventListener('keydown', (e) => {
   if (currentScreen !== 'game') return;
   if (e.key === 'Escape') {
-    for (const p of [fontPopup, betPopup, inkPopup, emoticonPopup, gifPopup]) if (p) p.style.display = 'none';
+    for (const p of [fontPopup, betPopup, inkPopup, emoticonPopup, gifPopup, lastPopup]) if (p) p.style.display = 'none';
     return;
   }
   const a = document.activeElement;
@@ -1216,6 +1222,7 @@ socketManager.on('sqrrrMessage', ({ message, isBold, isRecord }) => {
     clearCountdowns();
     vgmChat.addStartButton();
   }
+  if (message.startsWith('nos bem0')) vgmChat.scroll();
   if (message.includes('La canción era')) {
     vgmChat.revealFileName();
   }
@@ -1230,6 +1237,14 @@ function clearCountdowns() {
   for (const d of Object.values(countdownMessages)) d.remove();
   countdownMessages = {};
 }
+socketManager.on('gameOver', () => {
+  vgmPausedState = false;
+  clearCountdowns();
+  vgmChat.addStartButton();
+});
+socketManager.on('vgmStart', () => {
+  audioManager.play('empezar', { volume: 0.5 });
+});
 let vgmPausedState = false;
 socketManager.on('vgmPaused', ({ paused }) => {
   vgmPausedState = paused;
@@ -1620,6 +1635,27 @@ documentListeners.emoticonPopupClose = (e) => {
   }
 };
 document.addEventListener('click', documentListeners.emoticonPopupClose);
+
+const lastBtn = document.getElementById('last-btn');
+const lastPopup = document.getElementById('last-popup');
+const lastSlider = document.getElementById('last-slider');
+const lastAmount = document.getElementById('last-amount');
+const lastSend = document.getElementById('last-send');
+if (lastBtn) {
+  lastBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    lastPopup.style.display = lastPopup.style.display === 'none' ? 'block' : 'none';
+  });
+  lastSlider.addEventListener('input', () => { lastAmount.textContent = `${lastSlider.value} más`; });
+  lastSend.addEventListener('click', () => {
+    socket.emit('lastCall', +lastSlider.value);
+    lastPopup.style.display = 'none';
+  });
+  documentListeners.lastPopupClose = (e) => {
+    if (!lastPopup.contains(e.target) && !lastBtn.contains(e.target)) lastPopup.style.display = 'none';
+  };
+  document.addEventListener('click', documentListeners.lastPopupClose);
+}
 
 const gifBtn = document.getElementById('gif-btn');
 const gifPopup = document.getElementById('gif-popup');

@@ -6761,3 +6761,4 @@ body.theme-xp .title-bar .theme-selector {
 .gif-grid img:hover { border-color: var(--color-primary); }
 .gif-empty { grid-column: 1 / -1; font-size: 11px; color: #777; padding: 10px; text-align: center; }
 .gif-foot { font-size: 9px; color: #888; text-align: right; margin-top: 4px; letter-spacing: 1px; }
+#game-player-list .player-name { font-weight: 700; }

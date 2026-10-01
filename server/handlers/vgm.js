@@ -19,6 +19,7 @@ const FONTS = new Set(['normal', 'comic', 'papyrus', 'impact']);
 const MODES = new Set(['normal', 'uwu', 'leet', 'caps', 'reverse', 'bilbao']);
 const TIERS = ['S', 'A', 'B', 'C', 'D', 'F'];
 const TIER_COLORS = { S: '#ff7f7f', A: '#ffbf7f', B: '#ffdf7f', C: '#ffff7f', D: '#bfff7f', F: '#7fff7f' };
+const nameHtml = name => `<b style="color:${COLORS[name] || '#000'}">${String(name).replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]))}</b>`;
 const SYS_FONT = { size: 13, color: '#666666', nameColor: '#0000ff', effect: 'none' };
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
@@ -347,7 +348,7 @@ function startAutoPlayCountdown(roomCode, context) {
   const attr = v => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   let text = `La canción era: <b>${cur.game} - ${cur.song}</b><button class="reveal-edit" data-id="${cur.id}" data-game="${attr(cur.game)}" data-name="${attr(cur.song)}" data-aliases="${attr((cur.aliases || []).join(', '))}" title="Corregir">&#x270E;</button>`;
   if (record) {
-    text += `<br>El récord es de <b>${record.player}</b> con <b>${record.time.toFixed(2)}</b> segundos`;
+    text += `<br>El récord es de ${nameHtml(record.player)} con <b>${record.time.toFixed(2)}</b> segundos`;
   }
   if (cur.addedBy) {
     text += `<br>Canción añadida por <b style="color:${COLORS[cur.addedBy] || '#000'}">${cur.addedBy}</b>`;
@@ -366,6 +367,21 @@ function startAutoPlayCountdown(roomCode, context) {
     message: `La canción era: ${lobby.currentSong.game} - ${lobby.currentSong.song}`,
     type: 'system'
   });
+
+  const call = lobby.lastCall;
+  if (call) {
+    if (call.left > 0) {
+      _io.to(roomCode).emit('sqrrrMessage', { message: call.left === 1 ? 'Queda 1 canción' : `Quedan ${call.left} canciones`, isBold: true });
+    } else {
+      lobby.lastCall = null;
+      lobby.autoPlayActive = false;
+      lobby.countdownToken = (lobby.countdownToken || 0) + 1;
+      _io.to(roomCode).emit('sqrrrMessage', { message: 'nos bem0<br><img class="chat-img" src="nosbemo.jpg" alt="">', isBold: true });
+      addToChatHistory(roomCode, { sender: 'SQRRR', message: 'nos bem0', type: 'system' });
+      _io.to(roomCode).emit('gameOver');
+      return;
+    }
+  }
 
   const token = lobby.countdownToken = (lobby.countdownToken || 0) + 1;
   setTimeout(() => {
@@ -392,6 +408,7 @@ function startNextRound(roomCode, context) {
     return;
   }
 
+  if (lobby.lastCall) lobby.lastCall.left--;
   lobby.recentSongs.push(song.file);
   if (lobby.recentSongs.length > 200) {
     lobby.recentSongs.shift();
@@ -531,6 +548,17 @@ function setupHandlers(io, socket, context) {
     socket.emit('chatHistory', roomHistory);
   });
 
+  socket.on('lastCall', (n) => {
+    const currentRoom = getCurrentRoom();
+    if (!currentRoom || !lobbies[currentRoom]) return;
+    const lobby = lobbies[currentRoom];
+    const player = lobby.players[socket.id];
+    n = Math.round(Number(n));
+    if (!player || !(n >= 1 && n <= 20)) return;
+    lobby.lastCall = { by: player.name, left: n };
+    io.to(currentRoom).emit('sqrrrMessage', { message: `${nameHtml(player.name)} dice ${n} más y ya fr`, isBold: true });
+  });
+
   socket.on('vgmPause', () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom || !lobbies[currentRoom]) return;
@@ -554,6 +582,7 @@ function setupHandlers(io, socket, context) {
     }
 
     lobby.autoPlayActive = true;
+    io.to(currentRoom).emit('vgmStart');
     discord.announce('VGM!!!!!!! 🚨 https://www.sqrrr.com');
     startFirstRoundCountdown(currentRoom, { ...context, lobbies });
   });
@@ -696,9 +725,9 @@ function setupHandlers(io, socket, context) {
 
           let recordMessage;
           if (previousRecord) {
-            recordMessage = `El nuevo récord es de ${player.name} con ${player.guessTime.toFixed(2)} segundos, mejorando el anterior récord de ${previousRecord.player} con ${previousRecord.time.toFixed(2)} segundos!`;
+            recordMessage = `El nuevo récord es de ${nameHtml(player.name)} con ${player.guessTime.toFixed(2)} segundos, mejorando el anterior récord de ${nameHtml(previousRecord.player)} con ${previousRecord.time.toFixed(2)} segundos!`;
           } else {
-            recordMessage = `El nuevo récord es de ${player.name} con ${player.guessTime.toFixed(2)} segundos!`;
+            recordMessage = `El nuevo récord es de ${nameHtml(player.name)} con ${player.guessTime.toFixed(2)} segundos!`;
           }
 
           io.to(currentRoom).emit('sqrrrMessage', {
