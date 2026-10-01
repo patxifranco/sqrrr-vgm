@@ -135,6 +135,51 @@
     bats.push({ x: x + (Math.random() - 0.5) * 10, y: y + (Math.random() - 0.5) * 10, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.1, s: 5 + Math.random() * 6, life: 0, max: 900 + Math.random() * 800, ph: Math.random() * 6.28 });
   }
 
+  function burst(x, y, n) {
+    canvas.classList.add('show');
+    for (let i = 0; i < n; i++) {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.6;
+      if (i < 4) addBat(x, y, ang);
+      else setTimeout(() => { addBat(x, y, ang); if (!raf) { prevT = performance.now(); raf = requestAnimationFrame(tick); } }, 30 + Math.random() * 260);
+    }
+    if (!raf) { prevT = performance.now(); raf = requestAnimationFrame(tick); }
+    setTimeout(() => canvas.classList.remove('show'), 2600);
+  }
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn) loginBtn.addEventListener('click', () => { const r = loginBtn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 16); });
+
+  document.addEventListener('vgmCorrect', () => {
+    deco.classList.add('flare');
+    setTimeout(() => deco.classList.remove('flare'), 1200);
+  });
+
+  const flash = document.createElement('div');
+  flash.id = 'hw-flash';
+  document.body.appendChild(flash);
+  let audioCtx = null;
+  document.addEventListener('click', () => { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (err) { audioCtx = null; } } }, { once: true });
+  function thunder() {
+    if (!audioCtx || audioCtx.state !== 'running') return;
+    const len = 2.8, sr = audioCtx.sampleRate, buf = audioCtx.createBuffer(1, sr * len, sr), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.2);
+    const src = audioCtx.createBufferSource(); src.buffer = buf;
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 180;
+    const g = audioCtx.createGain(); g.gain.value = 0.5;
+    src.connect(lp); lp.connect(g); g.connect(audioCtx.destination);
+    src.start(audioCtx.currentTime + 0.25);
+  }
+  function lightning() {
+    flash.classList.remove('on');
+    void flash.offsetWidth;
+    flash.classList.add('on');
+    sky.classList.add('lit');
+    setTimeout(() => sky.classList.remove('lit'), 320);
+    setTimeout(() => flash.classList.remove('on'), 800);
+    thunder();
+    setTimeout(lightning, 90000 + Math.random() * 150000);
+  }
+  setTimeout(lightning, 40000 + Math.random() * 60000);
+
   function spawn(e) {
     if (!game || !game.classList.contains('active')) return;
     const dx = e.clientX - last.x, dy = e.clientY - last.y;

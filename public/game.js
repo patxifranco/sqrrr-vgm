@@ -670,6 +670,8 @@ document.addEventListener('paste', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (currentScreen !== 'game') return;
+  if (e.ctrlKey && !e.altKey && (e.key === 'g' || e.key === 'G')) { e.preventDefault(); if (gifBtn) gifBtn.click(); return; }
+  if (e.ctrlKey && !e.altKey && (e.key === 'e' || e.key === 'E')) { e.preventDefault(); if (emoticonBtn) emoticonBtn.click(); return; }
   if (e.key === 'Escape') {
     for (const p of [fontPopup, betPopup, inkPopup, emoticonPopup, gifPopup, lastPopup]) if (p) p.style.display = 'none';
     return;
@@ -1160,6 +1162,7 @@ socketManager.on('roundComplete', () => {
 });
 
 socketManager.on('correctGuess', ({ playerName, type, sonicType, timeElapsed }) => {
+  document.dispatchEvent(new CustomEvent('vgmCorrect'));
   if (currentUser && playerName !== currentUser.username) {
     const time = timeElapsed || ((Date.now() - roundStartTime) / 1000);
     addCorrectGuessMessage(playerName, time, type === 'game', sonicType);

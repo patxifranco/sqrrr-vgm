@@ -135,3 +135,12 @@ html.halloween .wmp-task.on { color: #2a1660; background: linear-gradient(180deg
 html.halloween .wmp-lib { background: #dcd6e4; border-color: #2a1660; color: #111; }
 html.halloween .wmp-libbar { background: linear-gradient(180deg, #f3ecff, #d8c8f8); border-color: #9a7fe0; }
 html.halloween .wmp-libtitle { color: #2a1660; }
+html.halloween .tl-cursor { padding-top: 16px; margin-top: -17px; background: url(../halloween/hat.svg) no-repeat 54% 0 / 24px; }
+html.halloween .reveal { position: relative; }
+html.halloween .reveal::before { content: ''; position: absolute; left: 0; top: 0; width: 30px; height: 30px; background: url(../halloween/web-dark.svg) top left / contain no-repeat; pointer-events: none; }
+#hw-deco.flare .hw-pumpkin { animation: none; filter: drop-shadow(0 0 16px rgba(255, 190, 70, 1)) brightness(1.35); transition: filter 0.2s; }
+#hw-flash { position: fixed; inset: 0; z-index: 9400; pointer-events: none; background: #fff; opacity: 0; display: none; }
+#hw-flash.on { display: block; animation: hw-bolt 0.7s linear forwards; }
+#hw-sky.lit { filter: brightness(2.4) saturate(0.6); transition: filter 0.1s; }
+@keyframes hw-bolt { 0% { opacity: 0; } 6% { opacity: 0.85; } 14% { opacity: 0.1; } 22% { opacity: 0.6; } 40% { opacity: 0; } 100% { opacity: 0; } }
+#hw-bats.show { display: block; }
