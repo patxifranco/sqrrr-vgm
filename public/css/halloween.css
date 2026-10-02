@@ -83,8 +83,6 @@ html.halloween body {
 #hw-light { position: fixed; inset: 0; z-index: 9000; pointer-events: none; display: none; background: radial-gradient(circle at var(--hx, 50%) var(--hy, 50%), rgba(255, 214, 140, 0.1) 0, rgba(255, 214, 140, 0) 170px), radial-gradient(circle at var(--hx, 50%) var(--hy, 50%), rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 140px, rgba(0, 0, 0, 0.7) 210px, rgba(0, 0, 0, 0.975) 330px); animation: hw-flicker 9s linear infinite; }
 html.halloween body:has(#login-screen.active) #hw-light, html.halloween body:has(#hub-screen.active) #hw-light { display: block; }
 
-#hw-bats { position: fixed; inset: 0; z-index: 9500; pointer-events: none; display: none; }
-html.halloween body:has(#game-screen.active) #hw-bats { display: block; }
 
 :where(html.halloween) .window { background: #2b2733; color: #e6e2ee; box-shadow: inset -1px -1px #0d0520, inset 1px 1px #3b1a70, inset -2px -2px #1a0a3a, inset 2px 2px #6a3ad0, inset -3px -3px #2a0f60, inset 3px 3px #5a2ab8; }
 :where(html.halloween) .title-bar { background: linear-gradient(180deg, #a876f2, #6e30cc 8%, #6428c2 40%, #5c22b8 88%, #5c22b8 93%, #5220aa 95%, #3e1688 96%, #3e1688); border-top: 1px solid #4a1a9a; border-left: 1px solid #4a1a9a; border-right: 1px solid #2a0a60; text-shadow: 1px 1px #24084e; }
@@ -135,7 +133,6 @@ html.halloween .wmp-task.on { color: #2a1660; background: linear-gradient(180deg
 html.halloween .wmp-lib { background: #dcd6e4; border-color: #2a1660; color: #111; }
 html.halloween .wmp-libbar { background: linear-gradient(180deg, #f3ecff, #d8c8f8); border-color: #9a7fe0; }
 html.halloween .wmp-libtitle { color: #2a1660; }
-html.halloween .tl-cursor { padding-top: 16px; margin-top: -17px; background: url(../halloween/hat.svg) no-repeat 54% 0 / 24px; }
 html.halloween .reveal { position: relative; }
 html.halloween .reveal::before { content: ''; position: absolute; left: 0; top: 0; width: 30px; height: 30px; background: url(../halloween/web-dark.svg) top left / contain no-repeat; pointer-events: none; }
 #hw-deco.flare .hw-pumpkin { animation: none; filter: drop-shadow(0 0 16px rgba(255, 190, 70, 1)) brightness(1.35); transition: filter 0.2s; }
@@ -143,4 +140,3 @@ html.halloween .reveal::before { content: ''; position: absolute; left: 0; top: 
 #hw-flash.on { display: block; animation: hw-bolt 0.7s linear forwards; }
 #hw-sky.lit { filter: brightness(2.4) saturate(0.6); transition: filter 0.1s; }
 @keyframes hw-bolt { 0% { opacity: 0; } 6% { opacity: 0.85; } 14% { opacity: 0.1; } 22% { opacity: 0.6; } 40% { opacity: 0; } 100% { opacity: 0; } }
-#hw-bats.show { display: block; }

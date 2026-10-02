@@ -64,90 +64,6 @@
   let moved = false;
   new MutationObserver(() => { if (!moved) requestAnimationFrame(placeLight); }).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
 
-  const canvas = document.createElement('canvas');
-  canvas.id = 'hw-bats';
-  document.body.appendChild(canvas);
-  const ctx = canvas.getContext('2d');
-  const sizeCanvas = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
-  sizeCanvas();
-  window.addEventListener('resize', sizeCanvas);
-  const bats = [];
-  let raf = 0, prevT = 0;
-  const last = { x: 0, y: 0, t: 0 };
-  const game = document.getElementById('game-screen');
-
-  function drawBat(x, y, s, f, a) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(s / 20, s / 20);
-    ctx.globalAlpha = a;
-    const t = -3 - f * 5;
-    ctx.beginPath();
-    ctx.moveTo(0, 5);
-    ctx.lineTo(0, -2);
-    ctx.quadraticCurveTo(9, -8 - f * 3, 20, t);
-    ctx.quadraticCurveTo(15, 1 - f * 2, 13, 3 - f * 2);
-    ctx.quadraticCurveTo(10, 1, 7, 5);
-    ctx.quadraticCurveTo(4, 3, 2, 6);
-    ctx.lineTo(0, 5);
-    ctx.lineTo(-2, 6);
-    ctx.quadraticCurveTo(-4, 3, -7, 5);
-    ctx.quadraticCurveTo(-10, 1, -13, 3 - f * 2);
-    ctx.quadraticCurveTo(-15, 1 - f * 2, -20, t);
-    ctx.quadraticCurveTo(-9, -8 - f * 3, 0, -2);
-    ctx.closePath();
-    ctx.moveTo(-1.5, -3);
-    ctx.lineTo(-3, -8);
-    ctx.lineTo(-0.5, -4.5);
-    ctx.moveTo(1.5, -3);
-    ctx.lineTo(3, -8);
-    ctx.lineTo(0.5, -4.5);
-    ctx.fillStyle = '#0d0618';
-    ctx.fill();
-    ctx.lineWidth = 1.1;
-    ctx.strokeStyle = 'rgba(255, 160, 60, 0.5)';
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function tick(now) {
-    const dt = Math.min(50, now - prevT || 16);
-    prevT = now;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = bats.length - 1; i >= 0; i--) {
-      const b = bats[i];
-      b.life += dt;
-      if (b.life >= b.max) { bats.splice(i, 1); continue; }
-      const k = dt / 16;
-      b.vx += Math.sin(b.life / 90 + b.ph) * 0.12 * k;
-      b.vy -= 0.035 * k;
-      b.x += b.vx * k;
-      b.y += b.vy * k;
-      const p = b.life / b.max;
-      const alpha = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
-      drawBat(b.x, b.y, b.s * (1 + p * 0.5), Math.sin(b.life / 55 + b.ph), alpha);
-    }
-    raf = bats.length ? requestAnimationFrame(tick) : 0;
-  }
-
-  function addBat(x, y, ang) {
-    const sp = 1.4 + Math.random() * 2.6;
-    bats.push({ x: x + (Math.random() - 0.5) * 10, y: y + (Math.random() - 0.5) * 10, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.1, s: 5 + Math.random() * 6, life: 0, max: 900 + Math.random() * 800, ph: Math.random() * 6.28 });
-  }
-
-  function burst(x, y, n) {
-    canvas.classList.add('show');
-    for (let i = 0; i < n; i++) {
-      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.6;
-      if (i < 4) addBat(x, y, ang);
-      else setTimeout(() => { addBat(x, y, ang); if (!raf) { prevT = performance.now(); raf = requestAnimationFrame(tick); } }, 30 + Math.random() * 260);
-    }
-    if (!raf) { prevT = performance.now(); raf = requestAnimationFrame(tick); }
-    setTimeout(() => canvas.classList.remove('show'), 2600);
-  }
-  const loginBtn = document.getElementById('login-btn');
-  if (loginBtn) loginBtn.addEventListener('click', () => { const r = loginBtn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 16); });
-
   document.addEventListener('vgmCorrect', () => {
     deco.classList.add('flare');
     setTimeout(() => deco.classList.remove('flare'), 1200);
@@ -180,28 +96,9 @@
   }
   setTimeout(lightning, 40000 + Math.random() * 60000);
 
-  function spawn(e) {
-    if (!game || !game.classList.contains('active')) return;
-    const dx = e.clientX - last.x, dy = e.clientY - last.y;
-    const t = performance.now();
-    if (Math.hypot(dx, dy) < 40 || t - last.t < 180) return;
-    last.x = e.clientX; last.y = e.clientY; last.t = t;
-    if (bats.length > 90) return;
-    const base = Math.atan2(dy, dx) + Math.PI;
-    const n = 5 + Math.floor(Math.random() * 5);
-    const x = e.clientX, y = e.clientY;
-    for (let i = 0; i < n; i++) {
-      const ang = base + (Math.random() - 0.5) * 2.2;
-      if (i < 3) addBat(x, y, ang);
-      else setTimeout(() => { addBat(x, y, ang); if (!raf) { prevT = performance.now(); raf = requestAnimationFrame(tick); } }, 40 + Math.random() * 160);
-    }
-    if (!raf) { prevT = t; raf = requestAnimationFrame(tick); }
-  }
-
   document.addEventListener('mousemove', e => {
     moved = true;
     light.style.setProperty('--hx', e.clientX + 'px');
     light.style.setProperty('--hy', e.clientY + 'px');
-    spawn(e);
   });
 })();

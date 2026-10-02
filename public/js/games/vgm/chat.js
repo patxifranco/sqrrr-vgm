@@ -164,13 +164,7 @@ class VGMChat {
   }
 
   scroll() {
-    if (this._nearBottom) {
-      this.container.scrollTop = this.container.scrollHeight;
-    } else {
-      this._unread++;
-      this._pill.textContent = `\u2193 ${this._unread} nuevo${this._unread === 1 ? '' : 's'}`;
-      this._pill.style.display = 'block';
-    }
+    this.container.scrollTop = this.container.scrollHeight;
   }
 
   setCurrentUser(user) {
@@ -243,6 +237,7 @@ class VGMChat {
         i.replaceWith(a);
       }, { once: true });
     }
+    for (const img of div.querySelectorAll('img.chat-img, img.reveal-cover')) img.addEventListener('load', () => this.scroll(), { once: true });
     return div;
   }
 
