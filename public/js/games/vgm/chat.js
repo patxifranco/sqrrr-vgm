@@ -164,7 +164,10 @@ class VGMChat {
   }
 
   scroll() {
-    this.container.scrollTop = this.container.scrollHeight;
+    const down = () => { this.container.scrollTop = this.container.scrollHeight; };
+    down();
+    requestAnimationFrame(down);
+    setTimeout(down, 200);
   }
 
   setCurrentUser(user) {
@@ -237,7 +240,7 @@ class VGMChat {
         i.replaceWith(a);
       }, { once: true });
     }
-    for (const img of div.querySelectorAll('img.chat-img, img.reveal-cover')) img.addEventListener('load', () => this.scroll(), { once: true });
+    for (const img of div.querySelectorAll('img')) if (!img.complete) img.addEventListener('load', () => this.scroll(), { once: true });
     return div;
   }
 
