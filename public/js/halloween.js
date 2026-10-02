@@ -44,7 +44,14 @@
     add('hw-pumpkin', r.right - 40, r.bottom - 50);
     if (r.width > 900) add('hw-pumpkin small', r.left - 30, r.bottom - 40);
   }
-  const queueDecorate = () => { if (!decoQueued) { decoQueued = true; requestAnimationFrame(decorate); } };
+  function syncTheme() {
+    const screen = document.querySelector('.screen-container.active');
+    const on = !(screen && screen.id.startsWith('drawing-'));
+    document.documentElement.classList.toggle('halloween', on);
+    sky.style.display = on ? '' : 'none';
+    deco.style.display = on ? '' : 'none';
+  }
+  const queueDecorate = () => { syncTheme(); if (!decoQueued) { decoQueued = true; requestAnimationFrame(decorate); } };
   queueDecorate();
   window.addEventListener('resize', queueDecorate);
   new MutationObserver(queueDecorate).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
@@ -85,6 +92,7 @@
     src.start(audioCtx.currentTime + 0.25);
   }
   function lightning() {
+    if (!document.documentElement.classList.contains('halloween')) { setTimeout(lightning, 60000); return; }
     flash.classList.remove('on');
     void flash.offsetWidth;
     flash.classList.add('on');
